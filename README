@@ -1,0 +1,142 @@
+NAME
+    Perinci::CmdLine - Rinci/Riap-based command-line application framework
+
+VERSION
+    version 0.38
+
+SYNOPSIS
+    In your command-line script:
+
+     #!/usr/bin/perl
+     use Perinci::CmdLine;
+     Perinci::CmdLine->new(url => 'Your::Module', ...)->run;
+
+    See also the peri-run script which provides a command-line interface for
+    Perinci::CmdLine.
+
+DESCRIPTION
+    Perinci::CmdLine is a command-line application framework. It access
+    functions using Riap protocol (Perinci::Access) so you get transparent
+    remote access. It utilizes Rinci metadata in the code so the amount of
+    plumbing that you have to do is quite minimal.
+
+    What you'll get:
+
+    *   Command-line parsing (currently using Getopt::Long, with some
+        tweaks)
+
+    *   Help message (utilizing information from metadata)
+
+    *   Tab completion for bash (including completion from remote code)
+
+    This module uses Log::Any and Log::Any::App for logging.
+
+    This module uses Moo for OO.
+
+ATTRIBUTES
+  program_name => STR (default from $0)
+  url => STR
+    Required if you only want to run one function. URL should point to a
+    function entity.
+
+    Alternatively you can provide multiple functions from which the user can
+    select using the first argument (see subcommands).
+
+  summary => STR
+    If unset, will be retrieved from function metadata when needed.
+
+  subcommands => {NAME => {ARGUMENT=>...}, ...} | CODEREF
+    Should be a hash of subcommand specifications or a coderef.
+
+    Each subcommand specification is also a hash(ref) and should contain
+    these keys: "url". It can also contain these keys: "summary" (will be
+    retrieved from function metadata if unset), "tags" (for categorizing
+    subcommands).
+
+    Subcommands can also be a coderef, for dynamic list of subcommands. The
+    coderef will be called as a method with hash arguments. It can be called
+    in two cases. First, if called without argument "name" (usually when
+    doing --list) it must return a hashref of subcommand specifications. If
+    called with argument "name" it must return subcommand specification for
+    subcommand with the requested name only.
+
+  exit => BOOL (default 1)
+    If set to 0, instead of exiting with exit(), run() will return the exit
+    code instead.
+
+  custom_completer => CODEREF
+    Will be passed to Perinci::BashComplete's "bash_complete_riap_func_arg".
+    See its documentation for more details.
+
+  custom_arg_completer => CODEREF | {ARGNAME=>CODEREF, ...}
+    Will be passed to Perinci::BashComplete. See its documentation for more
+    details.
+
+  dash_to_underscore => BOOL (optional, default 1)
+    If set to 1, subcommand like a-b-c will be converted to a_b_c. This is
+    for convenience when typing in command line.
+
+  undo => BOOL (optional, default 0)
+    UNFINISHED. If set to 1, --undo and --undo-dir will be added to
+    command-line options. --undo is used to perform undo: -undo and
+    -undo_data will be passed to subroutine, an error will be thrown if
+    subroutine does not have "undo" features. --undo-dir is used to set
+    location of undo data (default "~/.undo"; undo directory will be created
+    if not exists; each subroutine will have its own subdir here).
+
+METHODS
+  new(%opts) => OBJ
+    Create an instance.
+
+  run() -> INT
+    The main routine. Its job is to parse command-line options in @ARGV and
+    determine which action method to run. Action is run_command() (for
+    calling function) or one of actions for common options like run_help
+    (--help), run_list (--list). After that exit with appropriate exit code.
+    (If "exit" attribute is set to false, will return with exit code instead
+    of directly calling exit().)
+
+  run_command() -> INT
+    Called by run() after run() decides that a command should be run.
+    Requires $self->{_subcommand} to be set by run(). Call function
+    specified in command and exit with appropriate exit code (0 if envelope
+    status code is 200, or code-300).
+
+FAQ
+  How does Perinci::CmdLine compare with other CLI-app frameworks?
+    Perinci::CmdLine is part of a more general metadata and wrapping
+    framework (Perinci::* modules family). Aside from a command-line
+    application, your metadata is also usable for other purposes, like
+    providing access over HTTP/TCP, documentation. Sub::Spec::CmdLine is not
+    OO. Configuration file support is missing (coming soon, most probably
+    based on Config::Ini::OnDrugs). Also lacking is more documentation and
+    more plugins.
+
+  Why is nonscalar arguments parsed as YAML instead of JSON/etc?
+    I think YAML is nicer in command-line because quotes are optional in a
+    few places:
+
+     $ cmd --array '[a, b, c]' --hash '{foo: bar}'
+
+    versus:
+
+     $ cmd --array '["a","b","c"]' --hash '{"foo":"bar"}'
+
+    Though YAML requires spaces in some places where JSON does not. A flag
+    to parse as JSON can be added upon request.
+
+SEE ALSO
+    Perinci, Rinci, Riap.
+
+    Other CPAN modules to write command-line applications: App::Cmd,
+    App::Rad, MooseX::Getopt.
+
+AUTHOR
+    Steven Haryanto <stevenharyanto@gmail.com>
+
+COPYRIGHT AND LICENSE
+    This software is copyright (c) 2012 by Steven Haryanto.
+
+    This is free software; you can redistribute it and/or modify it under
+    the same terms as the Perl 5 programming language system itself.
+
