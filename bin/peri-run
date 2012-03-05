@@ -9,6 +9,8 @@ use warnings;
 use Getopt::Long;
 use Perinci::CmdLine;
 
+our $VERSION = '0.39'; # VERSION
+
 my %opts = (
     library => [],
 );
@@ -75,6 +77,7 @@ if ($func) {
     $cmd->url("$module$func");
     $cmd->program_name($ENV{PERI_RUN_PROGRAM_NAME} // "$me $module$func");
 } else {
+    $cmd->url("$module");
     $cmd->program_name($ENV{PERI_RUN_PROGRAM_NAME} // "$me $module");
     my $pa = $cmd->{_pa};
     my $res = $pa->request(list => $module, {detail=>1});
@@ -106,7 +109,7 @@ peri_run - Run Perl module (or any package over Riap) on the command-line
 
 =head1 VERSION
 
-version 0.38
+version 0.39
 
 =head1 SYNOPSIS
 

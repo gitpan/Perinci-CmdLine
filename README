@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.38
+    version 0.39
 
 SYNOPSIS
     In your command-line script:
@@ -90,17 +90,14 @@ METHODS
 
   run() -> INT
     The main routine. Its job is to parse command-line options in @ARGV and
-    determine which action method to run. Action is run_command() (for
-    calling function) or one of actions for common options like run_help
-    (--help), run_list (--list). After that exit with appropriate exit code.
-    (If "exit" attribute is set to false, will return with exit code instead
-    of directly calling exit().)
+    determine which action method (e.g. run_subcommand(), run_help(), etc)
+    to run. Action method should return an integer containing exit code. If
+    action method returns undef, the next action candidate method will be
+    tried.
 
-  run_command() -> INT
-    Called by run() after run() decides that a command should be run.
-    Requires $self->{_subcommand} to be set by run(). Call function
-    specified in command and exit with appropriate exit code (0 if envelope
-    status code is 200, or code-300).
+    After that, exit() will be called with the exit code from the action
+    method (or, if "exit" attribute is set to false, routine will return
+    with exit code instead).
 
 FAQ
   How does Perinci::CmdLine compare with other CLI-app frameworks?

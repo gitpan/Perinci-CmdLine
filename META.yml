@@ -7,7 +7,7 @@ build_requires:
 configure_requires:
   Module::Build: 0.3601
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.300006, CPAN::Meta::Converter version 2.113640'
+generated_by: 'Dist::Zilla version 4.300002, CPAN::Meta::Converter version 2.112150'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -19,7 +19,6 @@ requires:
   Data::Format::Pretty: 0
   Data::Format::Pretty::Console: 0
   Data::Format::Pretty::JSON: 0
-  Data::Format::Pretty::PHPSerialization: 0
   Data::Format::Pretty::YAML: 0
   Data::Sah: 0.02
   JSON: 0
@@ -28,13 +27,14 @@ requires:
   Log::Any::App: 0
   Moo: 0
   Object::BlankStr: 0
-  Perinci::Access: 0
+  Perinci::Access: 0.06
   Perinci::BashComplete: 0
   Perinci::Examples: 0
   Perinci::Sub::GetArgs::Argv: 0
+  Perinci::Sub::Wrapper: 0.14
   Test::More: 0.96
   perl: 5.010000
 resources:
   homepage: http://search.cpan.org/dist/Perinci-CmdLine/
   repository: http://github.com/sharyanto/perl-Perinci-CmdLine
-version: 0.38
+version: 0.39
