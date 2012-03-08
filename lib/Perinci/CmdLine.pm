@@ -6,7 +6,7 @@ use warnings;
 use Log::Any '$log';
 use Moo;
 
-our $VERSION = '0.40'; # VERSION
+our $VERSION = '0.41'; # VERSION
 
 has program_name => (is => 'rw', default=>sub {local $_=$0; s!.+/!!; $_});
 has url => (is => 'rw');
@@ -306,7 +306,9 @@ sub run_subcommand {
     $log->tracef("res=%s", $self->{_res});
 
     my $resmeta = $self->{_res}->[3] // {};
-    $self->{_res} = undef unless $resmeta->{"cmdline.display_result"}//1;
+    unless ($resmeta->{"cmdline.display_result"}//1) {
+        $self->{_res}[2] = undef;
+    }
     $self->format_result();
 
     # display result
@@ -543,7 +545,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.40
+version 0.41
 
 =head1 SYNOPSIS
 
