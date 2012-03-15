@@ -8,6 +8,9 @@ README
 bin/peri-run
 dist.ini
 lib/Perinci/CmdLine.pm
+lib/Perinci/CmdLine/I18N.pm
+lib/Perinci/CmdLine/I18N/en.pm
+lib/Perinci/CmdLine/I18N/id.pm
 t/00-compile.t
 t/01-basics.t
 t/release-pod-coverage.t

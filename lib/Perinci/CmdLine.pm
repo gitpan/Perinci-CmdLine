@@ -3,12 +3,30 @@ package Perinci::CmdLine;
 use 5.010;
 use strict;
 use warnings;
+use Data::Dump::OneLine qw(dump1);
 use Log::Any '$log';
 use Moo;
+use Perinci::Object;
+use Perinci::ToUtil;
 
-our $VERSION = '0.41'; # VERSION
+our $VERSION = '0.42'; # VERSION
 
-has program_name => (is => 'rw', default=>sub {local $_=$0; s!.+/!!; $_});
+with 'Perinci::To::Text::AddDocLinesRole';
+with 'SHARYANTO::Role::Doc::Section';
+with 'SHARYANTO::Role::I18N';
+with 'SHARYANTO::Role::I18NRinci';
+
+has program_name => (
+    is => 'rw',
+    lazy => 1,
+    default => sub {
+        my $pn = $ENV{PERINCI_CMDLINE_PROGRAM_NAME};
+        if (!defined($pn)) {
+            $pn = $0; $pn =~ s!.+/!!;
+        }
+        $pn;
+    }
+);
 has url => (is => 'rw');
 has summary => (is => 'rw');
 has subcommands => (is => 'rw');
@@ -19,11 +37,18 @@ has custom_arg_completer => (is => 'rw');
 has dash_to_underscore => (is => 'rw', default=>sub{1});
 has undo => (is=>'rw', default=>sub{0});
 has format => (is => 'rw', default=>sub{'text'});
+has _pa => (
+    is => 'rw',
+    lazy => 1,
+    default => sub {
+        require Perinci::Access;
+        Perinci::Access->new;
+    }
+);
 
 sub BUILD {
-    require Perinci::Access;
     my ($self, $args) = @_;
-    $self->{_pa} = Perinci::Access->new;
+    #$self->{indent} = $args->{indent} // "    ";
 }
 
 sub format_result {
@@ -44,7 +69,8 @@ sub format_result {
     if ($format =~ /^(text|pretty|nopretty)$/) {
         if (!defined($self->{_res}[2])) {
             $self->{_fres} = $self->{_res}[0] == 200 ? "" :
-                "ERROR $self->{_res}[0]: $self->{_res}[1]\n";
+                "ERROR $self->{_res}[0]: $self->{_res}[1]" .
+                    ($self->{_res}[1] =~ /\n\z/ ? "" : "\n");
             return;
         }
         my $r = $self->{_res}[0] == 200 ? $self->{_res}[2] : $self->{_res};
@@ -101,9 +127,15 @@ sub list_subcommands {
 sub run_list {
     my ($self) = @_;
 
+    if (!$self->subcommands) {
+        say $self->loc("There are no subcommands") . ".";
+        return 0;
+    }
+
     my $subcommands = $self->list_subcommands;
 
-    # XXX get summary from Riap if not exist
+    # XXX get summary from Riap if not exist, but this results in multiple Riap
+    # requests.
 
     my %percat_subc; # (cat1 => {subcmd1=>..., ...}, ...)
     while (my ($scn, $sc) = each %$subcommands) {
@@ -124,15 +156,16 @@ sub run_list {
     for my $cat (sort keys %percat_subc) {
         print "\n" if $i++;
         if ($has_many_cats) {
-            print "List of", ucfirst($cat) || "main",
-                " subcommands:\n";
+            say $self->loc("List of available [_1] subcommands",
+                           ucfirst($cat) || "main") . ":";
         } else {
-            print "List of subcommands:\n";
+            say $self->loc("List of available subcommands") . ":";
         }
         my $subc = $percat_subc{$cat};
         for my $scn (sort keys %$subc) {
             my $sc = $subc->{$scn};
-            say "  $scn", ($sc->{summary} ? " - $sc->{summary}" : "");
+            my $summary = $self->langprop($sc, "summary");
+            say "  $scn", $summary ? " - $summary" : "";
         }
     }
 
@@ -142,24 +175,18 @@ sub run_list {
 sub run_version {
     my ($self) = @_;
 
-    # get from pkg_version property
-
-    # XXX url does not necessarily a package url, we should URI->new and then
-    # cut one path
-    my $pkg_url = $self->url or
-        die "ERROR: 'url' not set, required for 'version'";
-
-    my $res = $self->{_pa}->request(meta => $pkg_url);
-    my $version;
+    my $url = $self->{_subcommand} ? $self->{_subcommand}{url} : $self->url;
+    my $res = $self->_pa->request(meta => $url);
+    my $ver;
     if ($res->[0] == 200) {
-        $version = $res->[2]{pkg_version} // "?";
+        $ver = $res->[2]{entity_version} // "?";
     } else {
         $log->warnf("Can't request 'meta' action on %s: %d - %s",
-                    $pkg_url, $res->[0], $res->[1]);
-        $version = '?';
+                    $url, $res->[0], $res->[1]);
+        $ver = '?';
     }
 
-    say $self->program_name, " version ", $version;
+    say $self->loc("[_1] version [_2]", $self->program_name, $ver);
 
     0;
 }
@@ -254,53 +281,187 @@ sub run_completion {
     0;
 }
 
-sub run_help {
+sub before_generate_doc {
     my ($self) = @_;
 
-    my $prog = $self->program_name;
+    my $sc = $self->{_subcommand};
+    my $url = $sc ? $sc->{url} : $self->url;
+    if ($url) {
+        my $res = $self->_pa->request(info => $url);
+        die "ERROR: Can't info '$url': $res->[0] - $res->[1]\n"
+            unless $res->[0] == 200;
+        $self->{_info} = $res->[2];
+        $res = $self->_pa->request(meta => $url);
+        die "ERROR: Can't meta '$url': $res->[0] - $res->[1]\n"
+            unless $res->[0] == 200;
+        $self->{_meta} = $res->[2];
+    }
+}
 
-    # XXX custom help subroutine
+sub doc_parse_summary {
+    my ($self) = @_;
 
     my $sc = $self->{_subcommand};
-    if ($sc && $sc->{name}) {
-        my $res = $self->{_pa}->request(meta => $sc->{url});
-        if ($res->[0] == 200) {
-            # XXX meta to pod
-            require YAML::Syck;
-            print "Temporary help message for subcommand $sc->{name}:\n";
-            print YAML::Syck::Dump($res->[2]);
-            return 0;
-        }
+
+    $self->doc_parse->{name} = $self->program_name .
+        ($sc && length($sc->{name}) ? " $sc->{name}" : "");
+
+    if ($self->{_meta}) {
+        $self->doc_parse->{summary} =
+            $self->langprop($self->{_meta}, "summary");
+    }
+}
+
+sub doc_gen_summary {
+    my ($self) = @_;
+
+    my $name_summary = join(
+        "",
+        $self->doc_parse->{name} // "",
+        ($self->doc_parse->{name} && $self->doc_parse->{summary} ? ' - ' : ''),
+        $self->doc_parse->{summary} // ""
+    );
+
+    $self->add_doc_lines($name_summary, "");
+}
+
+sub doc_parse_usage {}
+
+sub doc_gen_usage {
+    my ($self) = @_;
+    my $text;
+    if ($self->subcommands) {
+        $text = <<_;
+Usage:
+
+    [_1] --help (or -h, -?)
+    [_1] --version (or -v)
+    [_1] --list (or -l)
+    [_1] SUBCOMMAND (common options) (options)
+_
+    } else {
+        $text = <<_;
+Usage:
+
+    [_1] --help (or -h, -?)
+    [_1] --version (or -v)
+    [_1] (common options) (options)
+_
     }
 
-    say <<_;
-Usage:
-  To get general help:
-    $prog --help (or -h)
-  To list subcommands:
-    $prog --list (or -l)
-  To show version:
-    $prog --version (or -v)
-  To get help on a subcommand:
-    $prog SUBCOMMAND --help
-  To run a subcommand:
-    $prog SUBCOMMAND [COMMON OPTIONS] [SUBCOMMAND ARGS ...]
+    $self->add_doc_lines($self->loc($text, $self->program_name), "");
+}
 
+sub doc_parse_common_options {}
+
+sub doc_gen_common_options {
+    my ($self) = @_;
+
+    my $text = <<_;
 Common options:
-  --yaml, -y      Format result as YAML
-  --json, -j      Format result as JSON
-  --pretty, -p    Format result as pretty formatted text
-  --nopretty, -P  Format result as simple formatted text
-  --text         (Default) Select --pretty or --nopretty depends on if run piped
+
+    --yaml, -y      Format result as YAML
+    --json, -j      Format result as JSON
+    --pretty, -p    Format result as pretty formatted text
+    --nopretty, -P  Format result as simple formatted text
+    --text         (Default) Select --pretty, or --nopretty when run piped
 _
+    $self->add_doc_lines($self->loc($text), "");
+}
+
+sub doc_parse_options {}
+
+sub doc_gen_options {
+    my ($self) = @_;
+    my $info = $self->{_info};
+    my $meta = $self->{_meta};
+    my $args_p = $meta->{args};
+    return if !$info || $info->{type} ne 'function' || !$args_p || !%$args_p;
+
+    $self->add_doc_lines($self->loc("Options") . ":\n", "");
+
+    # XXX categorize
+    for my $an (sort {
+        ($args_p->{$a}{pos} // 99) <=> ($args_p->{$b}{pos} // 99) ||
+            $a cmp $b
+    } keys %$args_p) {
+        my $a = $args_p->{$an};
+        my $s = $a->{schema} || [any=>{}];
+        my $ane = $an; $ane =~ s/_/-/g; $ane =~ s/\W/-/g;
+        $ane = "no$ane" if $s->[0] eq 'bool' && $s->[1]{default};
+        my $text = sprintf(
+            "  --%s [%s]%s\n",
+            $ane,
+            Perinci::ToUtil::sah2human_short($s),
+            (defined($a->{pos}) ? " (" .
+                 $self->loc("or as argument #[_1]", $a->{pos}+1) . ")" : ""));
+        $self->add_doc_lines($text);
+        my $in;
+        if ($s->[1]{in} && @{ $s->[1]{in} }) {
+            $in = dump1($s->[1]{in});
+        }
+        my $summary     = $self->langprop($a, "summary");
+        my $description = $self->langprop($a, "description");
+        if ($in || $summary || $description || $in) {
+            $self->inc_indent(2);
+            $self->add_doc_lines(
+                "",
+                ucfirst($self->loc("value in")). ": $in")
+                if $in;
+            $self->add_doc_lines("", $summary . ".") if $summary;
+            $self->add_doc_lines("", $description) if $description;
+            $self->dec_indent(2);
+            $self->add_doc_lines("");
+        }
+    }
+    $self->add_doc_lines("");
+}
+
+sub doc_parse_description {
+}
+
+sub doc_gen_description {
+}
+
+sub doc_parse_examples {
+}
+
+sub doc_gen_examples {
+}
+
+sub doc_parse_links {
+}
+
+sub doc_gen_links {
+}
+
+sub run_help {
+    require Text::Wrap;
+
+    my ($self) = @_;
+    my $sc = $self->{_subcommand};
+
+    $self->{doc_sections} //= [
+        'summary',
+        'usage',
+        'common_options',
+        'options',
+        'description',
+        'examples',
+        'links',
+    ];
+    $Text::Wrap::columns = 80;
+    say $self->generate_doc();
     0;
 }
 
 sub run_subcommand {
+    require File::Which;
+
     my ($self) = @_;
 
     # call function
-    $self->{_res} = $self->{_pa}->request(
+    $self->{_res} = $self->_pa->request(
         call => $self->{_subcommand}{url},
         {args=>$self->{_args}});
     $log->tracef("res=%s", $self->{_res});
@@ -313,7 +474,18 @@ sub run_subcommand {
 
     # display result
     if ($resmeta->{"cmdline.page_result"}) {
-        my $pager = $ENV{PAGER} // "less -FRS"; # XXX check program with 'which'
+        my $pager = $resmeta->{"cmdline.pager"} //
+            $ENV{PAGER};
+        unless (defined $pager) {
+            $pager = "less -FRS" if File::Which::which("less");
+        }
+        unless (defined $pager) {
+            $pager = "more" if File::Which::which("more");
+        }
+        unless (defined $pager) {
+            die "Can't determine PAGER";
+        }
+        $log->tracef("Paging output using %s", $pager);
         open my($p), "| $pager";
         print $p $self->{_fres};
     } else {
@@ -403,7 +575,7 @@ sub _parse_subcommand_opts {
     return unless $self->{_subcommand};
     $log->tracef("-> _parse_subcommand_opts()");
 
-    my $res = $self->{_pa}->request(meta=>$sc->{url});
+    my $res = $self->_pa->request(meta=>$sc->{url});
     unless ($res->[0] == 200) {
         $log->warnf("Can't get metadata from %s: %d - %s", $sc->{url},
                     $res->[0], $res->[1]);
@@ -426,6 +598,8 @@ sub _parse_subcommand_opts {
     $log->tracef("<- _parse_subcommand_opts()");
 }
 
+# set $self->{_subcommand} for convenience, it can be taken from subcommands(),
+# or, in the case of app with a single command, {name=>'', url=>$self->url()}.
 sub _set_subcommand {
     my ($self) = @_;
 
@@ -456,7 +630,8 @@ sub _set_subcommand {
     }
     unshift @{$self->{_actions}}, 'completion' if $ENV{COMP_LINE};
     push @{$self->{_actions}}, 'help' if !@{$self->{_actions}};
-    $log->tracef("subcommand=%s", $self->{_actions}, $self->{_subcommand});
+    $log->tracef("actions=%s, subcommand=%s",
+                 $self->{_actions}, $self->{_subcommand});
 }
 
 sub run {
@@ -528,7 +703,7 @@ sub run {
         last if defined $exit_code;
     }
 
-    $log->tracef("<- CmdLine's run(), exit code=%d", $exit_code);
+    $log->tracef("<- CmdLine's run(), exit code=%s", $exit_code);
     if ($self->exit) { exit $exit_code } else { return $exit_code }
 }
 
@@ -545,7 +720,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.41
+version 0.42
 
 =head1 SYNOPSIS
 
@@ -658,7 +833,25 @@ After that, exit() will be called with the exit code from the action method (or,
 if C<exit> attribute is set to false, routine will return with exit code
 instead).
 
-=head1 TIPS
+=head1 BASH COMPLETION
+
+To do bash completion, first create your script, e.g. C<myscript>, that uses
+Perinci::CmdLine:
+
+ #!/usr/bin/perl
+ use Perinci::CmdLine;
+ Perinci::CmdLine->new(...)->run;
+
+then execute this in C<bash> (or put it in bash startup files like
+C</etc/bash.bashrc> or C<~/.bashrc> for future sessions):
+
+ % complete -C myscript myscript; # myscript must be in PATH
+
+=head1 RESULT METADATA
+
+This module interprets the following result metadata keys:
+
+=head2 cmdline.display_result => BOOL
 
 If you don't want to display function output (for example, function output is a
 detailed data structure which might not be important for end users), you can set
@@ -669,6 +862,8 @@ C<cmdline.display_result> result metadata to false. Example:
      ...
      [200, "OK", $data, {"cmdline.display_result"=>0}];
  }
+
+=head2 cmdline.page_result => BOOL
 
 If you want to filter the result through pager (currently defaults to
 C<$ENV{PAGER}> or C<less -FRS>), you can set C<cmdline.page_result> in result
@@ -681,6 +876,11 @@ For example:
      ...
      [200, "OK", $doc, {"cmdline.page_result"=>1}];
  }
+
+=head2 cmdline.pager => STR
+
+Instruct Perinci::CmdLine to use specified pager instead of C<$ENV{PAGER}> or
+the default C<less> or C<more>.
 
 =head1 FAQ
 
