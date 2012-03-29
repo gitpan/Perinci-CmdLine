@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.43
+    version 0.44
 
 SYNOPSIS
     In your command-line script:
@@ -83,6 +83,12 @@ ATTRIBUTES
     subroutine does not have "undo" features. --undo-dir is used to set
     location of undo data (default "~/.undo"; undo directory will be created
     if not exists; each subroutine will have its own subdir here).
+
+  formats => HASH
+    A hash containing mapping of format names and Data::Format::Pretty::
+    formatter module. By default, these formats are defined: "yaml" =>
+    'YAML', "json" => 'CompactJSON', "text" => 'Console', "pretty" =>
+    'Text', "nopretty" => 'SimpleText'.
 
 METHODS
   new(%opts) => OBJ
@@ -166,6 +172,17 @@ FAQ
 
     Though YAML requires spaces in some places where JSON does not. A flag
     to parse as JSON can be added upon request.
+
+  How to add support for new output format (e.g. XML, HTML)?
+    First make sure that Data::Format::Pretty::<FORMAT> module is available
+    for your format. Look on CPAN. If it's not, i't also not hard to create
+    one.
+
+    Then, in your subclass' BUILD (or elsewhere), add a key to "formats"
+    hash attribute:
+
+     # this means format named 'xml' will be handled by Data::Format::Pretty::XML
+     $self->formats->{xml} = 'XML';
 
 SEE ALSO
     Perinci, Rinci, Riap.
