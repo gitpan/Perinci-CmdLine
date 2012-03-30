@@ -4,7 +4,7 @@ use parent qw(Perinci::CmdLine::I18N Perinci::To::Text::I18N::id);
 use Locale::Maketext::Lexicon::Gettext;
 our %Lexicon = %{ Locale::Maketext::Lexicon::Gettext->parse(<DATA>) };
 
-our $VERSION = '0.44'; # VERSION
+our $VERSION = '0.45'; # VERSION
 
 #use Data::Dump; dd \%Lexicon;
 
@@ -20,7 +20,7 @@ Perinci::CmdLine::I18N::id - Indonesian translation for Perinci::CmdLine
 
 =head1 VERSION
 
-version 0.44
+version 0.45
 
 =head1 AUTHOR
 
@@ -86,18 +86,18 @@ msgid ""
 "\n"
 "    --yaml, -y      Format result as YAML\n"
 "    --json, -j      Format result as JSON\n"
-"    --pretty, -p    Format result as pretty formatted text\n"
-"    --nopretty, -P  Format result as simple formatted text\n"
-"    --text         (Default) Select --pretty, or --nopretty when run piped\n"
+"    --text-pretty   Format result as pretty formatted text\n"
+"    --text-simple   Format result as simple formatted text\n"
+"    --text         (Default) Use --text-pretty, or --text-simple when run piped\n"
 "    --format=FMT    Choose output format\n"
 msgstr ""
 "Opsi umum:\n"
 "\n"
 "    --yaml, -y      Tampilkan hasil sebagai YAML\n"
 "    --json, -j      Tampilkan hasil sebagai JSON\n"
-"    --pretty, -p    Tampilkan hasil sebagai teks cantik/rapi (tabel, dll)\n"
-"    --nopretty, -P  Tampilkan hasil sebagai teks sederhana\n"
-"    --text         (Default) Pakai --pretty, atau --nopretty jika dipipa\n"
+"    --text-pretty   Tampilkan hasil sebagai teks cantik/rapi (tabel, dll)\n"
+"    --text-simple   Tampilkan hasil sebagai teks sederhana (tab)\n"
+"    --text         (Default) Pakai --text-pretty, atau --text-simple jika dipipa\n"
 "    --format=FMT    Pilih format hasil\n"
 
 msgid  "Show version"
