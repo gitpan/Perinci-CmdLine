@@ -9,7 +9,7 @@ use Moo;
 use Perinci::Object;
 use Perinci::ToUtil;
 
-our $VERSION = '0.45'; # VERSION
+our $VERSION = '0.46'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -517,12 +517,12 @@ sub _parse_common_opts {
             unshift @{$self->{_actions}}, 'help';
         },
 
-        "yaml|y"      => sub { $self->format('yaml')          },
-        "json|j"      => sub { $self->format('json')          },
-        "text-pretty" => sub { $self->format('text-pretty')   },
-        "text-simple" => sub { $self->format('text-nopretty') },
-        "text"        => sub { $self->format('text')          },
-        "format=s"     => sub { $self->format($_[1])          },
+        "yaml|y"      => sub { $self->format('yaml')        },
+        "json|j"      => sub { $self->format('json')        },
+        "text-pretty" => sub { $self->format('text-pretty') },
+        "text-simple" => sub { $self->format('text-simple') },
+        "text"        => sub { $self->format('text')        },
+        "format=s"     => sub { $self->format($_[1])        },
     );
 
     # convenience for Log::Any::App-using apps
@@ -714,7 +714,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.45
+version 0.46
 
 =head1 SYNOPSIS
 
@@ -809,13 +809,6 @@ subroutine, an error will be thrown if subroutine does not have C<undo>
 features. --undo-dir is used to set location of undo data (default C<~/.undo>;
 undo directory will be created if not exists; each subroutine will have its own
 subdir here).
-
-=head2 formats => HASH
-
-A hash containing mapping of format names and Data::Format::Pretty:: formatter
-module. By default, these formats are defined: C<yaml> => 'YAML', C<json> =>
-'CompactJSON', C<text> => 'Console', C<pretty> => 'Text', C<nopretty> =>
-'SimpleText'.
 
 =head1 METHODS
 

@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.45
+    version 0.46
 
 SYNOPSIS
     In your command-line script:
@@ -83,12 +83,6 @@ ATTRIBUTES
     subroutine does not have "undo" features. --undo-dir is used to set
     location of undo data (default "~/.undo"; undo directory will be created
     if not exists; each subroutine will have its own subdir here).
-
-  formats => HASH
-    A hash containing mapping of format names and Data::Format::Pretty::
-    formatter module. By default, these formats are defined: "yaml" =>
-    'YAML', "json" => 'CompactJSON', "text" => 'Console', "pretty" =>
-    'Text', "nopretty" => 'SimpleText'.
 
 METHODS
   new(%opts) => OBJ
