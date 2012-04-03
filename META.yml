@@ -32,7 +32,7 @@ requires:
   Perinci::BashComplete: 0
   Perinci::Examples: 0
   Perinci::Result::Format: 0.11
-  Perinci::Sub::GetArgs::Argv: 0.15
+  Perinci::Sub::GetArgs::Argv: 0.17
   Perinci::Sub::Wrapper: 0.14
   Perinci::To::Text::AddDocLinesRole: 0.10
   SHARYANTO::Role::Doc::Section: 0
@@ -43,4 +43,4 @@ requires:
 resources:
   homepage: http://search.cpan.org/dist/Perinci-CmdLine/
   repository: http://github.com/sharyanto/perl-Perinci-CmdLine
-version: 0.46
+version: 0.47

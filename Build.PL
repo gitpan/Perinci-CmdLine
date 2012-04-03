@@ -17,7 +17,7 @@ my %module_build_args = (
     "Steven Haryanto <stevenharyanto\@gmail.com>"
   ],
   "dist_name" => "Perinci-CmdLine",
-  "dist_version" => "0.46",
+  "dist_version" => "0.47",
   "license" => "perl",
   "module_name" => "Perinci::CmdLine",
   "recommends" => {},
@@ -41,7 +41,7 @@ my %module_build_args = (
     "Perinci::BashComplete" => 0,
     "Perinci::Examples" => 0,
     "Perinci::Result::Format" => "0.11",
-    "Perinci::Sub::GetArgs::Argv" => "0.15",
+    "Perinci::Sub::GetArgs::Argv" => "0.17",
     "Perinci::Sub::Wrapper" => "0.14",
     "Perinci::To::Text::AddDocLinesRole" => "0.10",
     "SHARYANTO::Role::Doc::Section" => 0,

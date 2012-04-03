@@ -9,7 +9,7 @@ use Moo;
 use Perinci::Object;
 use Perinci::ToUtil;
 
-our $VERSION = '0.46'; # VERSION
+our $VERSION = '0.47'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -208,7 +208,7 @@ sub run_completion {
     }
 
     my @top_opts; # contain --help, -h, --yaml, etc.
-    for my $o (keys %{$self->{_getopts_common}}) {
+    for my $o (keys %{{@{ $self->{_getopts_common} }}}) {
         $o =~ s/^--//;
         my @o = split /\|/, $o;
         for (@o) { push @top_opts, length > 1 ? "--$_" : "-$_" }
@@ -234,12 +234,12 @@ sub run_completion {
         }
         $log->tracef("cleaned words=%s, cword=%d", $words, $cword);
 
-        # convert %getopts' ('help|h|?' => ..., ...) to ['--help', '-h', '-?',
+        # convert @getopts' ('help|h|?' => ..., ...) to ['--help', '-h', '-?',
         # ...]. XXX this should be moved to another module to remove
         # duplication, as Perinci::Sub::GetArgs::Argv also does something
         # similar.
         my $common_opts = [];
-        for my $k (keys %{$self->{_getopts_common}}) {
+        for my $k (keys %{{@{ $self->{_getopts_common} }}}) {
             $k =~ s/^--?//;
             $k =~ s/^([\w?-]+(?:\|[\w?-]+)*)(?:\W.*)?/$1/;
             for (split /\|/, $k) {
@@ -385,7 +385,8 @@ sub doc_gen_options {
             $ane,
             Perinci::ToUtil::sah2human_short($s),
             (defined($a->{pos}) ? " (" .
-                 $self->loc("or as argument #[_1]", $a->{pos}+1) . ")" : ""),
+                 $self->loc("or as argument #[_1]",
+                            ($a->{pos}+1).($a->{greedy} ? "+":"")) . ")" : ""),
             $def,
         );
         $self->add_doc_lines($text);
@@ -444,7 +445,7 @@ sub run_help {
         'links',
     ];
     $Text::Wrap::columns = 80;
-    say $self->generate_doc();
+    print $self->generate_doc();
     0;
 }
 
@@ -488,33 +489,34 @@ sub run_subcommand {
     $self->{_res}[0] == 200 ? 0 : $self->{_res}[0] - 300;
 }
 
-sub _parse_common_opts {
+sub gen_common_opts {
     require Getopt::Long;
 
-    my ($self, $phase) = @_;
-    $log->tracef("-> _parse_common_opts(%d)", $phase);
+    my ($self) = @_;
+    $log->tracef("-> gen_common_opts()");
 
-    $Perinci::Sub::GetArgs::Argv::_pa_skip_check_required_args = 0;
-
-    my $old_go_opts = Getopt::Long::Configure(
-        "pass_through", "no_ignore_case", ($phase == 1 ? "no_":"")."permute");
-    my %getopts = (
+    my @getopts = (
+        "action=s"   => sub {
+            # 'action=subcommand' can be used to override --help (or --list,
+            # --version) if one of function arguments happens to be 'help',
+            # 'list', or 'version'. currently udocumented.
+            if ($_[1] eq 'subcommand') {
+                $self->{_force_subcommand} = 1;
+            }
+        },
         "list|l"     => sub {
-            $Perinci::Sub::GetArgs::Argv::_pa_skip_check_required_args = 1
-                if $phase == 1;
             unshift @{$self->{_actions}}, 'list';
+            $self->{_check_required_args} = 0;
         },
         "version|v"  => sub {
-            unshift @{$self->{_actions}}, 'version';
             die "ERROR: 'url' not set, required for --version\n"
                 unless $self->url;
-            $Perinci::Sub::GetArgs::Argv::_pa_skip_check_required_args = 1
-                if $phase == 1;
+            unshift @{$self->{_actions}}, 'version';
+            $self->{_check_required_args} = 0;
         },
         "help|h|?"   => sub {
-            $Perinci::Sub::GetArgs::Argv::_pa_skip_check_required_args = 1
-                if $phase == 1;
             unshift @{$self->{_actions}}, 'help';
+            $self->{_check_required_args} = 0;
         },
 
         "yaml|y"      => sub { $self->format('yaml')        },
@@ -522,13 +524,13 @@ sub _parse_common_opts {
         "text-pretty" => sub { $self->format('text-pretty') },
         "text-simple" => sub { $self->format('text-simple') },
         "text"        => sub { $self->format('text')        },
-        "format=s"     => sub { $self->format($_[1])        },
+        "format=s"    => sub { $self->format($_[1])         },
     );
 
     # convenience for Log::Any::App-using apps
     if ($self->log_any_app) {
         for (qw/quiet verbose debug trace log-level/) {
-            $getopts{$_} = sub {};
+            push @getopts, $_ => sub {};
         }
     }
 
@@ -542,46 +544,68 @@ sub _parse_common_opts {
     #    last unless $ssspec->feature('undo');
     #
     #    $opts{undo_action}    = 'do';
-    #    $getopts{undo_data}   = sub { $opts{undo_data} = shift };
-    #    $getopts{undo}        = sub { $opts{undo_action} = 'undo' };
-    #    $getopts{redo}        = sub { $opts{undo_action} = 'redo' };
-    #    $getopts{list_undos}  = sub { $opts{undo_action} = 'list_undos' };
-    #    $getopts{clear_undos} = sub { $opts{undo_action} = 'clear_undos' };
+    #    push @getopts, undo_data => sub { $opts{undo_data} = shift };
+    #    push @getopts, undo      => sub { $opts{undo_action} = 'undo' };
+    #    push @getopts, redo      => sub { $opts{undo_action} = 'redo' };
+    #    push @getopts, list_undos=> sub { $opts{undo_action} = 'list_undos' };
+    #    push @getopts, clear_undos=>sub { $opts{undo_action} = 'clear_undos' };
     #}
 
-    # store for other methods, e.g. run_completion()
-    $self->{_getopts_common} = \%getopts;
+    $log->tracef("GetOptions spec for parsing common options: %s", \@getopts);
+    $log->tracef("<- gen_common_opts()");
+    return \@getopts;
+}
 
-    $log->tracef("GetOptions spec for parsing common options: %s", \%getopts);
-    Getopt::Long::GetOptions(%getopts);
+sub parse_common_opts {
+    $log->tracef("-> parse_common_opts()");
+    my ($self) = @_;
+
+    my @orig_ARGV = @ARGV;
+
+    my $old_go_opts = Getopt::Long::Configure(
+        "pass_through", "no_ignore_case");
+    Getopt::Long::GetOptions(@{$self->{_getopts_common}});
     $log->tracef("result of GetOptions for common options: remaining argv=%s, ".
                      "actions=%s", \@ARGV, $self->{_actions});
     Getopt::Long::Configure($old_go_opts);
 
-    $log->tracef("<- _parse_common_opts()");
+    if ($self->{_force_subcommand}) {
+        @ARGV = @orig_ARGV;
+    }
+
+    $log->tracef("<- parse_common_opts()");
 }
 
-sub _parse_subcommand_opts {
+sub parse_subcommand_opts {
     require Perinci::Sub::GetArgs::Argv;
 
     my ($self) = @_;
     my $sc = $self->{_subcommand};
     return unless $self->{_subcommand};
-    $log->tracef("-> _parse_subcommand_opts()");
+    $log->tracef("-> parse_subcommand_opts()");
 
     my $res = $self->_pa->request(meta=>$sc->{url});
     unless ($res->[0] == 200) {
         $log->warnf("Can't get metadata from %s: %d - %s", $sc->{url},
                     $res->[0], $res->[1]);
         $self->{_args} = {};
-        $log->tracef("<- _parse_subcommand_opts() (bailed)");
+        $log->tracef("<- parse_subcommand_opts() (bailed)");
         return;
     }
     my $meta = $res->[2];
 
     # parse argv
-    my %ga_args = (argv=>\@ARGV, meta=>$meta,
-                   extra_getopts => $self->{_getopts_common});
+    $Perinci::Sub::GetArgs::Argv::_pa_skip_check_required_args = 1
+        if $self->{_pa_skip_check_required_args};
+    my %ga_args = (
+        argv=>\@ARGV, meta=>$meta,
+        check_required_args => $self->{_check_required_args} // 1,
+    );
+    if ($self->{_force_subcommand}) {
+        $ga_args{extra_getopts_before} = $self->{_getopts_common};
+    } else {
+        $ga_args{extra_getopts_after}  = $self->{_getopts_common};
+    }
     $res = Perinci::Sub::GetArgs::Argv::get_args_from_argv(%ga_args);
     die "ERROR: Failed parsing arguments: $res->[0] - $res->[1]\n"
         unless $res->[0] == 200;
@@ -615,12 +639,20 @@ sub _set_subcommand {
             }
             $self->{_subcommand} = $sc;
             $self->{_subcommand}{name} = $scn;
-            push @{$self->{_actions}}, 'subcommand';
+            if ($self->{_force_subcommand}) {
+                unshift @{$self->{_actions}}, 'subcommand';
+            } else {
+                push @{$self->{_actions}}, 'subcommand';
+            }
         }
     } else {
         $self->{_subcommand} = {url=>$self->url, summary=>$self->summary};
         $self->{_subcommand}{name} = '';
-        push @{$self->{_actions}}, 'subcommand';
+        if ($self->{_force_subcommand}) {
+            unshift @{$self->{_actions}}, 'subcommand';
+        } else {
+            push @{$self->{_actions}}, 'subcommand';
+        }
     }
     unshift @{$self->{_actions}}, 'completion' if $ENV{COMP_LINE};
     push @{$self->{_actions}}, 'help' if !@{$self->{_actions}};
@@ -657,31 +689,31 @@ sub run {
         $self->{_comp_parse_res} = $res; # store for run_completion()
     }
 
+    $self->{_actions} = []; # first action will be tried first, then 2nd, ...
+
+    my $getopts_common = $self->gen_common_opts();
+
+    # store for other methods, e.g. run_subcommand() & run_completion()
+    $self->{_getopts_common} = $getopts_common;
+
     #
-    # parse common options from @ARGV, 1st phase (no_permute). This is to allow
-    # function having arguments like --list or --help the chance to catch them.
+    # parse common opts first so we can catch --help, --list, etc.
     #
 
-    $self->{_actions} = []; # first action will be tried first, then 2nd, ...
-    $self->_parse_common_opts(1);
+    $self->parse_common_opts;
 
     #
     # find out which subcommand to run, store it in $self->{_subcommand}
     #
 
-    $self->_set_subcommand;
+    $self->_set_subcommand();
 
     #
     # parse subcommand options, this is to give change to function arguments
     # like --help to be parsed into $self->{_args}
     #
 
-    $self->_parse_subcommand_opts unless $ENV{COMP_LINE};
-
-    # parse common options once again, to sweep unparsed common options after
-    # subcommand argument
-
-    $self->_parse_common_opts(2);
+    $self->parse_subcommand_opts unless $ENV{COMP_LINE};
 
     #
     # finally invoke the appropriate run_*() action method(s)
@@ -714,7 +746,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.46
+version 0.47
 
 =head1 SYNOPSIS
 

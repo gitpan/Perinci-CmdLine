@@ -60,6 +60,18 @@ sub f1 {
     [200, "OK", $args{help} ? "tolong" : $args{list} ? "daftar" : "?"];
 }
 
+$SPEC{f2} = {
+    v => 1.1,
+    summary => 'This function has required positional argument',
+    args => {
+        a1 => {schema=>'str*', req=>1, pos=>0},
+    },
+};
+sub f2 {
+    my %args = @_;
+    [200, "OK", $args{a1}];
+}
+
 package main;
 
 subtest 'completion' => sub {
@@ -70,6 +82,7 @@ subtest 'completion' => sub {
         comp_line   => 'CMD -',
         comp_point0 => '     ^',
         result      => [qw(
+                           --action
                            --arg1 --arg2 --arg3 --debug --format --help --json
                            --list --log-level --quiet --text --text-pretty
                            --text-simple --trace --verbose --version --yaml
@@ -189,13 +202,19 @@ test_run(name      => "common option (--help) overrides function argument",
          exit_code => 0,
          output_re => qr/^Usage:/m,
      );
-# currently fail, but works OK on the command line
-#test_run(name      => "specifying function argument --help",
-#         args      => {subcommands=>{f1=>{url=>'/Foo/f1'}}},
-#         argv      => [qw/f1 -- --help/],
-#         exit_code => 0,
-#         output_re => qr/^tolong$/m,
-#     );
+test_run(name      => "common option (--help) does not override ".
+             "function argument when using --action=subcommand",
+         args      => {subcommands=>{f1=>{url=>'/Foo/f1'}}},
+         argv      => [qw/f1 --help --action=subcommand/],
+         exit_code => 0,
+         output_re => qr/^tolong/m,
+     );
+test_run(name      => "common option (--help) bypass required argument check",
+         args      => {url=>'/Foo/f2'},
+         argv      => [qw/--help/],
+         exit_code => 0,
+         output_re => qr/^Usage:/m,
+     );
 
 for (qw(--version -v)) {
     test_run(name      => "version ($_)",
@@ -221,7 +240,6 @@ for (qw(--list -l)) {
 # XXX test arg: custom general help
 # XXX test arg: per-subcommand help
 # XXX test arg: custom per-subcommand help
-# XXX test arg: complete_arg, complete_args (main / per-subcommand)
 
 # XXX test arg: undo
 
