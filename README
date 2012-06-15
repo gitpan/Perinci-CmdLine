@@ -2,30 +2,71 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.47
+    version 0.48
 
 SYNOPSIS
     In your command-line script:
 
      #!/usr/bin/perl
+     use 5.010;
+     use Log::Any '$log';
      use Perinci::CmdLine;
-     Perinci::CmdLine->new(url => 'Your::Module', ...)->run;
+
+     our %SPEC;
+     $SPEC{foo} = {
+         v => 1.1,
+         summary => 'Does foo to your computer',
+         args => {
+             bar => {
+                 summary=>'Barrr',
+                 req=>1,
+                 schema=>['str*', {in=>[qw/aa bb cc/]}],
+             },
+             baz => {
+                 summary=>'Bazzz',
+                 schema=>'str',
+             },
+         },
+     };
+     sub foo {
+         my %args = @_;
+         $log->debugf("Arguments are %s", \%args);
+         [200, "OK", $args{bar} . ($args{baz} ? "and $args{baz}" : "")];
+     }
+
+     Perinci::CmdLine->new(url => '/main/foo')->run;
+
+    To run this program:
+
+     % foo --help ;# display help message
+     % LANG=id_ID foo --help ;# display help message in Indonesian
+     % foo --version ;# display version
+     % foo --bar aa ;# run function and display the result
+     % foo --bar aa --debug ;# turn on debug output
+     % foo --baz x  ;# fail because required argument 'bar' not specified
+
+    To do bash tab completion:
+
+     % complete -C foo foo ;# can be put in ~/.bashrc
+     % foo <tab> ;# completes to --help, --version, --bar, --baz and others
+     % foo --b<tab> ;# completes to --bar and --baz
+     % foo --bar <tab> ;# completes to aa, bb, cc
 
     See also the peri-run script which provides a command-line interface for
     Perinci::CmdLine.
 
 DESCRIPTION
-    Perinci::CmdLine is a command-line application framework. It access
+    Perinci::CmdLine is a command-line application framework. It accesses
     functions using Riap protocol (Perinci::Access) so you get transparent
     remote access. It utilizes Rinci metadata in the code so the amount of
     plumbing that you have to do is quite minimal.
 
     What you'll get:
 
-    *   Command-line parsing (currently using Getopt::Long, with some
-        tweaks)
+    *   Command-line options parsing
 
-    *   Help message (utilizing information from metadata)
+    *   Help message (utilizing information from metadata, supports
+        translation)
 
     *   Tab completion for bash (including completion from remote code)
 
@@ -49,9 +90,11 @@ ATTRIBUTES
     Should be a hash of subcommand specifications or a coderef.
 
     Each subcommand specification is also a hash(ref) and should contain
-    these keys: "url". It can also contain these keys: "summary" (will be
-    retrieved from function metadata if unset), "tags" (for categorizing
-    subcommands).
+    these keys: "url". It can also contain these keys: "summary" (str, will
+    be retrieved from function metadata if unset), "tags" (array of str, for
+    categorizing subcommands), "log_any_app" (bool, whether to load
+    Log::Any::App, default is true, for subcommands that need fast startup
+    you can try turning this off for said subcommands).
 
     Subcommands can also be a coderef, for dynamic list of subcommands. The
     coderef will be called as a method with hash arguments. It can be called
@@ -149,10 +192,12 @@ FAQ
     Perinci::CmdLine is part of a more general metadata and wrapping
     framework (Perinci::* modules family). Aside from a command-line
     application, your metadata is also usable for other purposes, like
-    providing access over HTTP/TCP, documentation. Sub::Spec::CmdLine is not
-    OO. Configuration file support is missing (coming soon, most probably
-    based on Config::Ini::OnDrugs). Also lacking is more documentation and
-    more plugins.
+    providing access over HTTP/TCP, documentation, etc.
+
+    Configuration file support is missing (coming soon, most probably will
+    be based on Config::Ini::OnDrugs).
+
+    Also lacking is more documentation and more plugins.
 
   Why is nonscalar arguments parsed as YAML instead of JSON/etc?
     I think YAML is nicer in command-line because quotes are optional in a
@@ -168,7 +213,7 @@ FAQ
     to parse as JSON can be added upon request.
 
   How to add support for new output format (e.g. XML, HTML)?
-    See Perinci::Format.
+    See Perinci::Result::Format.
 
 SEE ALSO
     Perinci, Rinci, Riap.

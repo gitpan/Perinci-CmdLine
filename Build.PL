@@ -7,7 +7,11 @@ use Module::Build 0.3601;
 
 my %module_build_args = (
   "build_requires" => {
-    "Module::Build" => "0.3601"
+    "Capture::Tiny" => 0,
+    "Data::Clone" => 0,
+    "Module::Build" => "0.3601",
+    "Perinci::Examples" => 0,
+    "Test::More" => "0.96"
   },
   "configure_requires" => {
     "Module::Build" => "0.3601"
@@ -17,14 +21,12 @@ my %module_build_args = (
     "Steven Haryanto <stevenharyanto\@gmail.com>"
   ],
   "dist_name" => "Perinci-CmdLine",
-  "dist_version" => "0.47",
+  "dist_version" => "0.48",
   "license" => "perl",
   "module_name" => "Perinci::CmdLine",
   "recommends" => {},
   "recursive_test_files" => 1,
   "requires" => {
-    "Capture::Tiny" => 0,
-    "Data::Clone" => 0,
     "Data::Format::Pretty" => 0,
     "Data::Format::Pretty::CompactJSON" => 0,
     "Data::Format::Pretty::Console" => 0,
@@ -39,7 +41,6 @@ my %module_build_args = (
     "Object::BlankStr" => 0,
     "Perinci::Access" => "0.09",
     "Perinci::BashComplete" => 0,
-    "Perinci::Examples" => 0,
     "Perinci::Result::Format" => "0.11",
     "Perinci::Sub::GetArgs::Argv" => "0.17",
     "Perinci::Sub::Wrapper" => "0.14",
@@ -47,7 +48,6 @@ my %module_build_args = (
     "SHARYANTO::Role::Doc::Section" => 0,
     "SHARYANTO::Role::I18N" => 0,
     "SHARYANTO::Role::I18NRinci" => 0,
-    "Test::More" => "0.96",
     "perl" => "5.010000"
   },
   "script_files" => [

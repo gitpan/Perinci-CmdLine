@@ -3,11 +3,13 @@ Changes
 LICENSE
 MANIFEST
 MANIFEST.SKIP
+META.json
 META.yml
 README
 bin/peri-run
 dist.ini
 lib/Perinci/CmdLine.pm
+lib/Perinci/CmdLine/Easy.pm
 lib/Perinci/CmdLine/I18N.pm
 lib/Perinci/CmdLine/I18N/en.pm
 lib/Perinci/CmdLine/I18N/id.pm

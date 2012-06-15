@@ -9,7 +9,7 @@ use Moo;
 use Perinci::Object;
 use Perinci::ToUtil;
 
-our $VERSION = '0.47'; # VERSION
+our $VERSION = '0.48'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -31,7 +31,7 @@ has url => (is => 'rw');
 has summary => (is => 'rw');
 has subcommands => (is => 'rw');
 has exit => (is => 'rw', default=>sub{1});
-has log_any_app => (is => 'rw', default=>sub{1});
+has log_any_app => (is => 'rw');
 has custom_completer => (is => 'rw');
 has custom_arg_completer => (is => 'rw');
 has dash_to_underscore => (is => 'rw', default=>sub{1});
@@ -528,7 +528,7 @@ sub gen_common_opts {
     );
 
     # convenience for Log::Any::App-using apps
-    if ($self->log_any_app) {
+    if ($self->log_any_app // 1) {
         for (qw/quiet verbose debug trace log-level/) {
             push @getopts, $_ => sub {};
         }
@@ -656,23 +656,26 @@ sub _set_subcommand {
     }
     unshift @{$self->{_actions}}, 'completion' if $ENV{COMP_LINE};
     push @{$self->{_actions}}, 'help' if !@{$self->{_actions}};
+
+    unless ($ENV{COMP_LINE}) {
+        $self->_load_log_any_app if
+            $self->log_any_app // $self->{_subcommand}{log_any_app} // 1;
+    }
+
     $log->tracef("actions=%s, subcommand=%s",
                  $self->{_actions}, $self->{_subcommand});
 }
 
+sub _load_log_any_app {
+    my ($self) = @_;
+    # Log::Any::App::init can already avoid being run twice
+    #return unless $self->{_log_any_app_loaded}
+    require Log::Any::App;
+    Log::Any::App::init();
+}
+
 sub run {
     my ($self) = @_;
-
-    #
-    # load Log::Any::App
-    #
-
-    unless ($ENV{COMP_LINE}) {
-        if ($self->log_any_app) {
-            require Log::Any::App;
-            Log::Any::App::init();
-        }
-    }
 
     $log->trace("-> CmdLine's run()");
 
@@ -746,22 +749,63 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.47
+version 0.48
 
 =head1 SYNOPSIS
 
 In your command-line script:
 
  #!/usr/bin/perl
+ use 5.010;
+ use Log::Any '$log';
  use Perinci::CmdLine;
- Perinci::CmdLine->new(url => 'Your::Module', ...)->run;
+
+ our %SPEC;
+ $SPEC{foo} = {
+     v => 1.1,
+     summary => 'Does foo to your computer',
+     args => {
+         bar => {
+             summary=>'Barrr',
+             req=>1,
+             schema=>['str*', {in=>[qw/aa bb cc/]}],
+         },
+         baz => {
+             summary=>'Bazzz',
+             schema=>'str',
+         },
+     },
+ };
+ sub foo {
+     my %args = @_;
+     $log->debugf("Arguments are %s", \%args);
+     [200, "OK", $args{bar} . ($args{baz} ? "and $args{baz}" : "")];
+ }
+
+ Perinci::CmdLine->new(url => '/main/foo')->run;
+
+To run this program:
+
+ % foo --help ;# display help message
+ % LANG=id_ID foo --help ;# display help message in Indonesian
+ % foo --version ;# display version
+ % foo --bar aa ;# run function and display the result
+ % foo --bar aa --debug ;# turn on debug output
+ % foo --baz x  ;# fail because required argument 'bar' not specified
+
+To do bash tab completion:
+
+ % complete -C foo foo ;# can be put in ~/.bashrc
+ % foo <tab> ;# completes to --help, --version, --bar, --baz and others
+ % foo --b<tab> ;# completes to --bar and --baz
+ % foo --bar <tab> ;# completes to aa, bb, cc
 
 See also the L<peri-run> script which provides a command-line interface for
 Perinci::CmdLine.
 
 =head1 DESCRIPTION
 
-Perinci::CmdLine is a command-line application framework. It access functions
+Perinci::CmdLine is a command-line application framework. It accesses functions
 using Riap protocol (L<Perinci::Access>) so you get transparent remote access.
 It utilizes L<Rinci> metadata in the code so the amount of plumbing that you
 have to do is quite minimal.
@@ -770,9 +814,9 @@ What you'll get:
 
 =over 4
 
-=item * Command-line parsing (currently using Getopt::Long, with some tweaks)
+=item * Command-line options parsing
 
-=item * Help message (utilizing information from metadata)
+=item * Help message (utilizing information from metadata, supports translation)
 
 =item * Tab completion for bash (including completion from remote code)
 
@@ -803,8 +847,11 @@ If unset, will be retrieved from function metadata when needed.
 Should be a hash of subcommand specifications or a coderef.
 
 Each subcommand specification is also a hash(ref) and should contain these keys:
-C<url>. It can also contain these keys: C<summary> (will be retrieved from
-function metadata if unset), C<tags> (for categorizing subcommands).
+C<url>. It can also contain these keys: C<summary> (str, will be retrieved from
+function metadata if unset), C<tags> (array of str, for categorizing
+subcommands), C<log_any_app> (bool, whether to load Log::Any::App, default is
+true, for subcommands that need fast startup you can try turning this off for
+said subcommands).
 
 Subcommands can also be a coderef, for dynamic list of subcommands. The coderef
 will be called as a method with hash arguments. It can be called in two cases.
@@ -915,9 +962,12 @@ the default C<less> or C<more>.
 Perinci::CmdLine is part of a more general metadata and wrapping framework
 (Perinci::* modules family). Aside from a command-line application, your
 metadata is also usable for other purposes, like providing access over HTTP/TCP,
-documentation. Sub::Spec::CmdLine is not OO. Configuration file support is
-missing (coming soon, most probably based on L<Config::Ini::OnDrugs>). Also
-lacking is more documentation and more plugins.
+documentation, etc.
+
+Configuration file support is missing (coming soon, most probably will be based
+on L<Config::Ini::OnDrugs>).
+
+Also lacking is more documentation and more plugins.
 
 =head2 Why is nonscalar arguments parsed as YAML instead of JSON/etc?
 
@@ -935,7 +985,7 @@ as JSON can be added upon request.
 
 =head2 How to add support for new output format (e.g. XML, HTML)?
 
-See L<Perinci::Format>.
+See L<Perinci::Result::Format>.
 
 =head1 SEE ALSO
 
