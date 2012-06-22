@@ -9,7 +9,7 @@ use Moo;
 #use Perinci::Object;
 use Perinci::ToUtil;
 
-our $VERSION = '0.49'; # VERSION
+our $VERSION = '0.50'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -477,7 +477,28 @@ sub doc_gen_options {
             $self->add_doc_lines("");
         }
     }
-    $self->add_doc_lines("");
+
+    my @spec;
+    my $ff = $meta->{features} // {};
+    if ($ff->{dry_run}) {
+        push @spec, {opt=>"dry-run", type=>"bool",
+                     summary=>$self->loc(
+                         "Run in simulation mode ".
+                             "(can also be set via environment DRY_RUN=1)")};
+    }
+    if (@spec) {
+        $self->add_doc_lines($self->loc("Special options"). ":\n", "");
+        for my $spec (@spec) {
+            $self->add_doc_lines("  --$spec->{opt} [$spec->{type}]\n");
+            $self->inc_indent(2);
+            $self->add_doc_lines("", $spec->{summary}.".") if $spec->{summary};
+            $self->dec_indent(2);
+            $self->add_doc_lines("");
+        }
+        $self->add_doc_lines("");
+    }
+
+    #$self->add_doc_lines("");
 }
 
 sub doc_parse_description {
@@ -550,12 +571,12 @@ sub run_subcommand {
         my $res = $self->_pa->request(commit_tx => "/", {tx_id=>$tx_id});
         if ($res->[0] != 200) {
             $self->{_res} = [$res->[0],
-                             "Can't commi transaction '$tx_id': $res->[1]"];
+                             "Can't commit transaction '$tx_id': $res->[1]"];
             return 1;
         }
     }
 
-    $self->{_res}[0] == 200 ? 0 : $self->{_res}[0] - 300;
+    $self->{_res}[0] =~ /\A(?:200|304)\z/ ? 0 : $self->{_res}[0] - 300;
 }
 
 sub run_history {
@@ -709,6 +730,16 @@ sub parse_subcommand_opts {
     }
     my $meta = $res->[2];
 
+    # parse --dry-run
+    my $ff = $meta->{features} // {};
+    my %merge_args;
+    if ($ff->{dry_run}) {
+        push @{$self->{_getopts_common}}, "dry-run" => sub {
+            $merge_args{-dry_run} = 1;
+        };
+    }
+    $merge_args{-dry_run} = 1 if $ENV{DRY_RUN};
+
     # parse argv
     $Perinci::Sub::GetArgs::Argv::_pa_skip_check_required_args = 1
         if $self->{_pa_skip_check_required_args};
@@ -724,7 +755,7 @@ sub parse_subcommand_opts {
     $res = Perinci::Sub::GetArgs::Argv::get_args_from_argv(%ga_args);
     die "ERROR: Failed parsing arguments: $res->[0] - $res->[1]\n"
         unless $res->[0] == 200;
-    $self->{_args} = $res->[2];
+    $self->{_args} = { %merge_args, %{ $res->[2] } };
     $log->tracef("result of GetArgs for subcommand: remaining argv=%s, args=%s".
                      ", actions=%s", \@ARGV, $self->{_args}, $self->{_actions});
 
@@ -865,7 +896,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.49
+version 0.50
 
 =head1 SYNOPSIS
 

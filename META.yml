@@ -31,7 +31,7 @@ requires:
   Moo: 0
   Object::BlankStr: 0
   Perinci::Access: 0.20
-  Perinci::BashComplete: 0
+  Perinci::BashComplete: 0.29
   Perinci::Result::Format: 0.11
   Perinci::Sub::GetArgs::Argv: 0.17
   Perinci::Sub::Wrapper: 0.14
@@ -45,4 +45,4 @@ requires:
 resources:
   homepage: http://search.cpan.org/dist/Perinci-CmdLine/
   repository: http://github.com/sharyanto/perl-Perinci-CmdLine
-version: 0.49
+version: 0.50

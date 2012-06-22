@@ -4,7 +4,7 @@ use parent qw(Perinci::CmdLine::I18N Perinci::To::Text::I18N::id);
 use Locale::Maketext::Lexicon::Gettext;
 our %Lexicon = %{ Locale::Maketext::Lexicon::Gettext->parse(<DATA>) };
 
-our $VERSION = '0.49'; # VERSION
+our $VERSION = '0.50'; # VERSION
 
 #use Data::Dump; dd \%Lexicon;
 
@@ -20,7 +20,7 @@ Perinci::CmdLine::I18N::id - Indonesian translation for Perinci::CmdLine
 
 =head1 VERSION
 
-version 0.49
+version 0.50
 
 =head1 AUTHOR
 
@@ -114,6 +114,13 @@ msgstr ""
 "    --redo <ID>     Ulangi tindakan sebelumnya (ID dari --history)\n"
 "    --history       Daftar sejarah tindakan sebelumnya\n"
 "    --clear-history Bersihkan daftar sejarah tindakan\n"
+
+msgid  "Special options"
+msgstr "Opsi khusus"
+
+# --dry-run
+msgid  "Run in simulation mode (can also be set via environment DRY_RUN=1)"
+msgstr "Modus simulasi (juga bisa lewat variabel lingkungan DRY_RUN=1)"
 
 msgid  "Show version"
 msgstr "Tampilkan versi"
