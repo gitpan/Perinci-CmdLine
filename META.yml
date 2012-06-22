@@ -30,7 +30,7 @@ requires:
   Log::Any::App: 0
   Moo: 0
   Object::BlankStr: 0
-  Perinci::Access: 0.20
+  Perinci::Access: 0.22
   Perinci::BashComplete: 0.29
   Perinci::Result::Format: 0.11
   Perinci::Sub::GetArgs::Argv: 0.17
@@ -45,4 +45,4 @@ requires:
 resources:
   homepage: http://search.cpan.org/dist/Perinci-CmdLine/
   repository: http://github.com/sharyanto/perl-Perinci-CmdLine
-version: 0.50
+version: 0.51

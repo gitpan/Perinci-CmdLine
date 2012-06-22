@@ -9,7 +9,7 @@ use Moo;
 #use Perinci::Object;
 use Perinci::ToUtil;
 
-our $VERSION = '0.50'; # VERSION
+our $VERSION = '0.51'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -545,8 +545,12 @@ sub run_subcommand {
     my ($self) = @_;
     my $tx_id;
 
+    my $ff = $self->{_meta}{features} // {};
+    my $dry_run = $ff->{dry_run} && $self->{_args}{-dry_run};
+    my $begun;
+
     # begin transaction (if using undo)
-    if ($self->undo) {
+    if ($self->undo && !$dry_run) {
         require UUID::Random;
         $tx_id = UUID::Random::generate();
         $tx_id =~ s/-.+//; # 32bit suffices for small number of txs
@@ -558,6 +562,7 @@ sub run_subcommand {
                              "Can't start transaction '$tx_id': $res->[1]"];
             return 1;
         }
+        $begun++;
     }
 
     # call function
@@ -567,7 +572,7 @@ sub run_subcommand {
     $log->tracef("call res=%s", $self->{_res});
 
     # commit transaction (if using undo)
-    if ($self->undo && $self->{_res}[0] =~ /\A(?:200|304)\z/) {
+    if ($begun && $self->{_res}[0] =~ /\A(?:200|304)\z/) {
         my $res = $self->_pa->request(commit_tx => "/", {tx_id=>$tx_id});
         if ($res->[0] != 200) {
             $self->{_res} = [$res->[0],
@@ -729,6 +734,7 @@ sub parse_subcommand_opts {
         return;
     }
     my $meta = $res->[2];
+    $self->{_meta} = $meta;
 
     # parse --dry-run
     my $ff = $meta->{features} // {};
@@ -896,7 +902,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.50
+version 0.51
 
 =head1 SYNOPSIS
 
