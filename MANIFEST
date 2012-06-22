@@ -7,6 +7,7 @@ META.json
 META.yml
 README
 bin/peri-run
+bin/symlink-with-undo
 dist.ini
 lib/Perinci/CmdLine.pm
 lib/Perinci/CmdLine/Easy.pm
@@ -17,3 +18,4 @@ t/00-compile.t
 t/01-basics.t
 t/release-pod-coverage.t
 t/release-pod-syntax.t
+t/undo.t

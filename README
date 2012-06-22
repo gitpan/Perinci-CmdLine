@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.48
+    version 0.49
 
 SYNOPSIS
     In your command-line script:
@@ -70,6 +70,8 @@ DESCRIPTION
 
     *   Tab completion for bash (including completion from remote code)
 
+    *   Undo/redo/history
+
     This module uses Log::Any and Log::Any::App for logging.
 
     This module uses Moo for OO.
@@ -120,12 +122,26 @@ ATTRIBUTES
     for convenience when typing in command line.
 
   undo => BOOL (optional, default 0)
-    UNFINISHED. If set to 1, --undo and --undo-dir will be added to
-    command-line options. --undo is used to perform undo: -undo and
-    -undo_data will be passed to subroutine, an error will be thrown if
-    subroutine does not have "undo" features. --undo-dir is used to set
-    location of undo data (default "~/.undo"; undo directory will be created
-    if not exists; each subroutine will have its own subdir here).
+    Whether to enable undo/redo functionality. Some things to note if you
+    intend to use undo:
+
+    *   These command-line options will be recognized
+
+        "--undo", "--redo", "--history", "--clear-history".
+
+    *   Transactions will be used
+
+        use_tx=>1 will be passed to Perinci::Access, which will cause it to
+        initialize the transaction manager. Riap requests begin_tx and
+        commit_tx will enclose the call request to function.
+
+    *   Called function will need to support transaction and undo
+
+        Function which do not meet qualifications will refuse to be called.
+
+  undo_dir => STR (optional, default ~/.<program_name>/.undo)
+    Where to put undo data. This is actually the transaction manager's data
+    dir.
 
 METHODS
   new(%opts) => OBJ

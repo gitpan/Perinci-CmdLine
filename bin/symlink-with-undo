@@ -1,0 +1,81 @@
+#!/usr/bin/perl
+
+use 5.010;
+use strict;
+use warnings;
+
+use Perinci::CmdLine;
+
+our $VERSION = '0.49'; # VERSION
+
+Perinci::CmdLine->new(url=>'/Setup/File/Symlink/setup_symlink', undo=>1)->run;
+
+1;
+# ABSTRACT: Create symlink, with undo/redo capability
+# PODNAME: symlink-with-undo
+
+
+__END__
+=pod
+
+=head1 NAME
+
+symlink-with-undo - Create symlink, with undo/redo capability
+
+=head1 VERSION
+
+version 0.49
+
+=head1 SYNOPSIS
+
+ # create a symlink
+ $ symlink-with-undo --symlink /tmp/l1 --target target1
+
+ # this will replace symlink's target
+ $ symlink-with-undo --symlink /tmp/l1 --target target2
+
+ # list history
+ $ symlink-with-undo --history
+
+ # undo last action, now symlink points back to 'target1'
+ $ symlink-with-undo --undo
+
+ # undo again, now symlink '/tmp/l1' is removed
+ $ symlink-with-undo --undo
+
+ # redo, now symlink '/tmp/l1' is recreated and points to 'target1'
+ $ symlink-with-undo --redo
+
+ # redo, now symlink '/tmp/l1' points to 'target2'
+ $ symlink-with-undo --redo
+
+ # forget history
+ $ symlink-with-undo --clear-history
+
+ # display help for more options
+ $ symlink-with-undo --help
+
+=head1 DESCRIPTION
+
+This script is just a command-line interface to L<Setup::File::Symlink> to
+demonstrate undo capability via command-line.
+
+=head1 SEE ALSO
+
+L<Perinci::CmdLine>
+
+L<Setup::File::Symlink>
+
+=head1 AUTHOR
+
+Steven Haryanto <stevenharyanto@gmail.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2012 by Steven Haryanto.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut
+

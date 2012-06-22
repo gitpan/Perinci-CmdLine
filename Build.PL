@@ -21,7 +21,7 @@ my %module_build_args = (
     "Steven Haryanto <stevenharyanto\@gmail.com>"
   ],
   "dist_name" => "Perinci-CmdLine",
-  "dist_version" => "0.48",
+  "dist_version" => "0.49",
   "license" => "perl",
   "module_name" => "Perinci::CmdLine",
   "recommends" => {},
@@ -39,7 +39,7 @@ my %module_build_args = (
     "Log::Any::App" => 0,
     "Moo" => 0,
     "Object::BlankStr" => 0,
-    "Perinci::Access" => "0.09",
+    "Perinci::Access" => "0.20",
     "Perinci::BashComplete" => 0,
     "Perinci::Result::Format" => "0.11",
     "Perinci::Sub::GetArgs::Argv" => "0.17",
@@ -48,10 +48,13 @@ my %module_build_args = (
     "SHARYANTO::Role::Doc::Section" => 0,
     "SHARYANTO::Role::I18N" => 0,
     "SHARYANTO::Role::I18NRinci" => 0,
+    "Setup::File::Symlink" => 0,
+    "UUID::Random" => 0,
     "perl" => "5.010000"
   },
   "script_files" => [
-    "bin/peri-run"
+    "bin/peri-run",
+    "bin/symlink-with-undo"
   ]
 );
 

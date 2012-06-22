@@ -4,7 +4,7 @@ use parent qw(Perinci::CmdLine::I18N Perinci::To::Text::I18N::en);
 use Locale::Maketext::Lexicon::Gettext;
 our %Lexicon = %{ Locale::Maketext::Lexicon::Gettext->parse(<DATA>) };
 
-our $VERSION = '0.48'; # VERSION
+our $VERSION = '0.49'; # VERSION
 
 #use Data::Dump; dd \%Lexicon;
 
@@ -20,7 +20,7 @@ Perinci::CmdLine::I18N::en - English translation for Perinci::CmdLine
 
 =head1 VERSION
 
-version 0.48
+version 0.49
 
 =head1 AUTHOR
 
@@ -99,6 +99,21 @@ msgstr ""
 "    --text-simple   Format result as simple formatted text\n"
 "    --text         (Default) Use --text-pretty, or --text-simple when run piped\n"
 "    --format=FMT    Choose output format\n"
+
+msgid  ""
+"Undo options:\n"
+"\n"
+"    --undo <ID>     Undo previous action (use --history to get IDs)\n"
+"    --redo <ID>     Redo previous undo action (use --history to get IDs)\n"
+"    --history       List actions history\n"
+"    --clear-history Clear actions history\n"
+msgstr ""
+"Undo options:\n"
+"\n"
+"    --undo <ID>     Undo previous action (use --history to get IDs)\n"
+"    --redo <ID>     Redo previous undo action (use --history to get IDs)\n"
+"    --history       List actions history\n"
+"    --clear-history Clear actions history\n"
 
 msgid  "Show version"
 msgstr "Show version"
