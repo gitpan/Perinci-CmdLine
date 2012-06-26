@@ -21,7 +21,7 @@ my %module_build_args = (
     "Steven Haryanto <stevenharyanto\@gmail.com>"
   ],
   "dist_name" => "Perinci-CmdLine",
-  "dist_version" => "0.51",
+  "dist_version" => "0.52",
   "license" => "perl",
   "module_name" => "Perinci::CmdLine",
   "recommends" => {},

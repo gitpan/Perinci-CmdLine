@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.51
+    version 0.52
 
 SYNOPSIS
     In your command-line script:
@@ -108,6 +108,11 @@ ATTRIBUTES
   exit => BOOL (default 1)
     If set to 0, instead of exiting with exit(), run() will return the exit
     code instead.
+
+  log_any_app => BOOL
+    Whether to load Log::Any::App. Default is yes, or to look at LOG
+    environment variable. For faster startup, you might want to disable this
+    or just use LOG=0 when running your scripts.
 
   custom_completer => CODEREF
     Will be passed to Perinci::BashComplete's "bash_complete_riap_func_arg".

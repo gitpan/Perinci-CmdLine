@@ -1,5 +1,20 @@
 Revision history for Perinci-CmdLine
 
+0.52     2012-06-26 (SHARYANTO)
+
+         [INCOMPATIBLE CHANGES]
+
+         - Remove options --text, --yaml, --text-pretty, --text-nopretty,
+           --json; use --format for now. This is to reduce the possibility of
+           collision with function argument options (especially things like --text
+           are common as function arguments).
+
+         [FIXES]
+
+         - Fix typo that cause list of known result formats to be empty in error
+           message when passed --format=BOGUS
+
+
 0.51     2012-06-22 (SHARYANTO)
 
          [ENHANCEMENTS]

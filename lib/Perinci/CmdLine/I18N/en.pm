@@ -4,7 +4,7 @@ use parent qw(Perinci::CmdLine::I18N Perinci::To::Text::I18N::en);
 use Locale::Maketext::Lexicon::Gettext;
 our %Lexicon = %{ Locale::Maketext::Lexicon::Gettext->parse(<DATA>) };
 
-our $VERSION = '0.51'; # VERSION
+our $VERSION = '0.52'; # VERSION
 
 #use Data::Dump; dd \%Lexicon;
 
@@ -20,7 +20,7 @@ Perinci::CmdLine::I18N::en - English translation for Perinci::CmdLine
 
 =head1 VERSION
 
-version 0.51
+version 0.52
 
 =head1 AUTHOR
 
@@ -84,20 +84,10 @@ msgstr ""
 msgid  ""
 "Common options:\n"
 "\n"
-"    --yaml, -y      Format result as YAML\n"
-"    --json, -j      Format result as JSON\n"
-"    --text-pretty   Format result as pretty formatted text\n"
-"    --text-simple   Format result as simple formatted text\n"
-"    --text         (Default) Use --text-pretty, or --text-simple when run piped\n"
 "    --format=FMT    Choose output format\n"
 msgstr ""
 "Common options:\n"
 "\n"
-"    --yaml, -y      Format result as YAML\n"
-"    --json, -j      Format result as JSON\n"
-"    --text-pretty   Format result as pretty formatted text\n"
-"    --text-simple   Format result as simple formatted text\n"
-"    --text         (Default) Use --text-pretty, or --text-simple when run piped\n"
 "    --format=FMT    Choose output format\n"
 
 msgid  ""

@@ -9,7 +9,7 @@ use Moo;
 #use Perinci::Object;
 use Perinci::ToUtil;
 
-our $VERSION = '0.51'; # VERSION
+our $VERSION = '0.52'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -31,7 +31,7 @@ has url => (is => 'rw');
 has summary => (is => 'rw');
 has subcommands => (is => 'rw');
 has exit => (is => 'rw', default=>sub{1});
-has log_any_app => (is => 'rw');
+has log_any_app => (is => 'rw', default=>sub{$ENV{LOG} // 1});
 has custom_completer => (is => 'rw');
 has custom_arg_completer => (is => 'rw');
 has dash_to_underscore => (is => 'rw', default=>sub{1});
@@ -99,7 +99,7 @@ sub format_and_display_result {
 
     my $format = $self->format;
     die "ERROR: Unknown output format '$format', please choose one of: ".
-        join(", ", sort keys(%$Perinci::Result::Format::Formats))."\n"
+        join(", ", sort keys(%Perinci::Result::Format::Formats))."\n"
             unless $Perinci::Result::Format::Formats{$format};
     $self->{_fres} = Perinci::Result::Format::format($self->{_res}, $format);
 
@@ -255,7 +255,7 @@ sub run_completion {
             $do_arg++; last;
         }
 
-        # e.g: spanel delete-account --yaml --acc^
+        # e.g: spanel delete-account --format=yaml --acc^
         if ($cword > 0 && !$space_typed && $word ne $scn) {
             $log->trace("do_arg because subcommand name has been typed ".
                             "in past words");
@@ -266,7 +266,7 @@ sub run_completion {
                      $cword, $words, $scn, $space_typed);
     }
 
-    my @top_opts; # contain --help, -h, --yaml, etc.
+    my @top_opts; # contain --help, -h, etc.
     for my $o (keys %{{@{ $self->{_getopts_common} }}}) {
         $o =~ s/^--//;
         my @o = split /\|/, $o;
@@ -407,11 +407,6 @@ sub doc_gen_common_options {
     my $text = <<_;
 Common options:
 
-    --yaml, -y      Format result as YAML
-    --json, -j      Format result as JSON
-    --text-pretty   Format result as pretty formatted text
-    --text-simple   Format result as simple formatted text
-    --text         (Default) Use --text-pretty, or --text-simple when run piped
     --format=FMT    Choose output format
 _
     $self->add_doc_lines($self->loc($text), "");
@@ -655,16 +650,11 @@ sub gen_common_opts {
             $self->{_check_required_args} = 0;
         },
 
-        "yaml|y"      => sub { $self->format('yaml')        },
-        "json|j"      => sub { $self->format('json')        },
-        "text-pretty" => sub { $self->format('text-pretty') },
-        "text-simple" => sub { $self->format('text-simple') },
-        "text"        => sub { $self->format('text')        },
         "format=s"    => sub { $self->format($_[1])         },
     );
 
     # convenience for Log::Any::App-using apps
-    if ($self->log_any_app // 1) {
+    if ($self->log_any_app) {
         for (qw/quiet verbose debug trace log-level/) {
             push @getopts, $_ => sub {};
         }
@@ -722,7 +712,7 @@ sub parse_subcommand_opts {
 
     my ($self) = @_;
     my $sc = $self->{_subcommand};
-    return unless $self->{_subcommand};
+    return unless $sc && $sc->{url};
     $log->tracef("-> parse_subcommand_opts()");
 
     my $res = $self->_pa->request(meta=>$sc->{url});
@@ -811,7 +801,7 @@ sub _set_subcommand {
 
     unless ($ENV{COMP_LINE}) {
         $self->_load_log_any_app if
-            $self->log_any_app // $self->{_subcommand}{log_any_app} // 1;
+            $self->{_subcommand}{log_any_app} // $self->log_any_app;
     }
 
     $log->tracef("actions=%s, subcommand=%s",
@@ -902,7 +892,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.51
+version 0.52
 
 =head1 SYNOPSIS
 
@@ -1019,6 +1009,12 @@ only.
 
 If set to 0, instead of exiting with exit(), run() will return the exit code
 instead.
+
+=head2 log_any_app => BOOL
+
+Whether to load L<Log::Any::App>. Default is yes, or to look at LOG environment
+variable. For faster startup, you might want to disable this or just use LOG=0
+when running your scripts.
 
 =head2 custom_completer => CODEREF
 
