@@ -7,7 +7,7 @@ META.json
 META.yml
 README
 bin/peri-run
-bin/symlink-with-undo
+bin/u-symlink
 dist.ini
 examples/doesnt-set-log-any-app
 examples/greedy-arg

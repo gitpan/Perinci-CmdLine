@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.52
+    version 0.53
 
 SYNOPSIS
     In your command-line script:
@@ -104,6 +104,10 @@ ATTRIBUTES
     doing --list) it must return a hashref of subcommand specifications. If
     called with argument "name" it must return subcommand specification for
     subcommand with the requested name only.
+
+  default_subcommand => NAME
+    If set, subcommand will always be set to this instead of from the first
+    argument. To use other subcommands, you will have to use --cmd option.
 
   exit => BOOL (default 1)
     If set to 0, instead of exiting with exit(), run() will return the exit

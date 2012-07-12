@@ -6,13 +6,13 @@ use warnings;
 
 use Perinci::CmdLine;
 
-our $VERSION = '0.52'; # VERSION
+our $VERSION = '0.53'; # VERSION
 
 Perinci::CmdLine->new(url=>'/Setup/File/Symlink/setup_symlink', undo=>1)->run;
 
 1;
 # ABSTRACT: Create symlink, with undo/redo capability
-# PODNAME: symlink-with-undo
+# PODNAME: u-symlink
 
 
 __END__
@@ -20,40 +20,40 @@ __END__
 
 =head1 NAME
 
-symlink-with-undo - Create symlink, with undo/redo capability
+u-symlink - Create symlink, with undo/redo capability
 
 =head1 VERSION
 
-version 0.52
+version 0.53
 
 =head1 SYNOPSIS
 
  # create a symlink
- $ symlink-with-undo --symlink /tmp/l1 --target target1
+ $ u-symlink --symlink /tmp/l1 --target target1
 
  # this will replace symlink's target
- $ symlink-with-undo --symlink /tmp/l1 --target target2
+ $ u-symlink --symlink /tmp/l1 --target target2
 
  # list history
- $ symlink-with-undo --history
+ $ u-symlink --history
 
  # undo last action, now symlink points back to 'target1'
- $ symlink-with-undo --undo
+ $ u-symlink --undo
 
  # undo again, now symlink '/tmp/l1' is removed
- $ symlink-with-undo --undo
+ $ u-symlink --undo
 
  # redo, now symlink '/tmp/l1' is recreated and points to 'target1'
- $ symlink-with-undo --redo
+ $ u-symlink --redo
 
  # redo, now symlink '/tmp/l1' points to 'target2'
- $ symlink-with-undo --redo
+ $ u-symlink --redo
 
  # forget history
- $ symlink-with-undo --clear-history
+ $ u-symlink --clear-history
 
  # display help for more options
- $ symlink-with-undo --help
+ $ u-symlink --help
 
 =head1 DESCRIPTION
 

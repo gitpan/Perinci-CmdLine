@@ -21,7 +21,7 @@ my %module_build_args = (
     "Steven Haryanto <stevenharyanto\@gmail.com>"
   ],
   "dist_name" => "Perinci-CmdLine",
-  "dist_version" => "0.52",
+  "dist_version" => "0.53",
   "license" => "perl",
   "module_name" => "Perinci::CmdLine",
   "recommends" => {},
@@ -54,7 +54,7 @@ my %module_build_args = (
   },
   "script_files" => [
     "bin/peri-run",
-    "bin/symlink-with-undo"
+    "bin/u-symlink"
   ]
 );
 
