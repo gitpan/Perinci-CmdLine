@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.53
+    version 0.54
 
 SYNOPSIS
     In your command-line script:
@@ -64,6 +64,14 @@ DESCRIPTION
     What you'll get:
 
     *   Command-line options parsing
+
+        Non-scalar arguments (array, hash, other nested) can also be passed
+        as JSON or YAML (both will be attempted). For example, the "tags"
+        argument is defined as 'array':
+
+         % mycmd --tags '[foo, bar, baz]' ; # interpreted as YAML
+         % mycmd --tags '["foo","bar"]'   ; # interpreted as JSON
+         % mycmd --tags '[foo, bar, baz'  ; # fails both
 
     *   Help message (utilizing information from metadata, supports
         translation)
@@ -214,28 +222,32 @@ RESULT METADATA
 
 FAQ
   How does Perinci::CmdLine compare with other CLI-app frameworks?
-    Perinci::CmdLine is part of a more general metadata and wrapping
-    framework (Perinci::* modules family). Aside from a command-line
-    application, your metadata is also usable for other purposes, like
-    providing access over HTTP/TCP, documentation, etc.
+    The most important difference is that Perinci::CmdLine accesses your
+    code through Riap protocol, not directly. This means that aside from
+    local Perl code, Perinci::CmdLine can also provide CLI for code in
+    remote hosts/languages. For a very rough demo, download and run this PHP
+    Riap::TCP server
+    https://github.com/sharyanto/php-Phinci/blob/master/demo/phi-tcpserve-te
+    rbilang.php on your system. After that, try running:
 
-    Configuration file support is missing (coming soon, most probably will
-    be based on Config::Ini::OnDrugs).
+     % peri-run riap+tcp://localhost:9090/terbilang --help
+     % peri-run riap+tcp://localhost:9090/terbilang 1234
 
-    Also lacking is more documentation and more plugins.
+    Everything from help message, calling, argument checking, tab completion
+    works for remote code as well as local Perl code.
 
-  Why is nonscalar arguments parsed as YAML instead of JSON/etc?
-    I think YAML is nicer in command-line because quotes are optional in a
-    few places:
+    Aside from this difference, there are several others:
 
-     $ cmd --array '[a, b, c]' --hash '{foo: bar}'
+    *   Non-OO, function-centric
 
-    versus:
+        If you want OO, there are already several frameworks out there for
+        you, e.g. App::Cmd, App::Rad, MooX::Cmd, etc.
 
-     $ cmd --array '["a","b","c"]' --hash '{"foo":"bar"}'
+    *   Configuration file support is currently missing
 
-    Though YAML requires spaces in some places where JSON does not. A flag
-    to parse as JSON can be added upon request.
+        Coming soon, most probably will be based on Config::Ini::OnDrugs.
+
+    *   Also lacking is more documentation and more plugins
 
   How to add support for new output format (e.g. XML, HTML)?
     See Perinci::Result::Format.

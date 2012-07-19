@@ -39,9 +39,11 @@
             "Moo" : 0,
             "Object::BlankStr" : 0,
             "Perinci::Access" : "0.22",
+            "Perinci::Access::HTTP::Client" : 0,
+            "Perinci::Access::TCP::Client" : 0,
             "Perinci::BashComplete" : "0.29",
             "Perinci::Result::Format" : "0.11",
-            "Perinci::Sub::GetArgs::Argv" : "0.17",
+            "Perinci::Sub::GetArgs::Argv" : "0.18",
             "Perinci::Sub::Wrapper" : "0.14",
             "Perinci::To::Text::AddDocLinesRole" : "0.10",
             "SHARYANTO::Role::Doc::Section" : 0,
@@ -68,6 +70,6 @@
          "url" : "http://github.com/sharyanto/perl-Perinci-CmdLine"
       }
    },
-   "version" : "0.53"
+   "version" : "0.54"
 }
 
