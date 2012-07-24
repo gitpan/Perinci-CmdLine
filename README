@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.54
+    version 0.55
 
 SYNOPSIS
     In your command-line script:
@@ -220,12 +220,15 @@ RESULT METADATA
     Instruct Perinci::CmdLine to use specified pager instead of $ENV{PAGER}
     or the default "less" or "more".
 
+ENVIRONMENT
+    PERINCI_CMDLINE_PROGRAM_NAME. Can be used to set CLI program name.
+
 FAQ
   How does Perinci::CmdLine compare with other CLI-app frameworks?
-    The most important difference is that Perinci::CmdLine accesses your
-    code through Riap protocol, not directly. This means that aside from
-    local Perl code, Perinci::CmdLine can also provide CLI for code in
-    remote hosts/languages. For a very rough demo, download and run this PHP
+    The main difference is that Perinci::CmdLine accesses your code through
+    Riap protocol, not directly. This means that aside from local Perl code,
+    Perinci::CmdLine can also provide CLI for code in remote
+    hosts/languages. For a very rough demo, download and run this PHP
     Riap::TCP server
     https://github.com/sharyanto/php-Phinci/blob/master/demo/phi-tcpserve-te
     rbilang.php on your system. After that, try running:
@@ -251,6 +254,31 @@ FAQ
 
   How to add support for new output format (e.g. XML, HTML)?
     See Perinci::Result::Format.
+
+  How to accept input from STDIN (or files)?
+    If you specify 'cmdline_src' to 'stdin' to a 'str' argument, the
+    argument's value will be retrieved from standard input if not specified.
+    Example:
+
+     use Perinci::CmdLine;
+     $SPEC{cmd} = {
+         v => 1.1,
+         args => {
+             arg => {
+                 schema => 'str*',
+                 cmdline_src => 'stdin',
+             },
+         },
+     };
+     sub cmd {
+         my %args = @_;
+         [200, "OK", "arg is $args{arg}"];
+     }
+     Perinci::CmdLine->new(url=>'/main/cmd')->run;
+
+    When run from command line:
+
+     % cmd --arg v1
 
 SEE ALSO
     Perinci, Rinci, Riap.

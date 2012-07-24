@@ -5,13 +5,14 @@ author:
 build_requires:
   Capture::Tiny: 0
   Data::Clone: 0
+  File::Slurp: 0
   Module::Build: 0.3601
   Perinci::Examples: 0
   Test::More: 0.96
 configure_requires:
   Module::Build: 0.3601
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.300006, CPAN::Meta::Converter version 2.113640'
+generated_by: 'Dist::Zilla version 4.300015, CPAN::Meta::Converter version 2.120921'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -35,16 +36,18 @@ requires:
   Perinci::Access::TCP::Client: 0
   Perinci::BashComplete: 0.29
   Perinci::Result::Format: 0.11
-  Perinci::Sub::GetArgs::Argv: 0.18
+  Perinci::Sub::GetArgs::Argv: 0.19
   Perinci::Sub::Wrapper: 0.14
   Perinci::To::Text::AddDocLinesRole: 0.10
+  Rinci: v1.1.21
   SHARYANTO::Role::Doc::Section: 0
   SHARYANTO::Role::I18N: 0
   SHARYANTO::Role::I18NRinci: 0
   Setup::File::Symlink: 0
   UUID::Random: 0
+  YAML::Syck: 0
   perl: 5.010000
 resources:
   homepage: http://search.cpan.org/dist/Perinci-CmdLine/
   repository: http://github.com/sharyanto/perl-Perinci-CmdLine
-version: 0.54
+version: 0.55

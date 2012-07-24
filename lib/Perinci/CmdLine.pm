@@ -9,7 +9,7 @@ use Moo;
 #use Perinci::Object;
 use Perinci::ToUtil;
 
-our $VERSION = '0.54'; # VERSION
+our $VERSION = '0.55'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -459,14 +459,22 @@ sub doc_gen_options {
         $ane = "no$ane" if $s->[0] eq 'bool' && $s->[1]{default};
         my $def = defined($s->[1]{default}) ?
             " (default: ".dump1($s->[1]{default}).")" : "";
+        my $src = $a->{cmdline_src} // "";
         my $text = sprintf(
-            "  --%s [%s]%s%s\n",
+            "  --%s [%s]%s\n",
             $ane,
             Perinci::ToUtil::sah2human_short($s),
-            (defined($a->{pos}) ? " (" .
-                 $self->loc("or as argument #[_1]",
-                            ($a->{pos}+1).($a->{greedy} ? "+":"")) . ")" : ""),
-            $def,
+            join(
+                "",
+                (defined($a->{pos}) ? " (" .
+                     $self->loc("or as argument #[_1]",
+                                ($a->{pos}+1).($a->{greedy} ? "+":"")).")":""),
+                ($src eq 'stdin' ?
+                     " (" . $self->loc("or from stdin") . ")" : ""),
+                ($src eq 'stdin_or_files' ?
+                     " (" . $self->loc("or from stdin/files") . ")" : ""),
+                $def
+            ),
         );
         $self->add_doc_lines($text);
         my $in;
@@ -768,9 +776,36 @@ sub parse_subcommand_opts {
     # parse argv
     $Perinci::Sub::GetArgs::Argv::_pa_skip_check_required_args = 1
         if $self->{_pa_skip_check_required_args};
+    my $src_seen;
     my %ga_args = (
-        argv=>\@ARGV, meta=>$meta,
+        argv                => \@ARGV,
+        meta                => $meta,
         check_required_args => $self->{_check_required_args} // 1,
+        allow_extra_elems   => 1,
+        on_missing_required_args => sub {
+            my %a = @_;
+            my ($a, $aa, $as) = ($a{arg}, $a{args}, $a{spec});
+            my $src = $as->{cmdline_src};
+            if ($src) {
+                die "ERROR: Invalid 'cmdline_src' value for argument '$a': ".
+                    "$src\n" unless $src =~ /\A(stdin|stdin_or_files)\z/;
+                die "ERROR: Sorry, argument '$a' is set cmdline_src=$src, ".
+                    "but type is not 'str', only str is supported for now\n"
+                        unless $as->{schema}[0] eq 'str';
+                die "ERROR: Only one argument can be specified cmdline_src"
+                    if $src_seen++;
+                if ($src eq 'stdin') {
+                    $log->trace("Getting argument '$a' value from stdin ...");
+                    local $/;
+                    $aa->{$a} = <STDIN>;
+                } elsif ($src eq 'stdin_or_files') {
+                    $log->trace("Getting argument '$a' value from ".
+                                    "stdin_or_files ...");
+                    local $/;
+                    $aa->{$a} = <>;
+                }
+            }
+        },
     );
     if ($self->{_force_subcommand}) {
         $ga_args{extra_getopts_before} = $self->{_getopts_common};
@@ -928,7 +963,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.54
+version 0.55
 
 =head1 SYNOPSIS
 
@@ -1173,14 +1208,18 @@ For example:
 Instruct Perinci::CmdLine to use specified pager instead of C<$ENV{PAGER}> or
 the default C<less> or C<more>.
 
+=head1 ENVIRONMENT
+
+B<PERINCI_CMDLINE_PROGRAM_NAME>. Can be used to set CLI program name.
+
 =head1 FAQ
 
 =head2 How does Perinci::CmdLine compare with other CLI-app frameworks?
 
-The most important difference is that Perinci::CmdLine accesses your code
-through L<Riap> protocol, not directly. This means that aside from local Perl
-code, Perinci::CmdLine can also provide CLI for code in remote hosts/languages.
-For a very rough demo, download and run this PHP Riap::TCP server
+The main difference is that Perinci::CmdLine accesses your code through L<Riap>
+protocol, not directly. This means that aside from local Perl code,
+Perinci::CmdLine can also provide CLI for code in remote hosts/languages. For a
+very rough demo, download and run this PHP Riap::TCP server
 https://github.com/sharyanto/php-Phinci/blob/master/demo/phi-tcpserve-terbilang.php
 on your system. After that, try running:
 
@@ -1210,6 +1249,31 @@ Coming soon, most probably will be based on L<Config::Ini::OnDrugs>.
 =head2 How to add support for new output format (e.g. XML, HTML)?
 
 See L<Perinci::Result::Format>.
+
+=head2 How to accept input from STDIN (or files)?
+
+If you specify 'cmdline_src' to 'stdin' to a 'str' argument, the argument's
+value will be retrieved from standard input if not specified. Example:
+
+ use Perinci::CmdLine;
+ $SPEC{cmd} = {
+     v => 1.1,
+     args => {
+         arg => {
+             schema => 'str*',
+             cmdline_src => 'stdin',
+         },
+     },
+ };
+ sub cmd {
+     my %args = @_;
+     [200, "OK", "arg is $args{arg}"];
+ }
+ Perinci::CmdLine->new(url=>'/main/cmd')->run;
+
+When run from command line:
+
+ % cmd --arg v1
 
 =head1 SEE ALSO
 

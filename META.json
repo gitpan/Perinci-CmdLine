@@ -4,7 +4,7 @@
       "Steven Haryanto <stevenharyanto@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 4.300006, CPAN::Meta::Converter version 2.113640",
+   "generated_by" : "Dist::Zilla version 4.300015, CPAN::Meta::Converter version 2.120921",
    "license" : [
       "perl_5"
    ],
@@ -26,39 +26,42 @@
       },
       "runtime" : {
          "requires" : {
-            "Data::Format::Pretty" : 0,
-            "Data::Format::Pretty::CompactJSON" : 0,
-            "Data::Format::Pretty::Console" : 0,
-            "Data::Format::Pretty::YAML" : 0,
+            "Data::Format::Pretty" : "0",
+            "Data::Format::Pretty::CompactJSON" : "0",
+            "Data::Format::Pretty::Console" : "0",
+            "Data::Format::Pretty::YAML" : "0",
             "Data::Sah" : "0.02",
-            "File::Which" : 0,
-            "JSON" : 0,
-            "List::MoreUtils" : 0,
-            "Log::Any" : 0,
-            "Log::Any::App" : 0,
-            "Moo" : 0,
-            "Object::BlankStr" : 0,
+            "File::Which" : "0",
+            "JSON" : "0",
+            "List::MoreUtils" : "0",
+            "Log::Any" : "0",
+            "Log::Any::App" : "0",
+            "Moo" : "0",
+            "Object::BlankStr" : "0",
             "Perinci::Access" : "0.22",
-            "Perinci::Access::HTTP::Client" : 0,
-            "Perinci::Access::TCP::Client" : 0,
+            "Perinci::Access::HTTP::Client" : "0",
+            "Perinci::Access::TCP::Client" : "0",
             "Perinci::BashComplete" : "0.29",
             "Perinci::Result::Format" : "0.11",
-            "Perinci::Sub::GetArgs::Argv" : "0.18",
+            "Perinci::Sub::GetArgs::Argv" : "0.19",
             "Perinci::Sub::Wrapper" : "0.14",
             "Perinci::To::Text::AddDocLinesRole" : "0.10",
-            "SHARYANTO::Role::Doc::Section" : 0,
-            "SHARYANTO::Role::I18N" : 0,
-            "SHARYANTO::Role::I18NRinci" : 0,
-            "Setup::File::Symlink" : 0,
-            "UUID::Random" : 0,
+            "Rinci" : "v1.1.21",
+            "SHARYANTO::Role::Doc::Section" : "0",
+            "SHARYANTO::Role::I18N" : "0",
+            "SHARYANTO::Role::I18NRinci" : "0",
+            "Setup::File::Symlink" : "0",
+            "UUID::Random" : "0",
+            "YAML::Syck" : "0",
             "perl" : "5.010000"
          }
       },
       "test" : {
          "requires" : {
-            "Capture::Tiny" : 0,
-            "Data::Clone" : 0,
-            "Perinci::Examples" : 0,
+            "Capture::Tiny" : "0",
+            "Data::Clone" : "0",
+            "File::Slurp" : "0",
+            "Perinci::Examples" : "0",
             "Test::More" : "0.96"
          }
       }
@@ -70,6 +73,6 @@
          "url" : "http://github.com/sharyanto/perl-Perinci-CmdLine"
       }
    },
-   "version" : "0.54"
+   "version" : "0.55"
 }
 

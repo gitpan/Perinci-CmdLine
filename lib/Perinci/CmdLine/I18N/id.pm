@@ -4,7 +4,7 @@ use parent qw(Perinci::CmdLine::I18N Perinci::To::Text::I18N::id);
 use Locale::Maketext::Lexicon::Gettext;
 our %Lexicon = %{ Locale::Maketext::Lexicon::Gettext->parse(<DATA>) };
 
-our $VERSION = '0.54'; # VERSION
+our $VERSION = '0.55'; # VERSION
 
 #use Data::Dump; dd \%Lexicon;
 
@@ -20,7 +20,7 @@ Perinci::CmdLine::I18N::id - Indonesian translation for Perinci::CmdLine
 
 =head1 VERSION
 
-version 0.54
+version 0.55
 
 =head1 AUTHOR
 
@@ -166,4 +166,10 @@ msgstr "Untuk pesan bantuan subperintah tertentu, ketik '%1'"
 
 msgid  "or as argument #%1"
 msgstr "atau sebagai argumen #%1"
+
+msgid  "or from stdin"
+msgstr "atau dari masukan standar"
+
+msgid  "or from stdin/files"
+msgstr "atau dari berkas/masukan standar"
 

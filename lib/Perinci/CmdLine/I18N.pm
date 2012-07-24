@@ -2,7 +2,7 @@ package Perinci::CmdLine::I18N;
 
 use parent 'Perinci::To::Text::I18N';
 
-our $VERSION = '0.54'; # VERSION
+our $VERSION = '0.55'; # VERSION
 
 1;
 # ABSTRACT: Project class for Perinci::CmdLine
@@ -16,7 +16,7 @@ Perinci::CmdLine::I18N - Project class for Perinci::CmdLine
 
 =head1 VERSION
 
-version 0.54
+version 0.55
 
 =head1 AUTHOR
 
