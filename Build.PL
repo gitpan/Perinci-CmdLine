@@ -22,7 +22,7 @@ my %module_build_args = (
     "Steven Haryanto <stevenharyanto\@gmail.com>"
   ],
   "dist_name" => "Perinci-CmdLine",
-  "dist_version" => "0.55",
+  "dist_version" => "0.56",
   "license" => "perl",
   "module_name" => "Perinci::CmdLine",
   "recommends" => {},
@@ -30,7 +30,7 @@ my %module_build_args = (
   "requires" => {
     "Data::Format::Pretty" => 0,
     "Data::Format::Pretty::CompactJSON" => 0,
-    "Data::Format::Pretty::Console" => 0,
+    "Data::Format::Pretty::Console" => "0.16",
     "Data::Format::Pretty::YAML" => 0,
     "Data::Sah" => "0.02",
     "File::Which" => 0,
@@ -48,7 +48,7 @@ my %module_build_args = (
     "Perinci::Sub::GetArgs::Argv" => "0.19",
     "Perinci::Sub::Wrapper" => "0.14",
     "Perinci::To::Text::AddDocLinesRole" => "0.10",
-    "Rinci" => "v1.1.21",
+    "Rinci" => "1.1.21",
     "SHARYANTO::Role::Doc::Section" => 0,
     "SHARYANTO::Role::I18N" => 0,
     "SHARYANTO::Role::I18NRinci" => 0,
@@ -58,10 +58,10 @@ my %module_build_args = (
     "perl" => "5.010000"
   },
   "script_files" => [
+    "bin/strip-result-env-json",
     "bin/strip-result-env-yaml",
     "bin/peri-run",
-    "bin/u-symlink",
-    "bin/strip-result-env-json"
+    "bin/u-symlink"
   ]
 );
 
