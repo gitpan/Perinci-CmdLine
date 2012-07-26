@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.57
+    version 0.58
 
 SYNOPSIS
     In your command-line script:
@@ -104,7 +104,11 @@ ATTRIBUTES
     be retrieved from function metadata if unset), "tags" (array of str, for
     categorizing subcommands), "log_any_app" (bool, whether to load
     Log::Any::App, default is true, for subcommands that need fast startup
-    you can try turning this off for said subcommands).
+    you can try turning this off for said subcommands), "undo" (bool, can be
+    set to 0 to disable transaction for this subcommand; this is only
+    relevant when "undo" attribute is set to true), "pass_cmdline_object"
+    (bool, to override "pass_cmdline_object" attribute on a per-subcommand
+    basis).
 
     Subcommands can also be a coderef, for dynamic list of subcommands. The
     coderef will be called as a method with hash arguments. It can be called
@@ -173,6 +177,13 @@ ATTRIBUTES
     If set to 1, subcommand like a-b-c will be converted to a_b_c. This is
     for convenience when typing in command line.
 
+  pass_cmdline_object => BOOL (optional, default 0)
+    Whether to pass special argument "-cmdline" containing the
+    Perinci::CmdLine object to function. This can be overriden using the
+    "pass_cmdline_object" on a per-subcommand basis.
+
+    Passing the cmdline object can be useful, e.g. to call run_help(), etc.
+
   undo => BOOL (optional, default 0)
     Whether to enable undo/redo functionality. Some things to note if you
     intend to use undo:
@@ -190,6 +201,11 @@ ATTRIBUTES
     *   Called function will need to support transaction and undo
 
         Function which do not meet qualifications will refuse to be called.
+
+        Exception is when subcommand is specified with undo=>0, where
+        transaction will not be used for that subcommand. For an example of
+        disabling transaction for some subcommands, see "bin/u-trash" in the
+        distribution.
 
   undo_dir => STR (optional, default ~/.<program_name>/.undo)
     Where to put undo data. This is actually the transaction manager's data

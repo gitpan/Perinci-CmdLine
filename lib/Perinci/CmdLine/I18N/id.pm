@@ -4,7 +4,7 @@ use parent qw(Perinci::CmdLine::I18N Perinci::To::Text::I18N::id);
 use Locale::Maketext::Lexicon::Gettext;
 our %Lexicon = %{ Locale::Maketext::Lexicon::Gettext->parse(<DATA>) };
 
-our $VERSION = '0.57'; # VERSION
+our $VERSION = '0.58'; # VERSION
 
 #use Data::Dump; dd \%Lexicon;
 
@@ -20,7 +20,7 @@ Perinci::CmdLine::I18N::id - Indonesian translation for Perinci::CmdLine
 
 =head1 VERSION
 
-version 0.57
+version 0.58
 
 =head1 AUTHOR
 
@@ -113,15 +113,15 @@ msgstr ""
 msgid  ""
 "Undo options:\n"
 "\n"
-"    --undo <ID>     Undo previous action (use --history to get IDs)\n"
-"    --redo <ID>     Redo previous undo action (use --history to get IDs)\n"
+"    --undo          Undo previous action\n"
+"    --redo          Redo previous undone action\n"
 "    --history       List actions history\n"
 "    --clear-history Clear actions history\n"
 msgstr ""
 "Opsi undo:\n"
 "\n"
-"    --undo <ID>     Batalkan tindakan sebelumnya (ID dari --history)\n"
-"    --redo <ID>     Ulangi tindakan sebelumnya (ID dari --history)\n"
+"    --undo          Batalkan tindakan sebelumnya\n"
+"    --redo          Batalkan pembatalan sebelumnya\n"
 "    --history       Daftar sejarah tindakan sebelumnya\n"
 "    --clear-history Bersihkan daftar sejarah tindakan\n"
 

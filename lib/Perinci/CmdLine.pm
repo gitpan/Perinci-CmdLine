@@ -9,7 +9,7 @@ use Moo;
 #use Perinci::Object;
 use Perinci::ToUtil;
 
-our $VERSION = '0.57'; # VERSION
+our $VERSION = '0.58'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -37,6 +37,7 @@ has log_any_app => (is => 'rw', default=>sub{$ENV{LOG} // 1});
 has custom_completer => (is => 'rw');
 has custom_arg_completer => (is => 'rw');
 has dash_to_underscore => (is => 'rw', default=>sub{1});
+has pass_cmdline_object => (is => 'rw', default=>sub{0});
 has undo => (is=>'rw', default=>sub{0});
 has undo_dir => (
     is => 'rw',
@@ -430,8 +431,8 @@ _
     $text = <<_;
 Undo options:
 
-    --undo <ID>     Undo previous action (use --history to get IDs)
-    --redo <ID>     Redo previous undo action (use --history to get IDs)
+    --undo          Undo previous action
+    --redo          Redo previous undone action
     --history       List actions history
     --clear-history Clear actions history
 _
@@ -562,14 +563,20 @@ sub run_subcommand {
     require File::Which;
 
     my ($self) = @_;
+    my $sc = $self->{_subcommand};
+
+    my %fargs = %{$self->{_args}};
+    $fargs{-cmdline} = $self if $sc->{pass_cmdline_object} //
+        $self->pass_cmdline_object;
+
     my $tx_id;
 
     my $ff = $self->{_meta}{features} // {};
     my $dry_run = $ff->{dry_run} && $self->{_args}{-dry_run};
-    my $begun;
 
-    # begin transaction (if using undo)
-    if ($self->undo && !$dry_run) {
+    my $using_tx = $self->undo && !$dry_run && ($sc->{undo} // 1);
+
+    if ($using_tx) {
         require UUID::Random;
         $tx_id = UUID::Random::generate();
         $tx_id =~ s/-.+//; # 32bit suffices for small number of txs
@@ -581,17 +588,16 @@ sub run_subcommand {
                              "Can't start transaction '$tx_id': $res->[1]"];
             return 1;
         }
-        $begun++;
     }
 
     # call function
     $self->{_res} = $self->_pa->request(
         call => $self->{_subcommand}{url},
-        {args=>$self->{_args}, tx_id=>$tx_id});
+        {args=>\%fargs, tx_id=>$tx_id});
     $log->tracef("call res=%s", $self->{_res});
 
     # commit transaction (if using undo)
-    if ($begun && $self->{_res}[0] =~ /\A(?:200|304)\z/) {
+    if ($using_tx && $self->{_res}[0] =~ /\A(?:200|304)\z/) {
         my $res = $self->_pa->request(commit_tx => "/", {tx_id=>$tx_id});
         if ($res->[0] != 200) {
             $self->{_res} = [$res->[0],
@@ -616,7 +622,8 @@ sub run_history {
         push @txs, {
             id          => $tx->{tx_id},
             start_time  => scalar(localtime $tx->{tx_start_time}),
-            commit_time => scalar(localtime $tx->{tx_commit_time}),
+            commit_time => $tx->{tx_commit_time} ?
+                scalar(localtime $tx->{tx_commit_time}) : undef,
             status      => $tx->{tx_status} eq 'X' ? 'error' :
                 $tx->{tx_status} eq 'U' ? 'undone' : '',
             summary     => $tx->{tx_summary},
@@ -973,7 +980,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.57
+version 0.58
 
 =head1 SYNOPSIS
 
@@ -1085,7 +1092,10 @@ C<url>. It can also contain these keys: C<summary> (str, will be retrieved from
 function metadata if unset), C<tags> (array of str, for categorizing
 subcommands), C<log_any_app> (bool, whether to load Log::Any::App, default is
 true, for subcommands that need fast startup you can try turning this off for
-said subcommands).
+said subcommands), C<undo> (bool, can be set to 0 to disable transaction for
+this subcommand; this is only relevant when C<undo> attribute is set to true),
+C<pass_cmdline_object> (bool, to override C<pass_cmdline_object> attribute on a
+per-subcommand basis).
 
 Subcommands can also be a coderef, for dynamic list of subcommands. The coderef
 will be called as a method with hash arguments. It can be called in two cases.
@@ -1161,6 +1171,14 @@ details.
 If set to 1, subcommand like a-b-c will be converted to a_b_c. This is for
 convenience when typing in command line.
 
+=head2 pass_cmdline_object => BOOL (optional, default 0)
+
+Whether to pass special argument C<-cmdline> containing the Perinci::CmdLine
+object to function. This can be overriden using the C<pass_cmdline_object> on a
+per-subcommand basis.
+
+Passing the cmdline object can be useful, e.g. to call run_help(), etc.
+
 =head2 undo => BOOL (optional, default 0)
 
 Whether to enable undo/redo functionality. Some things to note if you intend to
@@ -1181,6 +1199,10 @@ enclose the call request to function.
 =item * Called function will need to support transaction and undo
 
 Function which do not meet qualifications will refuse to be called.
+
+Exception is when subcommand is specified with undo=>0, where transaction will
+not be used for that subcommand. For an example of disabling transaction for
+some subcommands, see C<bin/u-trash> in the distribution.
 
 =back
 
