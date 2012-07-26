@@ -50,4 +50,4 @@ requires:
 resources:
   homepage: http://search.cpan.org/dist/Perinci-CmdLine/
   repository: http://github.com/sharyanto/perl-Perinci-CmdLine
-version: 0.56
+version: 0.57

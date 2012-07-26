@@ -6,7 +6,7 @@ use warnings;
 
 use Perinci::CmdLine;
 
-our $VERSION = '0.56'; # VERSION
+our $VERSION = '0.57'; # VERSION
 
 Perinci::CmdLine->new(url=>'/Setup/File/Symlink/setup_symlink', undo=>1)->run;
 
@@ -24,7 +24,7 @@ u-symlink - Create symlink, with undo/redo capability
 
 =head1 VERSION
 
-version 0.56
+version 0.57
 
 =head1 SYNOPSIS
 

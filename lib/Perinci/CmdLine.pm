@@ -9,7 +9,7 @@ use Moo;
 #use Perinci::Object;
 use Perinci::ToUtil;
 
-our $VERSION = '0.56'; # VERSION
+our $VERSION = '0.57'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -31,6 +31,7 @@ has url => (is => 'rw');
 has summary => (is => 'rw');
 has subcommands => (is => 'rw');
 has default_subcommand => (is => 'rw');
+has extra_opts => (is => 'rw');
 has exit => (is => 'rw', default=>sub{1});
 has log_any_app => (is => 'rw', default=>sub{$ENV{LOG} // 1});
 has custom_completer => (is => 'rw');
@@ -908,6 +909,15 @@ sub run {
     $self->{_actions} = []; # first action will be tried first, then 2nd, ...
 
     my $getopts_common = $self->gen_common_opts();
+    if (my $oo = $self->extra_opts) {
+        for my $on (keys %$oo) {
+            my $o = $oo->{$on};
+            my $ond = $on; $ond =~ s/_/-/g;
+            push @$getopts_common, "$ond", sub {
+                $o->{handler}->($self, $_[1]);
+            };
+        }
+    }
 
     # store for other methods, e.g. run_subcommand() & run_completion()
     $self->{_getopts_common} = $getopts_common;
@@ -963,7 +973,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.56
+version 0.57
 
 =head1 SYNOPSIS
 
@@ -1088,6 +1098,42 @@ only.
 
 If set, subcommand will always be set to this instead of from the first
 argument. To use other subcommands, you will have to use --cmd option.
+
+=head2 extra_opts => HASH
+
+Optional. Used to let program recognize extra command-line options. Currently
+not well-documented. For example:
+
+ extra_opts => {
+     halt => {
+         handler => sub {
+             my ($self, $val) = @_;
+             $self->{_selected_subcommand} = 'shutdown';
+         },
+     },
+ }
+
+This will make:
+
+ % cmd --halt
+
+equivalent to executing the 'shutdown' subcommand:
+
+ % cmd shutdown
+
+As an alternative to using this attribute, you can also subclass and override
+C<gen_common_opts()>, like this:
+
+ sub gen_common_opts {
+     my ($self) = @_;
+     my $go = $self->SUPER::gen_common_opts;
+     push @$go, (
+         halt => sub {
+             $self->{_selected_subcommand} = 'shutdown';
+         },
+     );
+     $go;
+ }
 
 =head2 exit => BOOL (default 1)
 
