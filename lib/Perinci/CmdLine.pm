@@ -9,7 +9,7 @@ use Moo;
 #use Perinci::Object;
 use Perinci::ToUtil;
 
-our $VERSION = '0.58'; # VERSION
+our $VERSION = '0.59'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -621,9 +621,8 @@ sub run_history {
         next unless $tx->{tx_status} =~ /[CUX]/;
         push @txs, {
             id          => $tx->{tx_id},
-            start_time  => scalar(localtime $tx->{tx_start_time}),
-            commit_time => $tx->{tx_commit_time} ?
-                scalar(localtime $tx->{tx_commit_time}) : undef,
+            start_time  => $tx->{tx_start_time},
+            commit_time => $tx->{tx_commit_time},
             status      => $tx->{tx_status} eq 'X' ? 'error' :
                 $tx->{tx_status} eq 'U' ? 'undone' : '',
             summary     => $tx->{tx_summary},
@@ -700,9 +699,16 @@ sub gen_common_opts {
 
     # convenience for Log::Any::App-using apps
     if ($self->log_any_app) {
-        for (qw/quiet verbose debug trace log-level/) {
-            push @getopts, $_ => sub {};
+        # since the cmdline opts is consumed, Log::Any::App doesn't see
+        # this. we currently work around this via setting env.
+        for my $o (qw/quiet verbose debug trace/) {
+            push @getopts, $o => sub {
+                $ENV{uc $o} = 1;
+            };
         }
+        push @getopts, "log-level=s" => sub {
+            $ENV{LOG_LEVEL} = $_[1];
+        };
     }
 
     if ($self->undo) {
@@ -980,7 +986,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.58
+version 0.59
 
 =head1 SYNOPSIS
 
