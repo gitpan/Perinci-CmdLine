@@ -22,7 +22,7 @@ my %module_build_args = (
     "Steven Haryanto <stevenharyanto\@gmail.com>"
   ],
   "dist_name" => "Perinci-CmdLine",
-  "dist_version" => "0.59",
+  "dist_version" => "0.60",
   "license" => "perl",
   "module_name" => "Perinci::CmdLine",
   "recommends" => {},
@@ -42,7 +42,7 @@ my %module_build_args = (
     "Object::BlankStr" => 0,
     "Perinci::Access" => "0.22",
     "Perinci::Access::HTTP::Client" => 0,
-    "Perinci::Access::TCP::Client" => 0,
+    "Perinci::Access::Simple::Client" => 0,
     "Perinci::BashComplete" => "0.29",
     "Perinci::Result::Format" => "0.11",
     "Perinci::Sub::GetArgs::Argv" => "0.19",
@@ -59,9 +59,9 @@ my %module_build_args = (
   },
   "script_files" => [
     "bin/strip-result-env-json",
+    "bin/symlink-u",
     "bin/strip-result-env-yaml",
-    "bin/peri-run",
-    "bin/u-symlink"
+    "bin/peri-run"
   ]
 );
 

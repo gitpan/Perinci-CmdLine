@@ -9,7 +9,7 @@ use Moo;
 #use Perinci::Object;
 use Perinci::ToUtil;
 
-our $VERSION = '0.59'; # VERSION
+our $VERSION = '0.60'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -459,6 +459,11 @@ sub doc_gen_options {
         my $s = $a->{schema} || [any=>{}];
         my $ane = $an; $ane =~ s/_/-/g; $ane =~ s/\W/-/g;
         $ane = "no$ane" if $s->[0] eq 'bool' && $s->[1]{default};
+        for my $al0 (keys %{ $a->{cmdline_aliases} // {}}) {
+            my $al = $al0; $al =~ s/_/-/g;
+            $al = length($al) > 1 ? "--$al" : "-$al";
+            $ane .= ", $al";
+        }
         my $def = defined($s->[1]{default}) ?
             " (default: ".dump1($s->[1]{default}).")" : "";
         my $src = $a->{cmdline_src} // "";
@@ -986,7 +991,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.59
+version 0.60
 
 =head1 SYNOPSIS
 
