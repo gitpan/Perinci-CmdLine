@@ -4,12 +4,13 @@ use 5.010;
 use strict;
 use warnings;
 use Perinci::CmdLine;
+use Scalar::Util qw(reftype);
 
 require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(run_cmdline_app);
 
-our $VERSION = '0.60'; # VERSION
+our $VERSION = '0.61'; # VERSION
 
 our %SPEC;
 
@@ -77,7 +78,7 @@ sub run_cmdline_app {
     my $url;
     if (!$sub) {
         die "Please supply sub\n";
-    } elsif (ref($sub) eq 'CODE') {
+    } elsif (reftype($sub) eq 'CODE') {
         my $name = "$sub";
         $name =~ s/[^A-Za-z0-9]+//g;
         $main::SPEC{$name} = $meta;
@@ -108,7 +109,7 @@ Perinci::CmdLine::Easy - A simple interface to run a subroutine as command-line 
 
 =head1 VERSION
 
-version 0.60
+version 0.61
 
 =head1 SYNOPSIS
 
