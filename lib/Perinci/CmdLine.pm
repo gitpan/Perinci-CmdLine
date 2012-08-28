@@ -10,7 +10,7 @@ use Moo;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype);
 
-our $VERSION = '0.61'; # VERSION
+our $VERSION = '0.62'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -612,7 +612,13 @@ sub run_subcommand {
         }
     }
 
-    $self->{_res}[0] =~ /\A(?:200|304)\z/ ? 0 : $self->{_res}[0] - 300;
+    my $resmeta = $self->{_res}[3] // {};
+    if (defined $resmeta->{"cmdline.exit_code"}) {
+        return $resmeta->{"cmdline.exit_code"};
+    } else {
+        return $self->{_res}[0] =~ /\A(?:200|304)\z/ ?
+            0 : $self->{_res}[0] - 300;
+    }
 }
 
 sub run_history {
@@ -903,10 +909,19 @@ sub _set_subcommand {
 
 sub _load_log_any_app {
     my ($self) = @_;
-    # Log::Any::App::init can already avoid being run twice
-    #return unless $self->{_log_any_app_loaded}
+    # Log::Any::App::init can already avoid being run twice, but we need to
+    # check anyway to avoid logging starting message below twice.
+    return if $self->{_log_any_app_loaded}++;
     require Log::Any::App;
     Log::Any::App::init();
+
+    # we log this after we initialize Log::Any::App, since Log::Any::App might
+    # not be loaded at all. yes, this means that this log message is printer
+    # rather 'late' and might not be the first message to be logged (see log
+    # messages in run()) if user already loads Log::Any::App by herself.
+    $self->{_original_argv} =
+        $log->debugf("Program %s started with arguments: %s",
+                     $0, $self->{_orig_argv});
 }
 
 sub run {
@@ -978,7 +993,12 @@ sub run {
     $self->format_and_display_result;
 
     $log->tracef("<- CmdLine's run(), exit code=%s", $exit_code);
-    if ($self->exit) { exit $exit_code } else { return $exit_code }
+    if ($self->exit) {
+        $log->debugf("Program ending with exit code %d", $exit_code);
+        exit $exit_code;
+    } else {
+        return $exit_code;
+    }
 }
 
 1;
@@ -994,7 +1014,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.61
+version 0.62
 
 =head1 SYNOPSIS
 
@@ -1333,6 +1353,11 @@ For example:
 
 Instruct Perinci::CmdLine to use specified pager instead of C<$ENV{PAGER}> or
 the default C<less> or C<more>.
+
+=head2 cmdline.exit_code => INT
+
+Instruct Perinci::CmdLine to use this exit code, instead of using (function
+status - 300).
 
 =head1 ENVIRONMENT
 

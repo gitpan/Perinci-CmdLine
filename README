@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.61
+    version 0.62
 
 SYNOPSIS
     In your command-line script:
@@ -314,6 +314,10 @@ RESULT METADATA
   cmdline.pager => STR
     Instruct Perinci::CmdLine to use specified pager instead of $ENV{PAGER}
     or the default "less" or "more".
+
+  cmdline.exit_code => INT
+    Instruct Perinci::CmdLine to use this exit code, instead of using
+    (function status - 300).
 
 ENVIRONMENT
     PERINCI_CMDLINE_PROGRAM_NAME. Can be used to set CLI program name.
