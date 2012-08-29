@@ -20,7 +20,7 @@ my %module_build_args = (
     "Steven Haryanto <stevenharyanto\@gmail.com>"
   ],
   "dist_name" => "Perinci-CmdLine",
-  "dist_version" => "0.62",
+  "dist_version" => "0.63",
   "license" => "perl",
   "module_name" => "Perinci::CmdLine",
   "recommends" => {},
@@ -34,16 +34,17 @@ my %module_build_args = (
     "Moo" => 0,
     "Perinci::Access" => "0.22",
     "Perinci::Access::HTTP::Client" => 0,
-    "Perinci::Access::InProcess" => "0.22",
+    "Perinci::Access::InProcess" => "0.33",
     "Perinci::Access::Simple::Client" => 0,
     "Perinci::BashComplete" => "0.29",
+    "Perinci::Object" => "0.11",
     "Perinci::Result::Format" => "0.11",
     "Perinci::Sub::GetArgs::Argv" => "0.20",
     "Perinci::Sub::Wrapper" => "0.14",
     "Perinci::To::Text::AddDocLinesRole" => "0.10",
     "Perinci::ToUtil" => 0,
-    "Perinci::Tx::Manager" => 0,
-    "Rinci" => "v1.1.21",
+    "Perinci::Tx::Manager" => "0.34",
+    "Rinci" => "v1.1.27",
     "SHARYANTO::Role::Doc::Section" => 0,
     "SHARYANTO::Role::I18N" => 0,
     "SHARYANTO::Role::I18NRinci" => 0,
@@ -53,10 +54,10 @@ my %module_build_args = (
     "perl" => "5.010001"
   },
   "script_files" => [
-    "bin/strip-result-env-yaml",
-    "bin/peri-run",
+    "bin/strip-result-env-json",
     "bin/symlink-u",
-    "bin/strip-result-env-json"
+    "bin/strip-result-env-yaml",
+    "bin/peri-run"
   ]
 );
 
