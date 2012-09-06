@@ -20,7 +20,7 @@ my %module_build_args = (
     "Steven Haryanto <stevenharyanto\@gmail.com>"
   ],
   "dist_name" => "Perinci-CmdLine",
-  "dist_version" => "0.64",
+  "dist_version" => "0.65",
   "license" => "perl",
   "module_name" => "Perinci::CmdLine",
   "recommends" => {},
@@ -48,14 +48,12 @@ my %module_build_args = (
     "SHARYANTO::Role::Doc::Section" => 0,
     "SHARYANTO::Role::I18N" => 0,
     "SHARYANTO::Role::I18NRinci" => 0,
-    "Setup::File::Symlink" => 0,
     "UUID::Random" => 0,
     "YAML::Syck" => 0,
     "perl" => "5.010001"
   },
   "script_files" => [
     "bin/strip-result-env-json",
-    "bin/symlink-u",
     "bin/strip-result-env-yaml",
     "bin/peri-run"
   ]

@@ -9,7 +9,6 @@ README
 bin/peri-run
 bin/strip-result-env-json
 bin/strip-result-env-yaml
-bin/symlink-u
 dist.ini
 examples/doesnt-set-log-any-app
 examples/greedy-arg

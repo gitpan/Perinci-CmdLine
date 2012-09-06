@@ -48,7 +48,6 @@
             "SHARYANTO::Role::Doc::Section" : 0,
             "SHARYANTO::Role::I18N" : 0,
             "SHARYANTO::Role::I18NRinci" : 0,
-            "Setup::File::Symlink" : 0,
             "UUID::Random" : 0,
             "YAML::Syck" : 0,
             "perl" : "5.010001"
@@ -69,6 +68,6 @@
          "url" : "http://github.com/sharyanto/perl-Perinci-CmdLine"
       }
    },
-   "version" : "0.64"
+   "version" : "0.65"
 }
 
