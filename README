@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.65
+    version 0.66
 
 SYNOPSIS
     In your command-line script:
@@ -282,6 +282,13 @@ BASH COMPLETION
     "/etc/bash.bashrc" or "~/.bashrc" for future sessions):
 
      % complete -C myscript myscript; # myscript must be in PATH
+
+PROGRESS INDICATOR
+    For functions that express that they do progress updating (by setting
+    their "progress" feature to true), Perinci::CmdLine will setup an
+    output, currently either Progress::Any::Output::TermProgressBar if
+    program runs interactively, or Progress::Any::Output::LogAny if program
+    doesn't run interactively.
 
 RESULT METADATA
     This module interprets the following result metadata keys:

@@ -10,7 +10,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype);
 
-our $VERSION = '0.65'; # VERSION
+our $VERSION = '0.66'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -225,6 +225,11 @@ sub run_version {
     }
 
     say $self->loc("[_1] version [_2]", $self->program_name, $ver);
+    {
+        no strict 'refs';
+        say "  ", $self->loc("[_1] version [_2]",
+                             "Perinci::CmdLine", $Perinci::CmdLine::VERSION);
+    }
 
     0;
 }
@@ -544,6 +549,50 @@ sub doc_parse_links {
 sub doc_gen_links {
 }
 
+my ($ph1, $ph2); # patch handles
+sub _setup_progress_output {
+    my $self = shift;
+
+    require Progress::Any;
+    if (-t STDOUT) {
+        require Progress::Any::Output::TermProgressBar;
+        state $out = Progress::Any::Output::TermProgressBar->new;
+        Progress::Any->set_output(output => $out);
+        if ($self->{_log_any_app_loaded}) {
+            require Monkey::Patch::Action;
+            $ph1 = Monkey::Patch::Action::patch_package(
+                'Log::Log4perl::Appender::Screen', 'log',
+                'replace', sub {
+                    my ($self, %params) = @_;
+                    $out->_message($params{message});
+                },
+            );
+            $ph2 = Monkey::Patch::Action::patch_package(
+                'Log::Log4perl::Appender::ScreenColoredLevels', 'log',
+                'replace', sub {
+                    my ($self, %params) = @_;
+                    # BEGIN copy-paste'ish from ScreenColoredLevels.pm
+                    my $msg = $params{message};
+                    $msg =~ s/\n//g;
+                    if (my $color=$self->{color}->{$params{log4p_level}}) {
+                        $msg = Term::ANSIColor::colored($msg, $color);
+                    }
+                    # END copy-paste'ish
+                    $out->_message($msg);
+                },
+            );
+        }
+    } else {
+        if ($self->{_log_any_app_loaded}) {
+            require Progress::Any::Output::LogAny;
+            Progress::Any->set_output(
+                Progress::Any::Output::LogAny->new(
+                ),
+            );
+        }
+    }
+}
+
 sub run_help {
     require Text::Wrap;
 
@@ -589,6 +638,15 @@ sub run_subcommand {
             $self->{_res} = [$res->[0],
                              "Can't start transaction '$tx_id': $res->[1]"];
             return 1;
+        }
+    }
+
+    # setup output progress indicator
+    state $setup_progress;
+    if ($self->{_meta}{features}{progress}) {
+        unless ($setup_progress) {
+            $self->_setup_progress_output;
+            $setup_progress++;
         }
     }
 
@@ -1014,7 +1072,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.65
+version 0.66
 
 =head1 SYNOPSIS
 
@@ -1318,6 +1376,13 @@ then execute this in C<bash> (or put it in bash startup files like
 C</etc/bash.bashrc> or C<~/.bashrc> for future sessions):
 
  % complete -C myscript myscript; # myscript must be in PATH
+
+=head1 PROGRESS INDICATOR
+
+For functions that express that they do progress updating (by setting their
+C<progress> feature to true), Perinci::CmdLine will setup an output, currently
+either L<Progress::Any::Output::TermProgressBar> if program runs interactively,
+or L<Progress::Any::Output::LogAny> if program doesn't run interactively.
 
 =head1 RESULT METADATA
 
