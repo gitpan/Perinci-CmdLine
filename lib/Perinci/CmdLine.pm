@@ -10,7 +10,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype);
 
-our $VERSION = '0.66'; # VERSION
+our $VERSION = '0.67'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -1072,7 +1072,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.66
+version 0.67
 
 =head1 SYNOPSIS
 
