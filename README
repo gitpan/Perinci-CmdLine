@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.67
+    version 0.68
 
 SYNOPSIS
     In your command-line script:
@@ -307,8 +307,8 @@ RESULT METADATA
 
   cmdline.page_result => BOOL
     If you want to filter the result through pager (currently defaults to
-    $ENV{PAGER} or "less -FRS"), you can set "cmdline.page_result" in result
-    metadata to true.
+    $ENV{PAGER} or "less -FRSX"), you can set "cmdline.page_result" in
+    result metadata to true.
 
     For example:
 
@@ -392,11 +392,17 @@ SEE ALSO
     Other CPAN modules to write command-line applications: App::Cmd,
     App::Rad, MooseX::Getopt.
 
+DESCRIPTION
+    This module has Rinci metadata.
+
+FUNCTIONS
+    None are exported by default, but they are exportable.
+
 AUTHOR
     Steven Haryanto <stevenharyanto@gmail.com>
 
 COPYRIGHT AND LICENSE
-    This software is copyright (c) 2012 by Steven Haryanto.
+    This software is copyright (c) 2013 by Steven Haryanto.
 
     This is free software; you can redistribute it and/or modify it under
     the same terms as the Perl 5 programming language system itself.

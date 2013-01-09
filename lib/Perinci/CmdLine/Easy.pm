@@ -10,7 +10,7 @@ require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(run_cmdline_app);
 
-our $VERSION = '0.67'; # VERSION
+our $VERSION = '0.68'; # VERSION
 
 our %SPEC;
 
@@ -29,8 +29,7 @@ $SPEC{run_cmdline_app} = {
             schema => "str*",
         },
         argv => {
-            schema  => ["array*" => {of=>"str*"}],
-            default => [],
+            schema  => ["array*" => {of=>"str*", default=>[]}],
             summary => "List of arguments",
             description => <<'_',
 
@@ -42,10 +41,10 @@ _
         },
     },
     result_naked => 1,
-
+    "_perinci.sub.wrapper.validate_args" => 0,
 };
 sub run_cmdline_app {
-    my %args = @_;
+    my %args = @_; if (!exists($args{'sub'})) { return [400, "Missing argument: sub"] } my $arg_err; ((defined($args{'summary'})) ? 1 : (($arg_err = "TMPERRMSG: required data not specified"),0)) && ((!ref($args{'summary'})) ? 1 : (($arg_err = "TMPERRMSG: type check failed"),0)); if ($arg_err) { return [400, "Invalid argument value for summary: $arg_err"] } (($args{'argv'} //= []), 1) && ((defined($args{'argv'})) ? 1 : (($arg_err = "TMPERRMSG: required data not specified"),0)) && ((ref($args{'argv'}) eq 'ARRAY') ? 1 : (($arg_err = "TMPERRMSG: type check failed"),0)) && ((!defined(List::Util::first {!( (defined($_)) && (!ref($_)) )} @{$args{'argv'}})) ? 1 : (($arg_err = "TMPERRMSG: clause failed: of"),0)); if ($arg_err) { return [400, "Invalid argument value for argv: $arg_err"] } ((defined($args{'description'})) ? 1 : (($arg_err = "TMPERRMSG: required data not specified"),0)) && ((!ref($args{'description'})) ? 1 : (($arg_err = "TMPERRMSG: type check failed"),0)); if ($arg_err) { return [400, "Invalid argument value for description: $arg_err"] } # VALIDATE_ARGS
 
     my $meta = {
         v            => 1.1,
@@ -109,7 +108,7 @@ Perinci::CmdLine::Easy - A simple interface to run a subroutine as command-line 
 
 =head1 VERSION
 
-version 0.67
+version 0.68
 
 =head1 SYNOPSIS
 
@@ -177,13 +176,51 @@ What you'll get:
 
 L<Perinci::CmdLine>
 
+=head1 DESCRIPTION
+
+
+This module has L<Rinci> metadata.
+
+=head1 FUNCTIONS
+
+
+None are exported by default, but they are exportable.
+
+=head2 run_cmdline_app(%args) -> any
+
+A simple interface to run a subroutine as command-line app.
+
+Arguments ('*' denotes required arguments):
+
+=over 4
+
+=item * B<argv> => I<array> (default: [])
+
+List of arguments.
+
+Each argument is NAME, NAME* (marking required argument), or NAME+ (marking
+greedy argument, where the rest of command-line arguments will be fed into this
+array).
+
+=item * B<description> => I<str>
+
+=item * B<sub>* => I<any>
+
+Coderef or subroutine name.
+
+=item * B<summary> => I<str>
+
+=back
+
+Return value:
+
 =head1 AUTHOR
 
 Steven Haryanto <stevenharyanto@gmail.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2012 by Steven Haryanto.
+This software is copyright (c) 2013 by Steven Haryanto.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

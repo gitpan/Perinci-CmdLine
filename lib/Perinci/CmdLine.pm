@@ -10,7 +10,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype);
 
-our $VERSION = '0.67'; # VERSION
+our $VERSION = '0.68'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -75,6 +75,10 @@ has _pa => (
                     );
                     $txm;
                 },
+                extra_wrapper_args => {
+                    # turn off arg validation generation to reduce startup cost
+                    validate_args => $ENV{COMP_LINE} ? 0:undef,
+                },
             );
             $args{handlers} = {
                 pl   => $pai,
@@ -105,14 +109,23 @@ sub format_and_display_result {
     die "ERROR: Unknown output format '$format', please choose one of: ".
         join(", ", sort keys(%Perinci::Result::Format::Formats))."\n"
             unless $Perinci::Result::Format::Formats{$format};
-    $self->{_fres} = Perinci::Result::Format::format($self->{_res}, $format);
+    {
+        # protect STDOUT from changes (e.g. binmode :utf8 setting). certain
+        # format (Console, i'm suspecting Text::ASCIITable) modifies this,
+        # resulting in "Wide character in print" when printing Unicode
+        # characters, even though binmode(STDOUT, ":utf8") has been set prior to
+        # executing $pericmd->run().
+        local *STDOUT;
+        $self->{_fres} = Perinci::Result::Format::format(
+            $self->{_res}, $format);
+    }
 
     # display result
     if ($resmeta->{"cmdline.page_result"}) {
         my $pager = $resmeta->{"cmdline.pager"} //
             $ENV{PAGER};
         unless (defined $pager) {
-            $pager = "less -FRS" if File::Which::which("less");
+            $pager = "less -FRSX" if File::Which::which("less");
         }
         unless (defined $pager) {
             $pager = "more" if File::Which::which("more");
@@ -1072,7 +1085,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.67
+version 0.68
 
 =head1 SYNOPSIS
 
@@ -1158,6 +1171,8 @@ as 'array':
 This module uses L<Log::Any> and L<Log::Any::App> for logging.
 
 This module uses L<Moo> for OO.
+
+=for Pod::Coverage ^(BUILD|run_.+|doc_.+|before_.+|after_.+|format_and_display_result|gen_common_opts|get_subcommand|list_subcommands|parse_common_opts|parse_subcommand_opts)$
 
 =head1 ATTRIBUTES
 
@@ -1403,7 +1418,7 @@ C<cmdline.display_result> result metadata to false. Example:
 =head2 cmdline.page_result => BOOL
 
 If you want to filter the result through pager (currently defaults to
-C<$ENV{PAGER}> or C<less -FRS>), you can set C<cmdline.page_result> in result
+C<$ENV{PAGER}> or C<less -FRSX>), you can set C<cmdline.page_result> in result
 metadata to true.
 
 For example:
@@ -1498,13 +1513,23 @@ L<Perinci>, L<Rinci>, L<Riap>.
 Other CPAN modules to write command-line applications: L<App::Cmd>, L<App::Rad>,
 L<MooseX::Getopt>.
 
+=head1 DESCRIPTION
+
+
+This module has L<Rinci> metadata.
+
+=head1 FUNCTIONS
+
+
+None are exported by default, but they are exportable.
+
 =head1 AUTHOR
 
 Steven Haryanto <stevenharyanto@gmail.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2012 by Steven Haryanto.
+This software is copyright (c) 2013 by Steven Haryanto.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
