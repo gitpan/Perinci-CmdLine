@@ -1,16 +1,17 @@
 package Perinci::CmdLine;
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
-use Data::Dump::OneLine qw(dump1);
 use Log::Any '$log';
+
+use Data::Dump::OneLine qw(dump1);
 use Moo;
 use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype);
 
-our $VERSION = '0.68'; # VERSION
+our $VERSION = '0.69'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -54,6 +55,9 @@ has undo_dir => (
 );
 
 has format => (is => 'rw', default=>sub{'text'});
+has format_options => (is => 'rw');
+has format_options_set => (is => 'rw'); # bool
+has pa_args => (is => 'rw');
 has _pa => (
     is => 'rw',
     lazy => 1,
@@ -61,7 +65,7 @@ has _pa => (
         my $self = shift;
 
         require Perinci::Access;
-        my %args;
+        my %args = %{$self->pa_args // {}};
         if ($self->undo) {
             require Perinci::Access::InProcess;
             my $pai = Perinci::Access::InProcess->new(
@@ -85,9 +89,16 @@ has _pa => (
                 riap => $pai,
             };
         }
+        $log->tracef("Creating Perinci::Access object with args: %s", \%args);
         Perinci::Access->new(%args);
     }
 );
+
+sub __json_decode {
+    require JSON;
+    state $json = do { JSON->new->allow_nonref };
+    $json->decode(shift);
+}
 
 sub BUILD {
     my ($self, $args) = @_;
@@ -100,7 +111,7 @@ sub format_and_display_result {
     my $self = shift;
     return unless $self->{_res};
 
-    my $resmeta = $self->{_res}->[3] // {};
+    my $resmeta = $self->{_res}[3] // {};
     unless ($resmeta->{"cmdline.display_result"}//1) {
         $self->{_res}[2] = undef;
     }
@@ -109,6 +120,11 @@ sub format_and_display_result {
     die "ERROR: Unknown output format '$format', please choose one of: ".
         join(", ", sort keys(%Perinci::Result::Format::Formats))."\n"
             unless $Perinci::Result::Format::Formats{$format};
+    if ($self->format_options_set) {
+        $self->{_res}[3]{result_format_options} = $self->format_options;
+    }
+    $log->tracef("Formatting output with %s", $format);
+
     {
         # protect STDOUT from changes (e.g. binmode :utf8 setting). certain
         # format (Console, i'm suspecting Text::ASCIITable) modifies this,
@@ -483,7 +499,7 @@ sub doc_gen_options {
             $al = length($al) > 1 ? "--$al" : "-$al";
             $ane .= ", $al";
         }
-        my $def = defined($s->[1]{default}) ?
+        my $def = defined($s->[1]{default}) && $s->[0] ne 'bool' ?
             " (default: ".dump1($s->[1]{default}).")" : "";
         my $src = $a->{cmdline_src} // "";
         my $text = sprintf(
@@ -572,6 +588,8 @@ sub _setup_progress_output {
         state $out = Progress::Any::Output::TermProgressBar->new;
         Progress::Any->set_output(output => $out);
         if ($self->{_log_any_app_loaded}) {
+            # we need to patch the logger adapters so it won't interfere with
+            # progress meter's output
             require Monkey::Patch::Action;
             $ph1 = Monkey::Patch::Action::patch_package(
                 'Log::Log4perl::Appender::Screen', 'log',
@@ -756,6 +774,10 @@ sub gen_common_opts {
         },
 
         "format=s" => sub { $self->format($_[1]) },
+        "format-options=s" => sub {
+            $self->format_options_set(1);
+            $self->format_options(__json_decode($_[1]));
+        },
     );
 
     if ($self->subcommands) {
@@ -1085,7 +1107,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.68
+version 0.69
 
 =head1 SYNOPSIS
 
@@ -1172,7 +1194,7 @@ This module uses L<Log::Any> and L<Log::Any::App> for logging.
 
 This module uses L<Moo> for OO.
 
-=for Pod::Coverage ^(BUILD|run_.+|doc_.+|before_.+|after_.+|format_and_display_result|gen_common_opts|get_subcommand|list_subcommands|parse_common_opts|parse_subcommand_opts)$
+=for Pod::Coverage ^(BUILD|run_.+|doc_.+|before_.+|after_.+|format_and_display_result|gen_common_opts|get_subcommand|list_subcommands|parse_common_opts|parse_subcommand_opts|format_options|format_options_set)$
 
 =head1 ATTRIBUTES
 
@@ -1290,6 +1312,13 @@ Passing the cmdline object can be useful, e.g. to call run_help(), etc.
 
 Whether to enable undo/redo functionality. Some things to note if you intend to
 use undo:
+
+=head2 pa_args => HASH
+
+Arguments to pass to L<Perinci::Access>. This is useful for passing e.g. HTTP
+basic authentication to Riap client (L<Perinci::Access::HTTP::Client>):
+
+ pa_args => {handler_args => {user=>$USER, password=>$PASS}}
 
 =over 4
 
