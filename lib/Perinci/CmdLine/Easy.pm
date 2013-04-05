@@ -10,7 +10,7 @@ require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(run_cmdline_app);
 
-our $VERSION = '0.69'; # VERSION
+our $VERSION = '0.70'; # VERSION
 
 our %SPEC;
 
@@ -108,7 +108,7 @@ Perinci::CmdLine::Easy - A simple interface to run a subroutine as command-line 
 
 =head1 VERSION
 
-version 0.69
+version 0.70
 
 =head1 SYNOPSIS
 
@@ -172,14 +172,23 @@ What you'll get:
 
 =back
 
+
+This module has L<Rinci> metadata.
+
 =head1 SEE ALSO
 
 L<Perinci::CmdLine>
 
-=head1 DESCRIPTION
+=head1 AUTHOR
 
+Steven Haryanto <stevenharyanto@gmail.com>
 
-This module has L<Rinci> metadata.
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2013 by Steven Haryanto.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =head1 FUNCTIONS
 
@@ -213,17 +222,6 @@ Coderef or subroutine name.
 =back
 
 Return value:
-
-=head1 AUTHOR
-
-Steven Haryanto <stevenharyanto@gmail.com>
-
-=head1 COPYRIGHT AND LICENSE
-
-This software is copyright (c) 2013 by Steven Haryanto.
-
-This is free software; you can redistribute it and/or modify it under
-the same terms as the Perl 5 programming language system itself.
 
 =cut
 

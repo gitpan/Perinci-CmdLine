@@ -11,7 +11,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype);
 
-our $VERSION = '0.69'; # VERSION
+our $VERSION = '0.70'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -846,7 +846,7 @@ sub parse_common_opts {
     $self->{_orig_argv} = \@orig_ARGV;
 
     my $old_go_opts = Getopt::Long::Configure(
-        "pass_through", "no_ignore_case");
+        "pass_through", "no_ignore_case", "no_getopt_compat");
     Getopt::Long::GetOptions(@{$self->{_getopts_common}});
     $log->tracef("result of GetOptions for common options: remaining argv=%s, ".
                      "actions=%s", \@ARGV, $self->{_actions});
@@ -1107,7 +1107,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.69
+version 0.70
 
 =head1 SYNOPSIS
 
@@ -1193,6 +1193,9 @@ as 'array':
 This module uses L<Log::Any> and L<Log::Any::App> for logging.
 
 This module uses L<Moo> for OO.
+
+
+This module has L<Rinci> metadata.
 
 =for Pod::Coverage ^(BUILD|run_.+|doc_.+|before_.+|after_.+|format_and_display_result|gen_common_opts|get_subcommand|list_subcommands|parse_common_opts|parse_subcommand_opts|format_options|format_options_set)$
 
@@ -1542,16 +1545,6 @@ L<Perinci>, L<Rinci>, L<Riap>.
 Other CPAN modules to write command-line applications: L<App::Cmd>, L<App::Rad>,
 L<MooseX::Getopt>.
 
-=head1 DESCRIPTION
-
-
-This module has L<Rinci> metadata.
-
-=head1 FUNCTIONS
-
-
-None are exported by default, but they are exportable.
-
 =head1 AUTHOR
 
 Steven Haryanto <stevenharyanto@gmail.com>
@@ -1562,6 +1555,11 @@ This software is copyright (c) 2013 by Steven Haryanto.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
+
+=head1 FUNCTIONS
+
+
+None are exported by default, but they are exportable.
 
 =cut
 

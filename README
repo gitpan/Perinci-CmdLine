@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.69
+    version 0.70
 
 SYNOPSIS
     In your command-line script:
@@ -83,6 +83,8 @@ DESCRIPTION
     This module uses Log::Any and Log::Any::App for logging.
 
     This module uses Moo for OO.
+
+    This module has Rinci metadata.
 
 ATTRIBUTES
   program_name => STR (default from $0)
@@ -399,12 +401,6 @@ SEE ALSO
     Other CPAN modules to write command-line applications: App::Cmd,
     App::Rad, MooseX::Getopt.
 
-DESCRIPTION
-    This module has Rinci metadata.
-
-FUNCTIONS
-    None are exported by default, but they are exportable.
-
 AUTHOR
     Steven Haryanto <stevenharyanto@gmail.com>
 
@@ -413,4 +409,7 @@ COPYRIGHT AND LICENSE
 
     This is free software; you can redistribute it and/or modify it under
     the same terms as the Perl 5 programming language system itself.
+
+FUNCTIONS
+    None are exported by default, but they are exportable.
 
