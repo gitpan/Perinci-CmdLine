@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.71
+    version 0.72
 
 SYNOPSIS
     In your command-line script:
@@ -83,8 +83,6 @@ DESCRIPTION
     This module uses Log::Any and Log::Any::App for logging.
 
     This module uses Moo for OO.
-
-    This module has Rinci metadata.
 
 ATTRIBUTES
   program_name => STR (default from $0)
@@ -299,8 +297,50 @@ PROGRESS INDICATOR
     program runs interactively, or Progress::Any::Output::LogAny if program
     doesn't run interactively.
 
+METADATA PROPERTY ATTRIBUTE
+    This module observes the following Rinci metadata property attributes:
+
+  x.perinci.cmdline.default_format => STR
+    Set default output format (if user does not specify via --format
+    command-line option).
+
 RESULT METADATA
     This module interprets the following result metadata keys:
+
+  is_stream => BOOL
+    XXX should perhaps be defined as standard in Rinci::function.
+
+    If set to 1, signify that result is a stream. Result must be a glob, or
+    an object that responds to getline() and eof() (like a Perl IO::Handle
+    object), or an array/tied array. Format must currently be "text"
+    (streaming YAML might be supported in the future). Items of result will
+    be displayed to output as soon as it is retrieved, and unlike
+    non-streams, it can be infinite.
+
+    An example function:
+
+     $SPEC{cat_file} = { ... };
+     sub cat_file {
+         my %args = @_;
+         open my($fh), "<", $args{path} or return [500, "Can't open file: $!"];
+         [200, "OK", $fh, {is_stream=>1}];
+     }
+
+    another example:
+
+     use Tie::Simple;
+     $SPEC{uc_file} = { ... };
+     sub uc_file {
+         my %args = @_;
+         open my($fh), "<", $args{path} or return [500, "Can't open file: $!"];
+         my @ary;
+         tie @ary, "Tie::Simple", undef,
+             SHIFT     => sub { eof($fh) ? undef : uc(~~<$fh> // "") },
+             FETCHSIZE => sub { eof($fh) ? 0 : 1 };
+         [200, "OK", \@ary, {is_stream=>1}];
+     }
+
+    See also Data::Unixish and App::dux which deals with streams.
 
   cmdline.display_result => BOOL
     If you don't want to display function output (for example, function
@@ -387,13 +427,19 @@ FAQ
      };
      sub cmd {
          my %args = @_;
-         [200, "OK", "arg is $args{arg}"];
+         [200, "OK", "arg is '$args{arg}'"];
      }
      Perinci::CmdLine->new(url=>'/main/cmd')->run;
 
     When run from command line:
 
-     % cmd --arg v1
+     % cat file.txt
+     This is content of file.txt
+     % cat file.txt | cmd
+     arg is 'This is content of file.txt'
+
+  But I don't want it slurped into a single scalar, I want streaming!
+    See App::dux for an example on how to accomplish that.
 
 SEE ALSO
     Perinci, Rinci, Riap.
@@ -411,5 +457,3 @@ COPYRIGHT AND LICENSE
     the same terms as the Perl 5 programming language system itself.
 
 FUNCTIONS
-    None are exported by default, but they are exportable.
-

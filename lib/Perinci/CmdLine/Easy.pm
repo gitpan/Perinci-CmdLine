@@ -10,7 +10,7 @@ require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(run_cmdline_app);
 
-our $VERSION = '0.71'; # VERSION
+our $VERSION = '0.72'; # VERSION
 
 our %SPEC;
 
@@ -108,7 +108,7 @@ Perinci::CmdLine::Easy - A simple interface to run a subroutine as command-line 
 
 =head1 VERSION
 
-version 0.71
+version 0.72
 
 =head1 SYNOPSIS
 
@@ -172,9 +172,6 @@ What you'll get:
 
 =back
 
-
-This module has L<Rinci> metadata.
-
 =head1 SEE ALSO
 
 L<Perinci::CmdLine>
@@ -193,35 +190,13 @@ the same terms as the Perl 5 programming language system itself.
 =head1 FUNCTIONS
 
 
-None are exported by default, but they are exportable.
+=head2 run_cmdline_app() -> any
 
-=head2 run_cmdline_app(%args) -> any
-
-A simple interface to run a subroutine as command-line app.
-
-Arguments ('*' denotes required arguments):
-
-=over 4
-
-=item * B<argv> => I<array> (default: [])
-
-List of arguments.
-
-Each argument is NAME, NAME* (marking required argument), or NAME+ (marking
-greedy argument, where the rest of command-line arguments will be fed into this
-array).
-
-=item * B<description> => I<str>
-
-=item * B<sub>* => I<any>
-
-Coderef or subroutine name.
-
-=item * B<summary> => I<str>
-
-=back
+No arguments.
 
 Return value:
+
+Returns an enveloped result (an array). First element (status) is an integer containing HTTP status code (200 means OK, 4xx caller error, 5xx function error). Second element (msg) is a string containing error message, or 'OK' if status is 200. Third element (result) is optional, the actual result. Fourth element (meta) is called result metadata and is optional, a hash that contains extra information.
 
 =cut
 

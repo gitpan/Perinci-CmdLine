@@ -20,7 +20,7 @@ my %module_build_args = (
     "Steven Haryanto <stevenharyanto\@gmail.com>"
   ],
   "dist_name" => "Perinci-CmdLine",
-  "dist_version" => "0.71",
+  "dist_version" => "0.72",
   "license" => "perl",
   "module_name" => "Perinci::CmdLine",
   "recommends" => {},
@@ -52,6 +52,7 @@ my %module_build_args = (
     "SHARYANTO::Role::Doc::Section" => 0,
     "SHARYANTO::Role::I18N" => 0,
     "SHARYANTO::Role::I18NRinci" => 0,
+    "Tie::Simple" => 0,
     "UUID::Random" => 0,
     "YAML::Syck" => 0,
     "perl" => "5.010001"

@@ -14,6 +14,7 @@ examples/doesnt-set-log-any-app
 examples/greedy-arg
 examples/turn-off-log-any-app
 examples/turn-on-log-any-app
+examples/uc-file
 lib/Perinci/CmdLine.pm
 lib/Perinci/CmdLine/Easy.pm
 lib/Perinci/CmdLine/I18N.pm
