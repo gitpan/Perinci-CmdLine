@@ -11,7 +11,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '0.73'; # VERSION
+our $VERSION = '0.74'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -222,7 +222,7 @@ sub display_result {
                 "(tied) array)\n";
         }
     } else {
-        print $handle $self->{_fres};
+        print $handle $self->{_fres} // "";
     }
 }
 
@@ -1180,7 +1180,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.73
+version 0.74
 
 =head1 SYNOPSIS
 
