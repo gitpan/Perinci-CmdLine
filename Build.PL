@@ -20,13 +20,14 @@ my %module_build_args = (
     "Steven Haryanto <stevenharyanto\@gmail.com>"
   ],
   "dist_name" => "Perinci-CmdLine",
-  "dist_version" => "0.72",
+  "dist_version" => "0.73",
   "license" => "perl",
   "module_name" => "Perinci::CmdLine",
   "recommends" => {},
   "recursive_test_files" => 1,
   "requires" => {
     "Data::Dump::OneLine" => 0,
+    "Data::Format::Pretty::Console" => 0,
     "File::Which" => 0,
     "JSON" => 0,
     "Log::Any" => 0,

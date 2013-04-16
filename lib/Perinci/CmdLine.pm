@@ -11,7 +11,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '0.72'; # VERSION
+our $VERSION = '0.73'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -140,6 +140,26 @@ sub format_result {
     }
 }
 
+# format array item as row
+sub format_row {
+    require Data::Format::Pretty::Console;
+    state $dfpc = Data::Format::Pretty::Console->new({interactive=>0});
+
+    my ($self, $row) = @_;
+    my $ref = ref($row);
+    # we catch common cases to be faster (avoid dfpc's structure identification)
+    if (!$ref) {
+        # simple scalar
+        return ($row // "") . "\n";
+    } elsif ($ref eq 'ARRAY' && !(grep {ref($_)} @$row)) {
+        # an array of scalars
+        return join("\t", map { $dfpc->_format_cell($_) } @$row) . "\n";
+    } else {
+        # otherwise, just feed it to dfpc
+        return $dfpc->_format($row);
+    }
+}
+
 sub display_result {
     require File::Which;
 
@@ -195,7 +215,7 @@ sub display_result {
         } elsif (ref($r) eq 'ARRAY') {
             # tied array
             while (~~(@$r) > 0) {
-                print shift(@$r);
+                print $self->format_row(shift(@$r));
             }
         } else {
             die "Invalid stream in result (not a glob/IO::Handle-like object/".
@@ -1160,7 +1180,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.72
+version 0.73
 
 =head1 SYNOPSIS
 
@@ -1247,7 +1267,7 @@ This module uses L<Log::Any> and L<Log::Any::App> for logging.
 
 This module uses L<Moo> for OO.
 
-=for Pod::Coverage ^(BUILD|run_.+|doc_.+|before_.+|after_.+|format_result|display_result|gen_common_opts|get_subcommand|list_subcommands|parse_common_opts|parse_subcommand_opts|format_set|format_options|format_options_set)$
+=for Pod::Coverage ^(BUILD|run_.+|doc_.+|before_.+|after_.+|format_result|format_row|display_result|gen_common_opts|get_subcommand|list_subcommands|parse_common_opts|parse_subcommand_opts|format_set|format_options|format_options_set)$
 
 =head1 ATTRIBUTES
 
