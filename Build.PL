@@ -20,7 +20,7 @@ my %module_build_args = (
     "Steven Haryanto <stevenharyanto\@gmail.com>"
   ],
   "dist_name" => "Perinci-CmdLine",
-  "dist_version" => "0.74",
+  "dist_version" => "0.75",
   "license" => "perl",
   "module_name" => "Perinci::CmdLine",
   "recommends" => {},
@@ -47,7 +47,7 @@ my %module_build_args = (
     "Perinci::ToUtil" => 0,
     "Perinci::Tx::Manager" => "0.34",
     "Progress::Any" => 0,
-    "Progress::Any::Output::LogAny" => 0,
+    "Progress::Any::Output::Null" => 0,
     "Progress::Any::Output::TermProgressBar" => 0,
     "Rinci" => "v1.1.27",
     "SHARYANTO::Role::Doc::Section" => 0,

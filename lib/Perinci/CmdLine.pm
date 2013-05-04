@@ -11,7 +11,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '0.74'; # VERSION
+our $VERSION = '0.75'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -170,14 +170,7 @@ sub display_result {
 
     my $resmeta = $res->[3] // {};
 
-    # this is a specific (and wrong) workaround to avoid the "Wide character in
-    # print" error when printing, even though something like binmode(STDOUT,
-    # ":utf8") has been . this only happens when using the Console (text-pretty)
-    # formatter. i haven't managed to pinpoint who the culprit is (it's not
-    # Term::Size and probably something that Text::ASCIITable uses). i will
-    # remove this workaround because i will be replacing Text::ASCIITable with
-    # Text::ANSITable sometime soon anyway.
-    local *STDOUT = \*STDOUT;
+    # XXX allow programs to opt out from this
     binmode(STDOUT, ":utf8");
 
     my $handle;
@@ -652,7 +645,7 @@ sub _setup_progress_output {
     my $self = shift;
 
     require Progress::Any;
-    if (-t STDOUT) {
+    if ($ENV{PROGRESS} // (-t STDOUT)) {
         require Progress::Any::Output::TermProgressBar;
         state $out = Progress::Any::Output::TermProgressBar->new;
         Progress::Any->set_output(output => $out);
@@ -683,13 +676,9 @@ sub _setup_progress_output {
             );
         }
     } else {
-        if ($self->{_log_any_app_loaded}) {
-            require Progress::Any::Output::LogAny;
+        require Progress::Any::Output::Null;
             Progress::Any->set_output(
-                Progress::Any::Output::LogAny->new(
-                ),
-            );
-        }
+                output => Progress::Any::Output::Null->new);
     }
 }
 
@@ -1174,13 +1163,15 @@ sub run {
 __END__
 =pod
 
+=encoding utf-8
+
 =head1 NAME
 
 Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.74
+version 0.75
 
 =head1 SYNOPSIS
 
@@ -1587,7 +1578,17 @@ status - 300).
 
 =head1 ENVIRONMENT
 
-B<PERINCI_CMDLINE_PROGRAM_NAME>. Can be used to set CLI program name.
+=over
+
+=item * PERINCI_CMDLINE_PROGRAM_NAME => STR
+
+Can be used to set CLI program name.
+
+=item * PROGRESS => BOOL
+
+Explicitly turn the progress bar on/off.
+
+=back
 
 =head1 FAQ
 
@@ -1678,6 +1679,9 @@ This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =head1 FUNCTIONS
+
+
+None are exported by default, but they are exportable.
 
 =cut
 
