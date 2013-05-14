@@ -11,7 +11,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '0.76'; # VERSION
+our $VERSION = '0.77'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -276,7 +276,7 @@ sub format_result {
         join(", ", sort keys(%Perinci::Result::Format::Formats))."\n"
             unless $Perinci::Result::Format::Formats{$format};
     if ($self->format_options_set) {
-        $resmeta->{result_format_options} = $self->format_options;
+        $res->[3]{result_format_options} = $self->format_options;
     }
 
     if ($resmeta->{is_stream}) {
@@ -1228,7 +1228,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.76
+version 0.77
 
 =head1 SYNOPSIS
 
@@ -1362,13 +1362,15 @@ our function) is added to this list. After we are finished filling out the
 C<_actions> array, the first action is chosen by running a method called C<<
 run_<ACTION> >>. For example if the chosen action is C<help>, C<run_help()> is
 called. These C<run_*> methods must execute the action, display the output, and
-return an exit code. Program will end with this exit code.
+return an exit code. Program will end with this exit code. A C<run_*> method can
+choose to decline handling the action by returning undef, in which case the next
+action will be tried, and so on until a defined exit code is returned.
 
-B<The subcommand action and determining function to call>. The C<subcommand>
-action (implemented by C<run_subcommand()>) is the one that actually does the
-real job, calling the function and displaying its result. The C<_subcommand>
-attribute stores information on the subcommand to run, including its Riap URL.
-If there are subcommands, e.g.:
+B<The subcommand action and determining which subcommand (function) to call>.
+The C<subcommand> action (implemented by C<run_subcommand()>) is the one that
+actually does the real job, calling the function and displaying its result. The
+C<_subcommand> attribute stores information on the subcommand to run, including
+its Riap URL. If there are subcommands, e.g.:
 
  my $cmd = Perinci::CmdLine->new(
      subcommands => {
@@ -1386,8 +1388,10 @@ then which subcommand to run is determined by the command-line argument, e.g.:
  % myapp sub1 ...
 
 then C<_subcommand> attribute will contain C<< {url=>'/MyApp/func1'} >>. When no
-subcommand is specified on the command line, either the C<help> action will be
-executed, or C<subcommand> action if C<default_subcommand> attribute is set.
+subcommand is specified on the command line, C<run_subcommand()> will decline
+handling the action and returning undef, and the next action e.g. C<help> will
+be executed. But if C<default_subcommand> attribute is set, C<run_subcommand()>
+will run the default subcommand instead.
 
 When there are no subcommands, e.g.:
 
@@ -1395,7 +1399,7 @@ When there are no subcommands, e.g.:
 
 C<_subcommand> will simply contain C<< {url=>'/MyApp/func'} >>.
 
-C<run_subcommand()> will then call the function specified in the C<url> in the
+C<run_subcommand()> will call the function specified in the C<url> in the
 C<_subcommand> using C<Perinci::Access>. (Actually, C<run_help()> or
 C<run_completion()> can be called instead, depending on which action to run.)
 
@@ -1443,16 +1447,40 @@ argument. To use other subcommands, you will have to use --cmd option.
 
 =head2 common_opts => HASH
 
-A list of common options, which are command-line options that are not associated
+A hash of common options, which are command-line options that are not associated
 with any subcommand. Each option is itself a specification hash containing these
-keys: C<category> (str, optional, for grouping options in help/usage message,
-defaults to C<Common options>), C<getopt> (str, required, for Getopt::Long
-specification), C<handler> (code, required, for Getopt::Long specification),
-C<usage> (str, optional, displayed in usage line in help/usage text, C<%1> will
-be replaced by program name), C<summary> (str, optional, be displayed in
-description of the option in help/usage text), C<order> (int, optional, for
-ordering where lower means higher precedence, defaults to 1). A partial example
-from the default:
+keys:
+
+=over
+
+=item * category (str)
+
+Optional, for grouping options in help/usage message, defaults to C<Common
+options>.
+
+=item * getopt (str)
+
+Required, for Getopt::Long specification.
+
+=item * handler (code)
+
+Required, for Getopt::Long specification.
+
+=item * usage (str)
+
+Optional, displayed in usage line in help/usage text.
+
+=item * summary (str)
+
+Optional, displayed in description of the option in help/usage text.
+
+=item * order (int)
+
+Optional, for ordering. Lower number means higher precedence, defaults to 1.
+
+=back
+
+A partial example from the default set by the framework:
 
  {
      help => {
@@ -1478,11 +1506,11 @@ from the default:
 
 The default contains: help (getopt C<help|h|?>), version (getopt C<version|v>),
 action (getopt C<action>), format (getopt C<format=s>), format_options (getopt
-C<format-options=s>). If there are more than one subcommands, this will be
+C<format-options=s>). If there are more than one subcommands, this will also be
 added: list (getopt C<list|l>). If dry-run is supported by function, there will
 also be: dry_run (getopt C<dry-run>). If undo is turned on, there will also be:
-undo_undo (getopt C<undo>), undo_redo (getopt C<redo>), undo_history (getopt
-C<history>), undo_clear_history (getopt C<clear-history>).
+undo (getopt C<undo>), redo (getopt C<redo>), history (getopt C<history>),
+clear_history (getopt C<clear-history>).
 
 Sometimes you do not want some options, e.g. to remove C<format> and
 C<format_options>:

@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.76
+    version 0.77
 
 SYNOPSIS
     In your command-line script:
@@ -131,13 +131,16 @@ DISPATCHING
     is chosen by running a method called "run_<ACTION>". For example if the
     chosen action is "help", "run_help()" is called. These "run_*" methods
     must execute the action, display the output, and return an exit code.
-    Program will end with this exit code.
+    Program will end with this exit code. A "run_*" method can choose to
+    decline handling the action by returning undef, in which case the next
+    action will be tried, and so on until a defined exit code is returned.
 
-    The subcommand action and determining function to call. The "subcommand"
-    action (implemented by "run_subcommand()") is the one that actually does
-    the real job, calling the function and displaying its result. The
-    "_subcommand" attribute stores information on the subcommand to run,
-    including its Riap URL. If there are subcommands, e.g.:
+    The subcommand action and determining which subcommand (function) to
+    call. The "subcommand" action (implemented by "run_subcommand()") is the
+    one that actually does the real job, calling the function and displaying
+    its result. The "_subcommand" attribute stores information on the
+    subcommand to run, including its Riap URL. If there are subcommands,
+    e.g.:
 
      my $cmd = Perinci::CmdLine->new(
          subcommands => {
@@ -156,9 +159,10 @@ DISPATCHING
      % myapp sub1 ...
 
     then "_subcommand" attribute will contain "{url=>'/MyApp/func1'}". When
-    no subcommand is specified on the command line, either the "help" action
-    will be executed, or "subcommand" action if "default_subcommand"
-    attribute is set.
+    no subcommand is specified on the command line, "run_subcommand()" will
+    decline handling the action and returning undef, and the next action
+    e.g. "help" will be executed. But if "default_subcommand" attribute is
+    set, "run_subcommand()" will run the default subcommand instead.
 
     When there are no subcommands, e.g.:
 
@@ -166,8 +170,8 @@ DISPATCHING
 
     "_subcommand" will simply contain "{url=>'/MyApp/func'}".
 
-    "run_subcommand()" will then call the function specified in the "url" in
-    the "_subcommand" using "Perinci::Access". (Actually, "run_help()" or
+    "run_subcommand()" will call the function specified in the "url" in the
+    "_subcommand" using "Perinci::Access". (Actually, "run_help()" or
     "run_completion()" can be called instead, depending on which action to
     run.)
 
@@ -209,17 +213,37 @@ ATTRIBUTES
     argument. To use other subcommands, you will have to use --cmd option.
 
   common_opts => HASH
-    A list of common options, which are command-line options that are not
+    A hash of common options, which are command-line options that are not
     associated with any subcommand. Each option is itself a specification
-    hash containing these keys: "category" (str, optional, for grouping
-    options in help/usage message, defaults to "Common options"), "getopt"
-    (str, required, for Getopt::Long specification), "handler" (code,
-    required, for Getopt::Long specification), "usage" (str, optional,
-    displayed in usage line in help/usage text, %1 will be replaced by
-    program name), "summary" (str, optional, be displayed in description of
-    the option in help/usage text), "order" (int, optional, for ordering
-    where lower means higher precedence, defaults to 1). A partial example
-    from the default:
+    hash containing these keys:
+
+    *   category (str)
+
+        Optional, for grouping options in help/usage message, defaults to
+        "Common options".
+
+    *   getopt (str)
+
+        Required, for Getopt::Long specification.
+
+    *   handler (code)
+
+        Required, for Getopt::Long specification.
+
+    *   usage (str)
+
+        Optional, displayed in usage line in help/usage text.
+
+    *   summary (str)
+
+        Optional, displayed in description of the option in help/usage text.
+
+    *   order (int)
+
+        Optional, for ordering. Lower number means higher precedence,
+        defaults to 1.
+
+    A partial example from the default set by the framework:
 
      {
          help => {
@@ -246,11 +270,11 @@ ATTRIBUTES
     The default contains: help (getopt "help|h|?"), version (getopt
     "version|v"), action (getopt "action"), format (getopt "format=s"),
     format_options (getopt "format-options=s"). If there are more than one
-    subcommands, this will be added: list (getopt "list|l"). If dry-run is
-    supported by function, there will also be: dry_run (getopt "dry-run").
-    If undo is turned on, there will also be: undo_undo (getopt "undo"),
-    undo_redo (getopt "redo"), undo_history (getopt "history"),
-    undo_clear_history (getopt "clear-history").
+    subcommands, this will also be added: list (getopt "list|l"). If dry-run
+    is supported by function, there will also be: dry_run (getopt
+    "dry-run"). If undo is turned on, there will also be: undo (getopt
+    "undo"), redo (getopt "redo"), history (getopt "history"), clear_history
+    (getopt "clear-history").
 
     Sometimes you do not want some options, e.g. to remove "format" and
     "format_options":
