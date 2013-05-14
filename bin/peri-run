@@ -7,7 +7,7 @@ use warnings;
 use Getopt::Long;
 use Perinci::CmdLine;
 
-our $VERSION = '0.75'; # VERSION
+our $VERSION = '0.76'; # VERSION
 
 my %opts = (
     library => [],
@@ -159,15 +159,13 @@ $cmd->run;
 __END__
 =pod
 
-=encoding utf-8
-
 =head1 NAME
 
 peri-run - Run commands (from any Riap function) on the command-line
 
 =head1 VERSION
 
-version 0.75
+version 0.76
 
 =head1 SYNOPSIS
 

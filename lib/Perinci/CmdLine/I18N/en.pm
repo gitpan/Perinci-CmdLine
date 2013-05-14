@@ -4,7 +4,7 @@ use parent qw(Perinci::CmdLine::I18N Perinci::To::Text::I18N::en);
 use Locale::Maketext::Lexicon::Gettext;
 our %Lexicon = %{ Locale::Maketext::Lexicon::Gettext->parse(<DATA>) };
 
-our $VERSION = '0.75'; # VERSION
+our $VERSION = '0.76'; # VERSION
 
 #use Data::Dump; dd \%Lexicon;
 
@@ -14,15 +14,13 @@ our $VERSION = '0.75'; # VERSION
 
 =pod
 
-=encoding utf-8
-
 =head1 NAME
 
 Perinci::CmdLine::I18N::en - English translation for Perinci::CmdLine
 
 =head1 VERSION
 
-version 0.75
+version 0.76
 
 =head1 AUTHOR
 
@@ -35,19 +33,14 @@ This software is copyright (c) 2013 by Steven Haryanto.
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
-=head1 DESCRIPTION
-
 =head1 FUNCTIONS
-
-
-None are exported by default, but they are exportable.
 
 =cut
 
 
 __DATA__
 
-# list
+### action: list
 
 msgid  "There are no subcommands"
 msgstr "There are no subcommands"
@@ -55,100 +48,108 @@ msgstr "There are no subcommands"
 msgid  "List of available %1 subcommands"
 msgstr "List of available %1 subcommands"
 
-# version
+### action: version
 
 msgid  "%1 version %2"
 msgstr "%1 version %2"
 
-# usage
+### action: help
 
-# help when there is no subcommands
-msgid  ""
-"Usage:\n"
-"\n"
-"    %1 --help (or -h, -?)\n"
-"    %1 --version (or -v)\n"
-"    %1 (common options) (options)\n"
-msgstr ""
-"Usage:\n"
-"\n"
-"    %1 --help (or -h, -?)\n"
-"    %1 --version (or -v)\n"
-"    %1 [common options] [options]\n"
+msgid  "Usage"
+msgstr "Usage"
 
-# help when there is subcommands
-msgid  ""
-"Usage:\n"
-"\n"
-"    %1 --help (or -h, -?)\n"
-"    %1 --version (or -v)\n"
-"    %1 --list (or -l)\n"
-"    %1 SUBCOMMAND (common options) (options)\n"
-msgstr ""
-"Usage:\n"
-"\n"
-"    %1 --help (or -h, -?)\n"
-"    %1 --version (or -v)\n"
-"    %1 --list (or -l)\n"
-"    %1 SUBCOMMAND [common options] [options]\n"
+msgid  "--help (or -h, -?)"
+msgstr "--help (or -h, -?)"
 
-# help when there is subcommands + default_subcommand
-msgid  ""
-"Usage:\n"
-"\n"
-"    %1 --help (or -h, -?)\n"
-"    %1 --version (or -v)\n"
-"    %1 --list (or -l)\n"
-"    %1 (common options) (options)\n"
-"    %1 --cmd=OTHER_SUBCOMMAND (common options) (options)\n"
-msgstr ""
-"Usage:\n"
-"\n"
-"    %1 --help (or -h, -?)\n"
-"    %1 --version (or -v)\n"
-"    %1 --list (or -l)\n"
-"    %1 [common options] [options]\n"
-"    %1 --cmd=OTHER_SUBCOMMAND [common options] [options]\n"
+msgid  "--version (or -v)"
+msgstr "--version (or -v)"
 
-msgid  ""
-"Common options:\n"
-"\n"
-"    --format=FMT    Choose output format\n"
-msgstr ""
-"Common options:\n"
-"\n"
-"    --format=FMT    Choose output format\n"
+msgid  "--list (or -l)"
+msgstr "--list (or -l)"
 
-msgid  ""
-"Undo options:\n"
-"\n"
-"    --undo          Undo previous action\n"
-"    --redo          Redo previous undone action\n"
-"    --history       List actions history\n"
-"    --clear-history Clear actions history\n"
-msgstr ""
-"Undo options:\n"
-"\n"
-"    --undo          Undo previous action\n"
-"    --redo          Redo previous undone action\n"
-"    --history       List actions history\n"
-"    --clear-history Clear actions history\n"
+# usage when there are no subcommands
+msgid  "(options)"
+msgstr "[options]"
 
-msgid  "Special options"
-msgstr "Special options"
+# help when there are subcommands and no default subcommand
+msgid  "SUBCOMMAND (options)"
+msgstr "SUBCOMMAND [options]"
+
+# help when there are subcommands and there is a default subcommand
+msgid  "--cmd=OTHER_SUBCOMMAND (options)"
+msgstr "--cmd=OTHER_SUBCOMMAND [options]"
+
+msgid  "Options"
+msgstr "Options"
+
+msgid  "Common options"
+msgstr "Common options"
+
+msgid  "Undo options"
+msgstr "Undo options"
+
+# --format
+msgid  "Choose output format, e.g. json, text"
+msgstr "Choose output format, e.g. json, text"
+
+# --format-options
+msgid  "Pass options to formatter"
+msgstr "Pass options to formatter"
+
+# --undo
+msgid  "Undo previous action"
+msgstr "Undo previous action"
+
+# --redo
+msgid  "Redo previous undone action"
+msgstr "Redo previous undone action"
+
+# --history
+msgid  "List actions history"
+msgstr "List actions history"
+
+# --clear-history
+msgid  "Clear actions history"
+msgstr "Clear actions history"
 
 # --dry-run
-msgid  "Run in simulation mode (can also be set via environment DRY_RUN=1)"
-msgstr "Run in simulation mode (can also be set via environment DRY_RUN=1)"
+msgid  "Run in simulation mode (also via DRY_RUN=1)"
+msgstr "Run in simulation mode (also via DRY_RUN=1)"
 
+# --version
 msgid  "Show version"
 msgstr "Show version"
 
+# --help
 msgid  "Display this help message"
 msgstr "Display this help message"
 
+# --list
 msgid  "List available subcommands"
 msgstr "List available subcommands"
+
+# --cmd
+msgid  "Select subcommand"
+msgstr "Select subcommand"
+
+# --action currently undocumented
+
+# --quiet, --verbose, --debug, --trace, --log-level
+msgid  "Set log level to quiet"
+msgstr "Set log level to quiet (error and up)"
+
+msgid  "Set log level to verbose"
+msgstr "Set log level to verbose (info and up)"
+
+msgid  "Set log level to debug"
+msgstr "Set log level to debug and up"
+
+msgid  "Set log level to trace"
+msgstr "Set log level to trace and up"
+
+msgid  "Set log level"
+msgstr "Set log level"
+
 
 msgid  "List of available subcommands"
 msgstr "List of available subcommands"
@@ -158,12 +159,6 @@ msgstr "Subcommand"
 
 msgid  "Subcommands"
 msgstr "Subcommands"
-
-msgid  "Usage"
-msgstr "Usage"
-
-msgid  "Options"
-msgstr "Options"
 
 msgid  "For general help, type '%1'"
 msgstr "For general help, type '%1'"

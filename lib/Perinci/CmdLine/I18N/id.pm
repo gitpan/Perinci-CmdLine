@@ -4,7 +4,7 @@ use parent qw(Perinci::CmdLine::I18N Perinci::To::Text::I18N::id);
 use Locale::Maketext::Lexicon::Gettext;
 our %Lexicon = %{ Locale::Maketext::Lexicon::Gettext->parse(<DATA>) };
 
-our $VERSION = '0.75'; # VERSION
+our $VERSION = '0.76'; # VERSION
 
 #use Data::Dump; dd \%Lexicon;
 
@@ -14,15 +14,13 @@ our $VERSION = '0.75'; # VERSION
 
 =pod
 
-=encoding utf-8
-
 =head1 NAME
 
 Perinci::CmdLine::I18N::id - Indonesian translation for Perinci::CmdLine
 
 =head1 VERSION
 
-version 0.75
+version 0.76
 
 =head1 AUTHOR
 
@@ -35,19 +33,14 @@ This software is copyright (c) 2013 by Steven Haryanto.
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
-=head1 DESCRIPTION
-
 =head1 FUNCTIONS
-
-
-None are exported by default, but they are exportable.
 
 =cut
 
 
 __DATA__
 
-# list
+### action: list
 
 msgid  "There are no subcommands"
 msgstr "Tidak ada subperintah"
@@ -55,100 +48,108 @@ msgstr "Tidak ada subperintah"
 msgid  "List of available %1 subcommands"
 msgstr "Daftar subperintah kategori '%1'"
 
-# version
+### action: version
 
 msgid  "%1 version %2"
 msgstr "%1 versi %2"
 
-# usage
+### action: help
 
-# help when there is no subcommands
-msgid ""
-"Usage:\n"
-"\n"
-"    %1 --help (or -h, -?)\n"
-"    %1 --version (or -v)\n"
-"    %1 (common options) (options)\n"
-msgstr ""
-"Cara pakai:\n"
-"\n"
-"    %1 --help (atau -h, -?)\n"
-"    %1 --version (atau -v)\n"
-"    %1 [opsi umum] [opsi]\n"
+msgid  "Usage"
+msgstr "Cara pakai"
 
-# help when there is subcommands
-msgid ""
-"Usage:\n"
-"\n"
-"    %1 --help (or -h, -?)\n"
-"    %1 --version (or -v)\n"
-"    %1 --list (or -l)\n"
-"    %1 SUBCOMMAND (common options) (options)\n"
-msgstr ""
-"Cara pakai:\n"
-"\n"
-"    %1 --help (atau -h, -?)\n"
-"    %1 --version (atau -v)\n"
-"    %1 --list (atau -l)\n"
-"    %1 SUBPERINTAH [opsi umum] [opsi]\n"
+msgid  "--help (or -h, -?)"
+msgstr "--help (atau -h, -?)"
 
-# help when there is subcommands + default_subcommand
-msgid  ""
-"Usage:\n"
-"\n"
-"    %1 --help (or -h, -?)\n"
-"    %1 --version (or -v)\n"
-"    %1 --list (or -l)\n"
-"    %1 (common options) (options)\n"
-"    %1 --cmd=OTHER_SUBCOMMAND (common options) (options)\n"
-msgstr ""
-"Cara pakai:\n"
-"\n"
-"    %1 --help (atau -h, -?)\n"
-"    %1 --version (or -v)\n"
-"    %1 --list (or -l)\n"
-"    %1 [opsi umum] [opsi]\n"
-"    %1 --cmd=SUBCOMMAND_LAIN [opsi umum] [opsi]\n"
+msgid  "--version (or -v)"
+msgstr "--version (atau -v)"
 
-msgid ""
-"Common options:\n"
-"\n"
-"    --format=FMT    Choose output format\n"
-msgstr ""
-"Opsi umum:\n"
-"\n"
-"    --format=FMT    Pilih format hasil\n"
+msgid  "--list (or -l)"
+msgstr "--list (atau -l)"
 
-msgid  ""
-"Undo options:\n"
-"\n"
-"    --undo          Undo previous action\n"
-"    --redo          Redo previous undone action\n"
-"    --history       List actions history\n"
-"    --clear-history Clear actions history\n"
-msgstr ""
-"Opsi undo:\n"
-"\n"
-"    --undo          Batalkan tindakan sebelumnya\n"
-"    --redo          Batalkan pembatalan sebelumnya\n"
-"    --history       Daftar sejarah tindakan sebelumnya\n"
-"    --clear-history Bersihkan daftar sejarah tindakan\n"
+# usage when there are no subcommands
+msgid  "(options)"
+msgstr "[opsi]"
 
-msgid  "Special options"
-msgstr "Opsi khusus"
+# help when there are subcommands and no default subcommand
+msgid  "(common options) SUBCOMMAND (options)"
+msgstr "[opsi umum] SUBPERINTAH [opsi]"
+
+# help when there are subcommands and there is a default subcommand
+msgid  "--cmd=OTHER_SUBCOMMAND (common options) (options)"
+msgstr "--cmd=SUBPERINTAH_LAIN [opsi umum] [opsi]"
+
+msgid  "Options"
+msgstr "Opsi"
+
+msgid  "Common options"
+msgstr "Opsi umum"
+
+msgid  "Undo options"
+msgstr "Opsi pembatalan"
+
+# --format
+msgid  "Choose output format, e.g. json, text"
+msgstr "Pilih format hasil, mis: json, text"
+
+# --format-options
+msgid  "Pass options to formatter"
+msgstr "Berikan opsi pada pemformat"
+
+# --undo
+msgid  "Undo previous action"
+msgstr "Batalkan tindakan sebelumnya"
+
+# --redo
+msgid  "Redo previous undone action"
+msgstr "Batalkan pembatalan sebelumnya"
+
+# --history
+msgid  "List actions history"
+msgstr "Daftar sejarah tindakan sebelumnya"
+
+# --clear-history
+msgid  "Clear actions history"
+msgstr "Bersihkan daftar sejarah tindakan"
 
 # --dry-run
-msgid  "Run in simulation mode (can also be set via environment DRY_RUN=1)"
-msgstr "Modus simulasi (juga bisa lewat variabel lingkungan DRY_RUN=1)"
+msgid  "Run in simulation mode (also via DRY_RUN=1)"
+msgstr "Modus simulasi (bisa juga dengan DRY_RUN=1)"
 
+# --version
 msgid  "Show version"
 msgstr "Tampilkan versi"
 
+# --help
 msgid  "Display this help message"
 msgstr "Tampilkan pesan bantuan ini"
 
+# --list
 msgid  "List available subcommands"
 msgstr "Daftar subperintah yang ada"
+
+# --cmd
+msgid  "Select subcommand"
+msgstr "Pilih subperintah"
+
+# --action currently undocumented
+
+# --quiet, --verbose, --debug, --trace, --log-level
+msgid  "Set log level to quiet"
+msgstr "Set level log ke diam (error ke atas)"
+
+msgid  "Set log level to verbose"
+msgstr "Set level log ke riuh (info ke atas)"
+
+msgid  "Set log level to debug"
+msgstr "Set level log ke debug ke atas"
+
+msgid  "Set log level to trace"
+msgstr "Set level log ke trace ke atas"
+
+msgid  "Set log level"
+msgstr "Set level log"
+
 
 msgid  "List of available subcommands"
 msgstr "Daftar subperintah yang ada"
@@ -158,12 +159,6 @@ msgstr "Subperintah"
 
 msgid  "Subcommands"
 msgstr "Subperintah"
-
-msgid  "Usage"
-msgstr "Cara pakai"
-
-msgid  "Options"
-msgstr "Opsi"
 
 msgid  "For general help, type '%1'"
 msgstr "Untuk pesan bantuan umum, ketik '%1'"

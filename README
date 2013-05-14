@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.75
+    version 0.76
 
 SYNOPSIS
     In your command-line script:
@@ -56,33 +56,120 @@ SYNOPSIS
     Perinci::CmdLine.
 
 DESCRIPTION
-    Perinci::CmdLine is a command-line application framework. It accesses
-    functions using Riap protocol (Perinci::Access) so you get transparent
-    remote access. It utilizes Rinci metadata in the code so the amount of
-    plumbing that you have to do is quite minimal.
-
-    What you'll get:
+    Perinci::CmdLine is a command-line application framework. It parses
+    command-line options and dispatches to one of your specified Perl
+    functions, passing the command-line options and arguments to the
+    function. It accesses functions via Riap protocol (using the
+    Perinci::Access Riap client library) so you can access remote functions
+    transparently. It utilizes Rinci metadata in the code so the amount of
+    plumbing that you have to do is quite minimal. Basically most of the
+    time you just need to write your "business logic" in your function
+    (along with some metadata), and with a couple or several lines of script
+    you have created a command-line interface with the following features:
 
     *   Command-line options parsing
 
         Non-scalar arguments (array, hash, other nested) can also be passed
-        as JSON or YAML (both will be attempted). For example, if the "tags"
-        argument is defined as 'array':
+        as JSON or YAML. For example, if the "tags" argument is defined as
+        'array', then all of below are equivalent:
 
-         % mycmd --tags '[foo, bar, baz]' ; # interpreted as YAML
-         % mycmd --tags '["foo","bar"]'   ; # interpreted as JSON
-         % mycmd --tags '[foo, bar, baz'  ; # fails both
+         % mycmd --tags-yaml '[foo, bar, baz]'
+         % mycmd --tags-yaml '["foo","bar","baz"]'
+         % mycmd --tags foo --tags bar --tags baz
 
     *   Help message (utilizing information from metadata, supports
         translation)
 
+         % mycmd --help
+         % mycmd -h
+         % mycmd -?
+
     *   Tab completion for bash (including completion from remote code)
+
+         % complete -C mycmd mycmd
+         % mycmd --he<tab> ; # --help
+         % mycmd s<tab>    ; # sub1, sub2, sub3 (if those are the specified subcommands)
+         % mycmd sub1 -<tab> ; # list the options available for sub1 subcommand
+
+        Support for other shell might be added in the future upon request.
 
     *   Undo/redo/history
 
-    This module uses Log::Any and Log::Any::App for logging.
+        If the function supports transaction (see Rinci::Transaction,
+        Riap::Transaction) the framework will setup transaction and provide
+        command to do undo (--undo) and redo (--redo) as well as seeing the
+        undo/transaction list (--history) and clearing the list
+        (--clear-history).
 
-    This module uses Moo for OO.
+    *   Version (--version, -v)
+
+    *   List available subcommands (--list, -l)
+
+    *   Configurable output format (--format, --format-options)
+
+        By default "yaml", "json", "text", "text-simple", "text-pretty" are
+        recognized.
+
+    Note that the each of the above command-line options ("--help",
+    "--version", etc) can be renamed or disabled.
+
+    This module uses Log::Any and Log::Any::App for logging. This module
+    uses Moo for OO.
+
+DISPATCHING
+    Below is the description of how the framework determines what action and
+    which function to call. (Currently lots of internal attributes are
+    accessed directly, this might be rectified in the future.)
+
+    Actions. The "_actions" attribute is an array which contains the list of
+    potential actions to choose, in order. It will then be filled out
+    according to the command-line options specified. For example, if
+    "--help" is specified, "help" action is shifted to the beginning of
+    "_actions". Likewise for "--list", etc. Finally, the "subcommand" action
+    (which means an action to call our function) is added to this list.
+    After we are finished filling out the "_actions" array, the first action
+    is chosen by running a method called "run_<ACTION>". For example if the
+    chosen action is "help", "run_help()" is called. These "run_*" methods
+    must execute the action, display the output, and return an exit code.
+    Program will end with this exit code.
+
+    The subcommand action and determining function to call. The "subcommand"
+    action (implemented by "run_subcommand()") is the one that actually does
+    the real job, calling the function and displaying its result. The
+    "_subcommand" attribute stores information on the subcommand to run,
+    including its Riap URL. If there are subcommands, e.g.:
+
+     my $cmd = Perinci::CmdLine->new(
+         subcommands => {
+             sub1 => {
+                 url => '/MyApp/func1',
+             },
+             sub2 => {
+                 url => '/MyApp/func2',
+             },
+         },
+     );
+
+    then which subcommand to run is determined by the command-line argument,
+    e.g.:
+
+     % myapp sub1 ...
+
+    then "_subcommand" attribute will contain "{url=>'/MyApp/func1'}". When
+    no subcommand is specified on the command line, either the "help" action
+    will be executed, or "subcommand" action if "default_subcommand"
+    attribute is set.
+
+    When there are no subcommands, e.g.:
+
+     my $cmd = Perinci::CmdLine->new(url => '/MyApp/func');
+
+    "_subcommand" will simply contain "{url=>'/MyApp/func'}".
+
+    "run_subcommand()" will then call the function specified in the "url" in
+    the "_subcommand" using "Perinci::Access". (Actually, "run_help()" or
+    "run_completion()" can be called instead, depending on which action to
+    run.)
 
 ATTRIBUTES
   program_name => STR (default from $0)
@@ -121,18 +208,73 @@ ATTRIBUTES
     If set, subcommand will always be set to this instead of from the first
     argument. To use other subcommands, you will have to use --cmd option.
 
-  extra_opts => HASH
-    Optional. Used to let program recognize extra command-line options.
-    Currently not well-documented. For example:
+  common_opts => HASH
+    A list of common options, which are command-line options that are not
+    associated with any subcommand. Each option is itself a specification
+    hash containing these keys: "category" (str, optional, for grouping
+    options in help/usage message, defaults to "Common options"), "getopt"
+    (str, required, for Getopt::Long specification), "handler" (code,
+    required, for Getopt::Long specification), "usage" (str, optional,
+    displayed in usage line in help/usage text, %1 will be replaced by
+    program name), "summary" (str, optional, be displayed in description of
+    the option in help/usage text), "order" (int, optional, for ordering
+    where lower means higher precedence, defaults to 1). A partial example
+    from the default:
 
-     extra_opts => {
-         halt => {
-             handler => sub {
-                 my ($self, $val) = @_;
-                 $self->{_selected_subcommand} = 'shutdown';
-             },
+     {
+         help => {
+             category    => 'Common options',
+             getopt      => 'help|h|?',
+             usage       => '%1 --help (or -h, -?)',
+             handler     => sub { ... },
+             order       => 0,
          },
+         format => {
+             category    => 'Common options',
+             getopt      => 'format=s',
+             summary     => 'Choose output format, e.g. json, text',
+             handler     => sub { ... },
+         },
+         undo => {
+             category => 'Undo options',
+             getopt   => 'undo',
+             ...
+         },
+         ...
      }
+
+    The default contains: help (getopt "help|h|?"), version (getopt
+    "version|v"), action (getopt "action"), format (getopt "format=s"),
+    format_options (getopt "format-options=s"). If there are more than one
+    subcommands, this will be added: list (getopt "list|l"). If dry-run is
+    supported by function, there will also be: dry_run (getopt "dry-run").
+    If undo is turned on, there will also be: undo_undo (getopt "undo"),
+    undo_redo (getopt "redo"), undo_history (getopt "history"),
+    undo_clear_history (getopt "clear-history").
+
+    Sometimes you do not want some options, e.g. to remove "format" and
+    "format_options":
+
+     delete $cmd->common_opts->{format};
+     delete $cmd->common_opts->{format_options};
+     $cmd->run;
+
+    Sometimes you want to rename some command-line options, e.g. to change
+    version to use capital "-V" instead of "-v":
+
+     $cmd->common_opts->{version}{getopt} = 'version|V';
+
+    Sometimes you want to add subcommands as common options instead. For
+    example:
+
+     $cmd->common_opts->{halt} = {
+         category    => 'Server options',
+         getopt      => 'halt',
+         summary     => 'Halt the server',
+         handler     => sub {
+             $cmd->{_selected_subcommand} = 'shutdown';
+         },
+     };
 
     This will make:
 
@@ -141,20 +283,6 @@ ATTRIBUTES
     equivalent to executing the 'shutdown' subcommand:
 
      % cmd shutdown
-
-    As an alternative to using this attribute, you can also subclass and
-    override "gen_common_opts()", like this:
-
-     sub gen_common_opts {
-         my ($self) = @_;
-         my $go = $self->SUPER::gen_common_opts;
-         push @$go, (
-             halt => sub {
-                 $self->{_selected_subcommand} = 'shutdown';
-             },
-         );
-         $go;
-     }
 
   exit => BOOL (default 1)
     If set to 0, instead of exiting with exit(), run() will return the exit
@@ -174,8 +302,8 @@ ATTRIBUTES
     details.
 
   dash_to_underscore => BOOL (optional, default 1)
-    If set to 1, subcommand like a-b-c will be converted to a_b_c. This is
-    for convenience when typing in command line.
+    If set to 1, subcommand like "a-b-c" will be converted to "a_b_c". This
+    is for convenience when typing in command line.
 
   pass_cmdline_object => BOOL (optional, default 0)
     Whether to pass special argument "-cmdline" containing the
@@ -184,10 +312,6 @@ ATTRIBUTES
 
     Passing the cmdline object can be useful, e.g. to call run_help(), etc.
 
-  undo => BOOL (optional, default 0)
-    Whether to enable undo/redo functionality. Some things to note if you
-    intend to use undo:
-
   pa_args => HASH
     Arguments to pass to Perinci::Access. This is useful for passing e.g.
     HTTP basic authentication to Riap client
@@ -195,21 +319,26 @@ ATTRIBUTES
 
      pa_args => {handler_args => {user=>$USER, password=>$PASS}}
 
-    *   These command-line options will be recognized
+  undo => BOOL (optional, default 0)
+    Whether to enable undo/redo functionality. Some things to note if you
+    intend to use undo:
+
+    *   These common command-line options will be recognized
 
         "--undo", "--redo", "--history", "--clear-history".
 
     *   Transactions will be used
 
-        use_tx=>1 will be passed to Perinci::Access, which will cause it to
-        initialize the transaction manager. Riap requests begin_tx and
+        "use_tx=>1" will be passed to Perinci::Access, which will cause it
+        to initialize the transaction manager. Riap requests begin_tx and
         commit_tx will enclose the call request to function.
 
     *   Called function will need to support transaction and undo
 
-        Function which do not meet qualifications will refuse to be called.
+        Function which does not meet qualifications will refuse to be
+        called.
 
-        Exception is when subcommand is specified with undo=>0, where
+        Exception is when subcommand is specified with "undo=>0", where
         transaction will not be used for that subcommand. For an example of
         disabling transaction for some subcommands, see "bin/u-trash" in the
         distribution.
@@ -400,19 +529,6 @@ FAQ
     Everything from help message, calling, argument checking, tab completion
     works for remote code as well as local Perl code.
 
-    Aside from this difference, there are several others:
-
-    *   Non-OO, function-centric
-
-        If you want OO, there are already several frameworks out there for
-        you, e.g. App::Cmd, App::Rad, MooX::Cmd, etc.
-
-    *   Configuration file support is currently missing
-
-        Coming soon, most probably will be based on Config::Ini::OnDrugs.
-
-    *   Also lacking is more documentation and more plugins
-
   How to add support for new output format (e.g. XML, HTML)?
     See Perinci::Result::Format.
 
@@ -445,7 +561,14 @@ FAQ
      arg is 'This is content of file.txt'
 
   But I don't want it slurped into a single scalar, I want streaming!
-    See App::dux for an example on how to accomplish that.
+    See App::dux for an example on how to accomplish that. Basically in
+    App::dux, you feed an array tied with Tie::Diamond as a function
+    argument. Thus you can get lines from file/STDIN iteratively with
+    each().
+
+  My application is OO?
+    This framework is currently non-OO and function-centric. There are
+    already several OO-based command-line frameworks on CPAN.
 
 SEE ALSO
     Perinci, Rinci, Riap.
@@ -463,5 +586,3 @@ COPYRIGHT AND LICENSE
     the same terms as the Perl 5 programming language system itself.
 
 FUNCTIONS
-    None are exported by default, but they are exportable.
-

@@ -11,7 +11,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '0.75'; # VERSION
+our $VERSION = '0.76'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -33,7 +33,6 @@ has url => (is => 'rw');
 has summary => (is => 'rw');
 has subcommands => (is => 'rw');
 has default_subcommand => (is => 'rw');
-has extra_opts => (is => 'rw');
 has exit => (is => 'rw', default=>sub{1});
 has log_any_app => (is => 'rw', default=>sub{$ENV{LOG} // 1});
 has custom_completer => (is => 'rw');
@@ -53,7 +52,6 @@ has undo_dir => (
         $dir;
     }
 );
-
 has format => (is => 'rw', default=>sub{'text'});
 # bool, is format set via cmdline opt?
 has format_set => (is => 'rw');
@@ -95,6 +93,156 @@ has _pa => (
         $log->tracef("Creating Perinci::Access object with args: %s", \%args);
         Perinci::Access->new(%args);
     }
+);
+has common_opts => (
+    is      => 'rw',
+    lazy    => 1,
+    default => sub {
+        my ($self) = @_;
+
+        my %opts;
+
+        # 'action=subcommand' can be used to override --help (or --list,
+        # --version) if one of function arguments happens to be 'help', 'list',
+        # or 'version'. currently this is undocumented.
+        $opts{action} = {
+            getopt  => "action=s",
+            handler => sub {
+                if ($_[1] eq 'subcommand') {
+                    $self->{_force_subcommand} = 1;
+                }
+            },
+        };
+
+        $opts{version} = {
+            getopt  => "version|v",
+            usage   => "--version (or -v)",
+            summary => "Show version",
+            handler => sub {
+                die "ERROR: 'url' not set, required for --version\n"
+                    unless $self->url;
+                unshift @{$self->{_actions}}, 'version';
+                $self->{_check_required_args} = 0;
+            },
+        };
+
+        $opts{help} = {
+            getopt  => "help|h|?",
+            usage   => "--help (or -h, -?)",
+            summary => "Display this help message",
+            handler => sub {
+                unshift @{$self->{_actions}}, 'help';
+                $self->{_check_required_args} = 0;
+            },
+            order   => 0, # high
+        };
+
+        $opts{format} = {
+            getopt  => "format=s",
+            summary => "Choose output format, e.g. json, text",
+            handler => sub {
+                $self->format_set(1);
+                $self->format($_[1]);
+            },
+        };
+
+        $opts{format_options} = {
+            getopt  => "format-options=s",
+            summary => "Pass options to formatter",
+            handler => sub {
+                $self->format_options_set(1);
+                $self->format_options(__json_decode($_[1]));
+            },
+        };
+
+        if ($self->subcommands) {
+            $opts{list} = {
+                getopt  => "list|l",
+                usage   => "--list (or -l)",
+                summary => "List available subcommands",
+                handler => sub {
+                    unshift @{$self->{_actions}}, 'list';
+                    $self->{_check_required_args} = 0;
+                },
+            };
+        }
+
+        if (defined $self->default_subcommand) {
+            # 'cmd=SUBCOMMAND_NAME' can be used to select other subcommands when
+            # default_subcommand is in effect.
+            $opts{cmd} = {
+                getopt  => "cmd=s",
+                handler => sub {
+                    $self->{_selected_subcommand} = $_[1];
+                },
+            };
+        }
+
+        # convenience for Log::Any::App-using apps
+        if ($self->log_any_app) {
+            # since the cmdline opts is consumed, Log::Any::App doesn't see
+            # this. we currently work around this via setting env.
+            for my $o (qw/quiet verbose debug trace/) {
+                $opts{$o} = {
+                    getopt  => $o,
+                    summary => "Set log level to $o",
+                    handler => sub {
+                        $ENV{uc $o} = 1;
+                    },
+                };
+            }
+            $opts{log_level} = {
+                getopt  => "log-level=s",
+                summary => "Set log level",
+                handler => sub {
+                    $ENV{LOG_LEVEL} = $_[1];
+                },
+            };
+        }
+
+        if ($self->undo) {
+            $opts{history} = {
+                category => 'Undo options',
+                getopt  => 'history',
+                summary => 'List actions history',
+                handler => sub {
+                    unshift @{$self->{_actions}}, 'history';
+                    $self->{_check_required_args} = 0;
+                },
+            };
+            $opts{clear_history} = {
+                category => 'Undo options',
+                getopt  => "clear-history",
+                summary => 'Clear actions history',
+                handler => sub {
+                    unshift @{$self->{_actions}}, 'clear_history';
+                    $self->{_check_required_args} = 0;
+                },
+            };
+            $opts{undo} = {
+                category => 'Undo options',
+                getopt  => 'undo',
+                summary => 'Undo previous action',
+                handler => sub {
+                    unshift @{$self->{_actions}}, 'undo';
+                    #$self->{_tx_id} = $_[1];
+                    $self->{_check_required_args} = 0;
+                },
+            };
+            $opts{redo} = {
+                category => 'Undo options',
+                getopt  => 'redo',
+                summary => 'Redo previous undone action',
+                handler => sub {
+                    unshift @{$self->{_actions}}, 'redo';
+                    #$self->{_tx_id} = $_[1];
+                    $self->{_check_required_args} = 0;
+                },
+            };
+        }
+
+        \%opts;
+    },
 );
 
 sub __json_decode {
@@ -368,7 +516,7 @@ sub run_completion {
     }
 
     my @top_opts; # contain --help, -h, etc.
-    for my $o (keys %{{@{ $self->{_getopts_common} }}}) {
+    for my $o (keys %{{@{ $self->{_go_specs_common} }}}) {
         $o =~ s/^--//;
         $o =~ s/=.+$//;
         my @o = split /\|/, $o;
@@ -400,7 +548,7 @@ sub run_completion {
         # duplication, as Perinci::Sub::GetArgs::Argv also does something
         # similar.
         my $common_opts = [];
-        for my $k (keys %{{@{ $self->{_getopts_common} }}}) {
+        for my $k (keys %{{@{ $self->{_go_specs_common} }}}) {
             $k =~ s/^--?//;
             $k =~ s/^([\w?-]+(?:\|[\w?-]+)*)(?:\W.*)?/$1/;
             for (split /\|/, $k) {
@@ -444,7 +592,28 @@ sub before_generate_doc {
         die "ERROR: Can't meta '$url': $res->[0] - $res->[1]\n"
             unless $res->[0] == 200;
         $self->{_meta} = $res->[2];
+        $self->_add_common_opts_after_meta;
     }
+}
+
+# some common opts can be added only after we get the function metadata
+sub _add_common_opts_after_meta {
+    my $self = shift;
+
+    if (risub($self->{_meta})->can_dry_run) {
+        $self->common_opts->{dry_run} = {
+            getopt  => 'dry-run',
+            summary => "Run in simulation mode (also via DRY_RUN=1)",
+            handler => sub {
+                $self->{_dry_run} = 1;
+                $ENV{VERBOSE} = 1;
+            },
+        };
+    }
+
+    # update the cached getopt specs
+    my @go_opts = $self->_gen_go_specs_from_common_opts;
+    $self->{_go_specs_common} = \@go_opts;
 }
 
 sub doc_parse_summary {
@@ -478,145 +647,133 @@ sub doc_parse_usage {}
 
 sub doc_gen_usage {
     my ($self) = @_;
-    my $text;
+
+    my $co = $self->common_opts;
+    my @con = sort {
+        ($co->{$a}{order}//1) <=> ($co->{$b}{order}//1) || $a cmp $b
+    } keys %$co;
+
+
+    $self->{_common_opts} = \@con; # save for doc_gen_options
+    $self->add_doc_lines($self->loc("Usage").":");
+    my $pn = $self->program_name;
+    for my $con (@con) {
+        my $cov = $co->{$con};
+        next unless $cov->{usage};
+        $self->add_doc_lines("    $pn ".$self->loc($cov->{usage}));
+    }
     if ($self->subcommands) {
         if (defined $self->default_subcommand) {
-            $text = <<_;
-Usage:
-
-    [_1] --help (or -h, -?)
-    [_1] --version (or -v)
-    [_1] --list (or -l)
-    [_1] (common options) (options)
-    [_1] --cmd=OTHER_SUBCOMMAND (common options) (options)
-_
+            $self->add_doc_lines("    $pn ".$self->loc("--cmd=OTHER_SUBCOMMAND (options)"));
         } else {
-            $text = <<_;
-Usage:
-
-    [_1] --help (or -h, -?)
-    [_1] --version (or -v)
-    [_1] --list (or -l)
-    [_1] SUBCOMMAND (common options) (options)
-_
+            $self->add_doc_lines("    $pn ".$self->loc("SUBCOMMAND (options)"));
         }
     } else {
-        $text = <<_;
-Usage:
-
-    [_1] --help (or -h, -?)
-    [_1] --version (or -v)
-    [_1] (common options) (options)
-_
+        $self->add_doc_lines("    $pn ".$self->loc("(options)"));
     }
-
-    $self->add_doc_lines($self->loc($text, $self->program_name), "");
-}
-
-sub doc_parse_common_options {}
-
-sub doc_gen_common_options {
-    my ($self) = @_;
-
-    my $text = <<_;
-Common options:
-
-    --format=FMT    Choose output format
-_
-    $self->add_doc_lines($self->loc($text), "");
-
-    $text = <<_;
-Undo options:
-
-    --undo          Undo previous action
-    --redo          Redo previous undone action
-    --history       List actions history
-    --clear-history Clear actions history
-_
-    $self->add_doc_lines($self->loc($text), "") if $self->undo;
+    $self->add_doc_lines("");
 }
 
 sub doc_parse_options {}
 
 sub doc_gen_options {
+    require SHARYANTO::Getopt::Long::Util;
+
     my ($self) = @_;
     my $info = $self->{_info};
     my $meta = $self->{_meta};
     my $args_p = $meta->{args};
-    return if !$info || $info->{type} ne 'function' || !$args_p || !%$args_p;
+    my $sc = $self->subcommands;
 
-    $self->add_doc_lines($self->loc("Options") . ":\n", "");
+    # stored gathered options by category, e.g. $catopts{"Common options"} (an
+    # array containing options)
+    my %catopts;
 
-    # XXX categorize
-    for my $an (sort {
-        ($args_p->{$a}{pos} // 99) <=> ($args_p->{$b}{pos} // 99) ||
-            $a cmp $b
-    } keys %$args_p) {
-        my $a = $args_p->{$an};
-        my $s = $a->{schema} || [any=>{}];
-        my $ane = $an; $ane =~ s/_/-/g; $ane =~ s/\W/-/g;
-        $ane = "no$ane" if $s->[0] eq 'bool' && $s->[1]{default};
-        for my $al0 (keys %{ $a->{cmdline_aliases} // {}}) {
-            my $al = $al0; $al =~ s/_/-/g;
-            $al = length($al) > 1 ? "--$al" : "-$al";
-            $ane .= ", $al";
-        }
-        my $def = defined($s->[1]{default}) && $s->[0] ne 'bool' ?
-            " (default: ".dump1($s->[1]{default}).")" : "";
-        my $src = $a->{cmdline_src} // "";
-        my $text = sprintf(
-            "  --%s [%s]%s\n",
-            $ane,
-            Perinci::ToUtil::sah2human_short($s),
-            join(
-                "",
-                (defined($a->{pos}) ? " (" .
-                     $self->loc("or as argument #[_1]",
-                                ($a->{pos}+1).($a->{greedy} ? "+":"")).")":""),
-                ($src eq 'stdin' ?
-                     " (" . $self->loc("or from stdin") . ")" : ""),
-                ($src eq 'stdin_or_files' ?
-                     " (" . $self->loc("or from stdin/files") . ")" : ""),
-                $def
-            ),
-        );
-        $self->add_doc_lines($text);
-        my $in;
-        if ($s->[1]{in} && @{ $s->[1]{in} }) {
-            $in = dump1($s->[1]{in});
-        }
-        my $summary     = $self->langprop($a, "summary");
-        my $description = $self->langprop($a, "description");
-        if ($in || $summary || $description || $in) {
-            $self->inc_indent(2);
-            $self->add_doc_lines(
-                "",
-                ucfirst($self->loc("value in")). ": $in")
-                if $in;
-            $self->add_doc_lines("", $summary . ".") if $summary;
-            $self->add_doc_lines("", $description) if $description;
-            $self->dec_indent(2);
-            $self->add_doc_lines("");
+    my $t_opts = $self->loc("Options");
+    my $t_copts = $self->loc("Common options");
+
+    # gather common opts
+    my $co = $self->common_opts;
+    my @con = sort {
+        ($co->{$a}{order}//1) <=> ($co->{$b}{order}//1) || $a cmp $b
+    } keys %$co;
+    for my $con (@con) {
+        my $cov = $co->{$con};
+        my $cat = $cov->{category} ? $self->loc($cov->{category}) :
+            ($sc ? $t_copts : $t_opts);
+        my $go = $cov->{getopt};
+        push @{ $catopts{$cat} }, {
+            getopt=>SHARYANTO::Getopt::Long::Util::gospec2human($cov->{getopt}),
+            summary=> $cov->{summary} ? $self->loc($cov->{summary}) : "",
+        };
+    }
+
+    # gather function opts (XXX: categorize according to tags)
+    if ($info && $info->{type} eq 'function' && $args_p && %$args_p) {
+        for my $an (sort {
+            ($args_p->{$a}{pos} // 99) <=> ($args_p->{$b}{pos} // 99) ||
+                $a cmp $b
+            } keys %$args_p) {
+            my $a = $args_p->{$an};
+            my $s = $a->{schema} || [any=>{}];
+            my $ane = $an; $ane =~ s/_/-/g; $ane =~ s/\W/-/g;
+            $ane = "no$ane" if $s->[0] eq 'bool' && $s->[1]{default};
+            for my $al0 (keys %{ $a->{cmdline_aliases} // {}}) {
+                my $al = $al0; $al =~ s/_/-/g;
+                $al = length($al) > 1 ? "--$al" : "-$al";
+                $ane .= ", $al";
+            }
+            my $def = defined($s->[1]{default}) && $s->[0] ne 'bool' ?
+                " (default: ".dump1($s->[1]{default}).")" : "";
+            my $src = $a->{cmdline_src} // "";
+            my $in;
+            if ($s->[1]{in} && @{ $s->[1]{in} }) {
+                $in = dump1($s->[1]{in});
+            }
+            push @{ $catopts{$t_opts} }, {
+                getopt => "--$ane",
+                getopt_note => sprintf(
+                    "[%s]%s",
+                    Perinci::ToUtil::sah2human_short($s),
+                    join(
+                        "",
+                        (defined($a->{pos}) ? " (" .
+                             $self->loc("or as argument #[_1]",
+                                        ($a->{pos}+1).($a->{greedy} ? "+":"")).")":""),
+                        ($src eq 'stdin' ?
+                             " (" . $self->loc("or from stdin") . ")" : ""),
+                        ($src eq 'stdin_or_files' ?
+                             " (" . $self->loc("or from stdin/files") . ")" : ""),
+                        $def
+                    )),
+                summary => $self->langprop($a, "summary"),
+                description => $self->langprop($a, "description"),
+                in => $in,
+            };
         }
     }
 
-    my @spec;
-    if (risub($meta)->can_dry_run) {
-        push @spec, {opt=>"dry-run", type=>"bool",
-                     summary=>$self->loc(
-                         "Run in simulation mode ".
-                             "(can also be set via environment DRY_RUN=1)")};
-    }
-    if (@spec) {
-        $self->add_doc_lines($self->loc("Special options"). ":\n", "");
-        for my $spec (@spec) {
-            $self->add_doc_lines("  --$spec->{opt} [$spec->{type}]\n");
-            $self->inc_indent(2);
-            $self->add_doc_lines("", $spec->{summary}.".") if $spec->{summary};
-            $self->dec_indent(2);
-            $self->add_doc_lines("");
+    # output gathered options
+    for my $cat (sort keys %catopts) {
+        $self->add_doc_lines("$cat:\n", "");
+        for my $o (@{ $catopts{$cat} }) {
+            $self->inc_indent(1);
+            $self->add_doc_lines($o->{getopt} . ($o->{getopt_note} ? " $o->{getopt_note}" : ""));
+            if ($o->{in} || $o->{summary} || $o->{description}) {
+                $self->inc_indent(1);
+                $self->add_doc_lines(
+                    "",
+                    ucfirst($self->loc("value in")). ": $o->{in}")
+                    if $o->{in};
+                $self->add_doc_lines("", $o->{summary} . ".") if $o->{summary};
+                $self->add_doc_lines("", $o->{description}) if $o->{description};
+                $self->dec_indent(1);
+                $self->add_doc_lines("");
+            } else {
+                $self->add_doc_lines("");
+            }
+            $self->dec_indent(1);
         }
-        $self->add_doc_lines("");
     }
 
     #$self->add_doc_lines("");
@@ -683,21 +840,16 @@ sub _setup_progress_output {
 }
 
 sub run_help {
-    require Text::Wrap;
-
     my ($self) = @_;
-    my $sc = $self->{_subcommand};
 
     $self->{doc_sections} //= [
         'summary',
         'usage',
-        'common_options',
         'options',
         'description',
         'examples',
         'links',
     ];
-    $Text::Wrap::columns = 80;
     print $self->generate_doc();
     0;
 }
@@ -805,110 +957,37 @@ sub run_redo {
     $self->{_res}[0] == 200 ? 0 : 1;
 }
 
-sub gen_common_opts {
-    require Getopt::Long;
+sub _gen_go_specs_from_common_opts {
+    my $self = shift;
 
-    my ($self) = @_;
-    $log->tracef("-> gen_common_opts()");
-
-    my @getopts = (
-        "action=s" => sub {
-            # 'action=subcommand' can be used to override --help (or --list,
-            # --version) if one of function arguments happens to be 'help',
-            # 'list', or 'version'. currently this is undocumented.
-            if ($_[1] eq 'subcommand') {
-                $self->{_force_subcommand} = 1;
-            }
-        },
-        "version|v" => sub {
-            die "ERROR: 'url' not set, required for --version\n"
-                unless $self->url;
-            unshift @{$self->{_actions}}, 'version';
-            $self->{_check_required_args} = 0;
-        },
-        "help|h|?" => sub {
-            unshift @{$self->{_actions}}, 'help';
-            $self->{_check_required_args} = 0;
-        },
-
-        "format=s" => sub {
-            $self->format_set(1);
-            $self->format($_[1]);
-        },
-        "format-options=s" => sub {
-            $self->format_options_set(1);
-            $self->format_options(__json_decode($_[1]));
-        },
-    );
-
-    if ($self->subcommands) {
-        push @getopts, (
-            "list|l"     => sub {
-                unshift @{$self->{_actions}}, 'list';
-                $self->{_check_required_args} = 0;
-            },
-        );
-        if (defined $self->default_subcommand) {
-            push @getopts, (
-                "cmd=s" => sub {
-                    # 'cmd=SUBCOMMAND_NAME' can be used to select other
-                    # subcommands when default_subcommand is in effect.
-                    $self->{_selected_subcommand} = $_[1];
-                },
-            );
-        }
+    my @go_opts;
+    my $co = $self->common_opts;
+    for my $con (sort {
+        ($co->{$a}{order}//1) <=> ($co->{$b}{order}//1) || $a cmp $b
+    } keys %$co) {
+        my $cov = $co->{$con};
+        die "Invalid common option '$con': empty getopt"
+            unless $cov->{getopt};
+        push @go_opts, $cov->{getopt} => $cov->{handler};
     }
 
-    # convenience for Log::Any::App-using apps
-    if ($self->log_any_app) {
-        # since the cmdline opts is consumed, Log::Any::App doesn't see
-        # this. we currently work around this via setting env.
-        for my $o (qw/quiet verbose debug trace/) {
-            push @getopts, $o => sub {
-                $ENV{uc $o} = 1;
-            };
-        }
-        push @getopts, "log-level=s" => sub {
-            $ENV{LOG_LEVEL} = $_[1];
-        };
-    }
-
-    if ($self->undo) {
-        push @getopts, "history" => sub {
-            unshift @{$self->{_actions}}, 'history';
-            $self->{_check_required_args} = 0;
-        };
-        push @getopts, "clear-history" => sub {
-            unshift @{$self->{_actions}}, 'clear_history';
-            $self->{_check_required_args} = 0;
-        };
-        push @getopts, "undo" => sub {
-            unshift @{$self->{_actions}}, 'undo';
-            #$self->{_tx_id} = $_[1];
-            $self->{_check_required_args} = 0;
-        };
-        push @getopts, "redo" => sub {
-            unshift @{$self->{_actions}}, 'redo';
-            #$self->{_tx_id} = $_[1];
-            $self->{_check_required_args} = 0;
-        };
-    }
-
-    $log->tracef("GetOptions spec for parsing common options: %s", \@getopts);
-    $log->tracef("<- gen_common_opts()");
-    return \@getopts;
+    @go_opts;
 }
 
 sub parse_common_opts {
+    require Getopt::Long;
+
     $log->tracef("-> parse_common_opts()");
     my ($self) = @_;
 
     my @orig_ARGV = @ARGV;
     $self->{_orig_argv} = \@orig_ARGV;
 
+    my @go_opts = $self->_gen_go_specs_from_common_opts;
+    $self->{_go_specs_common} = \@go_opts;
     my $old_go_opts = Getopt::Long::Configure(
         "pass_through", "no_ignore_case", "no_getopt_compat");
-    Getopt::Long::GetOptions(@{$self->{_getopts_common}});
+    Getopt::Long::GetOptions(@go_opts);
     $log->tracef("result of GetOptions for common options: remaining argv=%s, ".
                      "actions=%s", \@ARGV, $self->{_actions});
     Getopt::Long::Configure($old_go_opts);
@@ -938,15 +1017,9 @@ sub parse_subcommand_opts {
     }
     my $meta = $res->[2];
     $self->{_meta} = $meta;
+    $self->_add_common_opts_after_meta;
 
-    # parse --dry-run
-    my %merge_args;
-    if (risub($meta)->can_dry_run) {
-        push @{$self->{_getopts_common}}, "dry-run" => sub {
-            $self->{_dry_run} = 1;
-            $ENV{VERBOSE} = 1;
-        };
-    }
+    # also set dry-run on environment
     do { $self->{_dry_run} = 1; $ENV{VERBOSE} = 1 } if $ENV{DRY_RUN};
 
     # parse argv
@@ -986,9 +1059,9 @@ sub parse_subcommand_opts {
         },
     );
     if ($self->{_force_subcommand}) {
-        $ga_args{extra_getopts_before} = $self->{_getopts_common};
+        $ga_args{extra_getopts_before} = $self->{_go_specs_common};
     } else {
-        $ga_args{extra_getopts_after}  = $self->{_getopts_common};
+        $ga_args{extra_getopts_after}  = $self->{_go_specs_common};
     }
     $res = Perinci::Sub::GetArgs::Argv::get_args_from_argv(%ga_args);
 
@@ -1001,7 +1074,7 @@ sub parse_subcommand_opts {
 
     die "ERROR: Failed parsing arguments: $res->[0] - $res->[1]\n"
         unless $res->[0] == 200;
-    $self->{_args} = { %merge_args, %{ $res->[2] } };
+    $self->{_args} = $res->[2];
     $log->tracef("result of GetArgs for subcommand: remaining argv=%s, args=%s".
                      ", actions=%s", \@ARGV, $self->{_args}, $self->{_actions});
 
@@ -1098,20 +1171,6 @@ sub run {
 
     $self->{_actions} = []; # first action will be tried first, then 2nd, ...
 
-    my $getopts_common = $self->gen_common_opts();
-    if (my $oo = $self->extra_opts) {
-        for my $on (keys %$oo) {
-            my $o = $oo->{$on};
-            my $ond = $on; $ond =~ s/_/-/g;
-            push @$getopts_common, "$ond", sub {
-                $o->{handler}->($self, $_[1]);
-            };
-        }
-    }
-
-    # store for other methods, e.g. run_subcommand() & run_completion()
-    $self->{_getopts_common} = $getopts_common;
-
     #
     # parse common opts first so we can catch --help, --list, etc.
     #
@@ -1163,15 +1222,13 @@ sub run {
 __END__
 =pod
 
-=encoding utf-8
-
 =head1 NAME
 
 Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.75
+version 0.76
 
 =head1 SYNOPSIS
 
@@ -1227,38 +1284,120 @@ Perinci::CmdLine.
 
 =head1 DESCRIPTION
 
-Perinci::CmdLine is a command-line application framework. It accesses functions
-using Riap protocol (L<Perinci::Access>) so you get transparent remote access.
-It utilizes L<Rinci> metadata in the code so the amount of plumbing that you
-have to do is quite minimal.
-
-What you'll get:
+Perinci::CmdLine is a command-line application framework. It parses command-line
+options and dispatches to one of your specified Perl functions, passing the
+command-line options and arguments to the function. It accesses functions via
+L<Riap> protocol (using the L<Perinci::Access> Riap client library) so you can
+access remote functions transparently. It utilizes L<Rinci> metadata in the code
+so the amount of plumbing that you have to do is quite minimal. Basically most
+of the time you just need to write your "business logic" in your function (along
+with some metadata), and with a couple or several lines of script you have
+created a command-line interface with the following features:
 
 =over 4
 
 =item * Command-line options parsing
 
 Non-scalar arguments (array, hash, other nested) can also be passed as JSON or
-YAML (both will be attempted). For example, if the C<tags> argument is defined
-as 'array':
+YAML. For example, if the C<tags> argument is defined as 'array', then all of
+below are equivalent:
 
- % mycmd --tags '[foo, bar, baz]' ; # interpreted as YAML
- % mycmd --tags '["foo","bar"]'   ; # interpreted as JSON
- % mycmd --tags '[foo, bar, baz'  ; # fails both
+ % mycmd --tags-yaml '[foo, bar, baz]'
+ % mycmd --tags-yaml '["foo","bar","baz"]'
+ % mycmd --tags foo --tags bar --tags baz
 
 =item * Help message (utilizing information from metadata, supports translation)
 
+ % mycmd --help
+ % mycmd -h
+ % mycmd -?
+
 =item * Tab completion for bash (including completion from remote code)
+
+ % complete -C mycmd mycmd
+ % mycmd --he<tab> ; # --help
+ % mycmd s<tab>    ; # sub1, sub2, sub3 (if those are the specified subcommands)
+ % mycmd sub1 -<tab> ; # list the options available for sub1 subcommand
+
+Support for other shell might be added in the future upon request.
 
 =item * Undo/redo/history
 
+If the function supports transaction (see L<Rinci::Transaction>,
+L<Riap::Transaction>) the framework will setup transaction and provide command
+to do undo (--undo) and redo (--redo) as well as seeing the undo/transaction
+list (--history) and clearing the list (--clear-history).
+
+=item * Version (--version, -v)
+
+=item * List available subcommands (--list, -l)
+
+=item * Configurable output format (--format, --format-options)
+
+By default C<yaml>, C<json>, C<text>, C<text-simple>, C<text-pretty> are
+recognized.
+
 =back
 
-This module uses L<Log::Any> and L<Log::Any::App> for logging.
+Note that the each of the above command-line options (C<--help>, C<--version>,
+etc) can be renamed or disabled.
 
-This module uses L<Moo> for OO.
+This module uses L<Log::Any> and L<Log::Any::App> for logging. This module uses
+L<Moo> for OO.
 
-=for Pod::Coverage ^(BUILD|run_.+|doc_.+|before_.+|after_.+|format_result|format_row|display_result|gen_common_opts|get_subcommand|list_subcommands|parse_common_opts|parse_subcommand_opts|format_set|format_options|format_options_set)$
+=for Pod::Coverage ^(BUILD|run_.+|doc_.+|before_.+|after_.+|format_result|format_row|display_result|get_subcommand|list_subcommands|parse_common_opts|parse_subcommand_opts|format_set|format_options|format_options_set)$
+
+=head1 DISPATCHING
+
+Below is the description of how the framework determines what action and which
+function to call. (Currently lots of internal attributes are accessed directly,
+this might be rectified in the future.)
+
+B<Actions>. The C<_actions> attribute is an array which contains the list of
+potential actions to choose, in order. It will then be filled out according to
+the command-line options specified. For example, if C<--help> is specified,
+C<help> action is shifted to the beginning of C<_actions>. Likewise for
+C<--list>, etc. Finally, the C<subcommand> action (which means an action to call
+our function) is added to this list. After we are finished filling out the
+C<_actions> array, the first action is chosen by running a method called C<<
+run_<ACTION> >>. For example if the chosen action is C<help>, C<run_help()> is
+called. These C<run_*> methods must execute the action, display the output, and
+return an exit code. Program will end with this exit code.
+
+B<The subcommand action and determining function to call>. The C<subcommand>
+action (implemented by C<run_subcommand()>) is the one that actually does the
+real job, calling the function and displaying its result. The C<_subcommand>
+attribute stores information on the subcommand to run, including its Riap URL.
+If there are subcommands, e.g.:
+
+ my $cmd = Perinci::CmdLine->new(
+     subcommands => {
+         sub1 => {
+             url => '/MyApp/func1',
+         },
+         sub2 => {
+             url => '/MyApp/func2',
+         },
+     },
+ );
+
+then which subcommand to run is determined by the command-line argument, e.g.:
+
+ % myapp sub1 ...
+
+then C<_subcommand> attribute will contain C<< {url=>'/MyApp/func1'} >>. When no
+subcommand is specified on the command line, either the C<help> action will be
+executed, or C<subcommand> action if C<default_subcommand> attribute is set.
+
+When there are no subcommands, e.g.:
+
+ my $cmd = Perinci::CmdLine->new(url => '/MyApp/func');
+
+C<_subcommand> will simply contain C<< {url=>'/MyApp/func'} >>.
+
+C<run_subcommand()> will then call the function specified in the C<url> in the
+C<_subcommand> using C<Perinci::Access>. (Actually, C<run_help()> or
+C<run_completion()> can be called instead, depending on which action to run.)
 
 =head1 ATTRIBUTES
 
@@ -1302,19 +1441,71 @@ only.
 If set, subcommand will always be set to this instead of from the first
 argument. To use other subcommands, you will have to use --cmd option.
 
-=head2 extra_opts => HASH
+=head2 common_opts => HASH
 
-Optional. Used to let program recognize extra command-line options. Currently
-not well-documented. For example:
+A list of common options, which are command-line options that are not associated
+with any subcommand. Each option is itself a specification hash containing these
+keys: C<category> (str, optional, for grouping options in help/usage message,
+defaults to C<Common options>), C<getopt> (str, required, for Getopt::Long
+specification), C<handler> (code, required, for Getopt::Long specification),
+C<usage> (str, optional, displayed in usage line in help/usage text, C<%1> will
+be replaced by program name), C<summary> (str, optional, be displayed in
+description of the option in help/usage text), C<order> (int, optional, for
+ordering where lower means higher precedence, defaults to 1). A partial example
+from the default:
 
- extra_opts => {
-     halt => {
-         handler => sub {
-             my ($self, $val) = @_;
-             $self->{_selected_subcommand} = 'shutdown';
-         },
+ {
+     help => {
+         category    => 'Common options',
+         getopt      => 'help|h|?',
+         usage       => '%1 --help (or -h, -?)',
+         handler     => sub { ... },
+         order       => 0,
      },
+     format => {
+         category    => 'Common options',
+         getopt      => 'format=s',
+         summary     => 'Choose output format, e.g. json, text',
+         handler     => sub { ... },
+     },
+     undo => {
+         category => 'Undo options',
+         getopt   => 'undo',
+         ...
+     },
+     ...
  }
+
+The default contains: help (getopt C<help|h|?>), version (getopt C<version|v>),
+action (getopt C<action>), format (getopt C<format=s>), format_options (getopt
+C<format-options=s>). If there are more than one subcommands, this will be
+added: list (getopt C<list|l>). If dry-run is supported by function, there will
+also be: dry_run (getopt C<dry-run>). If undo is turned on, there will also be:
+undo_undo (getopt C<undo>), undo_redo (getopt C<redo>), undo_history (getopt
+C<history>), undo_clear_history (getopt C<clear-history>).
+
+Sometimes you do not want some options, e.g. to remove C<format> and
+C<format_options>:
+
+ delete $cmd->common_opts->{format};
+ delete $cmd->common_opts->{format_options};
+ $cmd->run;
+
+Sometimes you want to rename some command-line options, e.g. to change version
+to use capital C<-V> instead of C<-v>:
+
+ $cmd->common_opts->{version}{getopt} = 'version|V';
+
+Sometimes you want to add subcommands as common options instead. For example:
+
+ $cmd->common_opts->{halt} = {
+     category    => 'Server options',
+     getopt      => 'halt',
+     summary     => 'Halt the server',
+     handler     => sub {
+         $cmd->{_selected_subcommand} = 'shutdown';
+     },
+ };
 
 This will make:
 
@@ -1323,20 +1514,6 @@ This will make:
 equivalent to executing the 'shutdown' subcommand:
 
  % cmd shutdown
-
-As an alternative to using this attribute, you can also subclass and override
-C<gen_common_opts()>, like this:
-
- sub gen_common_opts {
-     my ($self) = @_;
-     my $go = $self->SUPER::gen_common_opts;
-     push @$go, (
-         halt => sub {
-             $self->{_selected_subcommand} = 'shutdown';
-         },
-     );
-     $go;
- }
 
 =head2 exit => BOOL (default 1)
 
@@ -1361,7 +1538,7 @@ details.
 
 =head2 dash_to_underscore => BOOL (optional, default 1)
 
-If set to 1, subcommand like a-b-c will be converted to a_b_c. This is for
+If set to 1, subcommand like C<a-b-c> will be converted to C<a_b_c>. This is for
 convenience when typing in command line.
 
 =head2 pass_cmdline_object => BOOL (optional, default 0)
@@ -1372,11 +1549,6 @@ per-subcommand basis.
 
 Passing the cmdline object can be useful, e.g. to call run_help(), etc.
 
-=head2 undo => BOOL (optional, default 0)
-
-Whether to enable undo/redo functionality. Some things to note if you intend to
-use undo:
-
 =head2 pa_args => HASH
 
 Arguments to pass to L<Perinci::Access>. This is useful for passing e.g. HTTP
@@ -1384,25 +1556,30 @@ basic authentication to Riap client (L<Perinci::Access::HTTP::Client>):
 
  pa_args => {handler_args => {user=>$USER, password=>$PASS}}
 
+=head2 undo => BOOL (optional, default 0)
+
+Whether to enable undo/redo functionality. Some things to note if you intend to
+use undo:
+
 =over 4
 
-=item * These command-line options will be recognized
+=item * These common command-line options will be recognized
 
 C<--undo>, C<--redo>, C<--history>, C<--clear-history>.
 
 =item * Transactions will be used
 
-use_tx=>1 will be passed to L<Perinci::Access>, which will cause it to
+C<< use_tx=>1 >> will be passed to L<Perinci::Access>, which will cause it to
 initialize the transaction manager. Riap requests begin_tx and commit_tx will
 enclose the call request to function.
 
 =item * Called function will need to support transaction and undo
 
-Function which do not meet qualifications will refuse to be called.
+Function which does not meet qualifications will refuse to be called.
 
-Exception is when subcommand is specified with undo=>0, where transaction will
-not be used for that subcommand. For an example of disabling transaction for
-some subcommands, see C<bin/u-trash> in the distribution.
+Exception is when subcommand is specified with C<< undo=>0 >>, where transaction
+will not be used for that subcommand. For an example of disabling transaction
+for some subcommands, see C<bin/u-trash> in the distribution.
 
 =back
 
@@ -1607,23 +1784,6 @@ on your system. After that, try running:
 Everything from help message, calling, argument checking, tab completion works
 for remote code as well as local Perl code.
 
-Aside from this difference, there are several others:
-
-=over 4
-
-=item * Non-OO, function-centric
-
-If you want OO, there are already several frameworks out there for you, e.g.
-L<App::Cmd>, L<App::Rad>, L<MooX::Cmd>, etc.
-
-=item * Configuration file support is currently missing
-
-Coming soon, most probably will be based on L<Config::Ini::OnDrugs>.
-
-=item * Also lacking is more documentation and more plugins
-
-=back
-
 =head2 How to add support for new output format (e.g. XML, HTML)?
 
 See L<Perinci::Result::Format>.
@@ -1658,7 +1818,14 @@ When run from command line:
 
 =head2 But I don't want it slurped into a single scalar, I want streaming!
 
-See L<App::dux> for an example on how to accomplish that.
+See L<App::dux> for an example on how to accomplish that. Basically in App::dux,
+you feed an array tied with L<Tie::Diamond> as a function argument. Thus you can
+get lines from file/STDIN iteratively with each().
+
+=head2 My application is OO?
+
+This framework is currently non-OO and function-centric. There are already
+several OO-based command-line frameworks on CPAN.
 
 =head1 SEE ALSO
 
@@ -1679,9 +1846,6 @@ This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =head1 FUNCTIONS
-
-
-None are exported by default, but they are exportable.
 
 =cut
 

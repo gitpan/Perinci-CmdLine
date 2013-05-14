@@ -4,7 +4,7 @@
       "Steven Haryanto <stevenharyanto@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 4.300028, CPAN::Meta::Converter version 2.120921",
+   "generated_by" : "Dist::Zilla version 4.300015, CPAN::Meta::Converter version 2.120921",
    "license" : [
       "perl_5"
    ],
@@ -26,9 +26,6 @@
       },
       "develop" : {
          "requires" : {
-            "Pod::Coverage::TrustPod" : "0",
-            "Test::Pod" : "1.41",
-            "Test::Pod::Coverage" : "1.08",
             "Test::Rinci" : "0.01"
          }
       },
@@ -58,6 +55,7 @@
             "Progress::Any::Output::Null" : "0",
             "Progress::Any::Output::TermProgressBar" : "0",
             "Rinci" : "v1.1.27",
+            "SHARYANTO::Getopt::Long::Util" : "0",
             "SHARYANTO::Role::Doc::Section" : "0",
             "SHARYANTO::Role::I18N" : "0",
             "SHARYANTO::Role::I18NRinci" : "0",
@@ -82,6 +80,6 @@
          "url" : "http://github.com/sharyanto/perl-Perinci-CmdLine"
       }
    },
-   "version" : "0.75"
+   "version" : "0.76"
 }
 
