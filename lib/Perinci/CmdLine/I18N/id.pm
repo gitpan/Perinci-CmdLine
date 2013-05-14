@@ -4,7 +4,7 @@ use parent qw(Perinci::CmdLine::I18N Perinci::To::Text::I18N::id);
 use Locale::Maketext::Lexicon::Gettext;
 our %Lexicon = %{ Locale::Maketext::Lexicon::Gettext->parse(<DATA>) };
 
-our $VERSION = '0.77'; # VERSION
+our $VERSION = '0.78'; # VERSION
 
 #use Data::Dump; dd \%Lexicon;
 
@@ -20,7 +20,7 @@ Perinci::CmdLine::I18N::id - Indonesian translation for Perinci::CmdLine
 
 =head1 VERSION
 
-version 0.77
+version 0.78
 
 =head1 AUTHOR
 
@@ -72,12 +72,12 @@ msgid  "(options)"
 msgstr "[opsi]"
 
 # help when there are subcommands and no default subcommand
-msgid  "(common options) SUBCOMMAND (options)"
-msgstr "[opsi umum] SUBPERINTAH [opsi]"
+msgid  "SUBCOMMAND (options)"
+msgstr "SUBPERINTAH [opsi]"
 
 # help when there are subcommands and there is a default subcommand
-msgid  "--cmd=OTHER_SUBCOMMAND (common options) (options)"
-msgstr "--cmd=SUBPERINTAH_LAIN [opsi umum] [opsi]"
+msgid  "--cmd=OTHER_SUBCOMMAND (options)"
+msgstr "--cmd=SUBPERINTAH_LAIN [opsi]"
 
 msgid  "Options"
 msgstr "Opsi"

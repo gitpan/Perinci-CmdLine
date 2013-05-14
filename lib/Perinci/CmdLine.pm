@@ -11,7 +11,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '0.77'; # VERSION
+our $VERSION = '0.78'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -277,6 +277,7 @@ sub format_result {
             unless $Perinci::Result::Format::Formats{$format};
     if ($self->format_options_set) {
         $res->[3]{result_format_options} = $self->format_options;
+        $resmeta = $res->[3];
     }
 
     if ($resmeta->{is_stream}) {
@@ -660,7 +661,7 @@ sub doc_gen_usage {
     for my $con (@con) {
         my $cov = $co->{$con};
         next unless $cov->{usage};
-        $self->add_doc_lines("    $pn ".$self->loc($cov->{usage}));
+        $self->add_doc_lines("    $pn ".$self->locopt($cov->{usage}));
     }
     if ($self->subcommands) {
         if (defined $self->default_subcommand) {
@@ -699,12 +700,12 @@ sub doc_gen_options {
     } keys %$co;
     for my $con (@con) {
         my $cov = $co->{$con};
-        my $cat = $cov->{category} ? $self->loc($cov->{category}) :
+        my $cat = $cov->{category} ? $self->locopt($cov->{category}) :
             ($sc ? $t_copts : $t_opts);
         my $go = $cov->{getopt};
         push @{ $catopts{$cat} }, {
             getopt=>SHARYANTO::Getopt::Long::Util::gospec2human($cov->{getopt}),
-            summary=> $cov->{summary} ? $self->loc($cov->{summary}) : "",
+            summary=> $cov->{summary} ? $self->locopt($cov->{summary}) : "",
         };
     }
 
@@ -1228,7 +1229,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.77
+version 0.78
 
 =head1 SYNOPSIS
 
