@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.78
+    version 0.79
 
 SYNOPSIS
     In your command-line script:
@@ -610,3 +610,5 @@ COPYRIGHT AND LICENSE
     the same terms as the Perl 5 programming language system itself.
 
 FUNCTIONS
+    None are exported by default, but they are exportable.
+

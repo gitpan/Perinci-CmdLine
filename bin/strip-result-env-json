@@ -9,7 +9,7 @@ use Scalar::Util 'looks_like_number';
 
 my $json = JSON->new->allow_nonref;
 
-our $VERSION = '0.78'; # VERSION
+our $VERSION = '0.79'; # VERSION
 
 {
     local $/;
@@ -28,13 +28,15 @@ our $VERSION = '0.78'; # VERSION
 __END__
 =pod
 
+=encoding utf-8
+
 =head1 NAME
 
 strip-result-env-json - Strip result envelope (JSON version)
 
 =head1 VERSION
 
-version 0.78
+version 0.79
 
 =head1 SYNOPSIS
 
