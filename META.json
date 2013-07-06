@@ -65,6 +65,7 @@
             "Tie::Simple" : "0",
             "UUID::Random" : "0",
             "YAML::Syck" : "0",
+            "experimental" : "0",
             "perl" : "5.010001"
          }
       },
@@ -83,6 +84,6 @@
          "url" : "http://github.com/sharyanto/perl-Perinci-CmdLine"
       }
    },
-   "version" : "0.79"
+   "version" : "0.80"
 }
 

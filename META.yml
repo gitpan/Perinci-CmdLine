@@ -48,8 +48,9 @@ requires:
   Tie::Simple: 0
   UUID::Random: 0
   YAML::Syck: 0
+  experimental: 0
   perl: 5.010001
 resources:
   homepage: http://search.cpan.org/dist/Perinci-CmdLine/
   repository: http://github.com/sharyanto/perl-Perinci-CmdLine
-version: 0.79
+version: 0.80
