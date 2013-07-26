@@ -6,6 +6,7 @@ MANIFEST.SKIP
 META.json
 META.yml
 README
+bin/peri-func-usage
 bin/peri-run
 bin/strip-result-env-json
 bin/strip-result-env-yaml

@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.81
+    version 0.82
 
 SYNOPSIS
     In your command-line script:
@@ -536,6 +536,13 @@ ENVIRONMENT
     *   PROGRESS => BOOL
 
         Explicitly turn the progress bar on/off.
+
+    *   PAGER => STR
+
+        Like in other programs, can be set to select the pager program (when
+        "cmdline.page_result" result metadata is active). Can also be set to
+        '' or 0 to explicitly disable paging even though "cmd.page_result"
+        result metadata is active.
 
 FAQ
   How does Perinci::CmdLine compare with other CLI-app frameworks?

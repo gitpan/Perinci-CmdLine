@@ -12,7 +12,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '0.81'; # VERSION
+our $VERSION = '0.82'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -324,23 +324,25 @@ sub display_result {
     binmode(STDOUT, ":utf8");
 
     my $handle;
-    if ($resmeta->{"cmdline.page_result"}) {
-        my $pager = $resmeta->{"cmdline.pager"} //
-            $ENV{PAGER};
-        unless (defined $pager) {
-            $pager = "less -FRSX" if File::Which::which("less");
+    {
+        if ($resmeta->{"cmdline.page_result"}) {
+            my $pager = $resmeta->{"cmdline.pager"} //
+                $ENV{PAGER};
+            unless (defined $pager) {
+                $pager = "less -FRSX" if File::Which::which("less");
+            }
+            unless (defined $pager) {
+                $pager = "more" if File::Which::which("more");
+            }
+            unless (defined $pager) {
+                die "Can't determine PAGER";
+            }
+            last unless $pager; # ENV{PAGER} can be set 0/'' to disable paging
+            $log->tracef("Paging output using %s", $pager);
+            open $handle, "| $pager";
         }
-        unless (defined $pager) {
-            $pager = "more" if File::Which::which("more");
-        }
-        unless (defined $pager) {
-            die "Can't determine PAGER";
-        }
-        $log->tracef("Paging output using %s", $pager);
-        open $handle, "| $pager";
-    } else {
-        $handle = \*STDOUT;
     }
+    $handle //= \*STDOUT;
 
     if ($resmeta->{is_stream}) {
         die "Can't format stream as " . $self->format .
@@ -764,11 +766,12 @@ sub doc_gen_options {
             if ($o->{in} || $o->{summary} || $o->{description}) {
                 $self->inc_indent(2);
                 $self->add_doc_lines(
-                    "",
-                    ucfirst($self->loc("value in")). ": $o->{in}")
+                    ucfirst($self->loc("value in")). ": $o->{in}",
+                    "")
                     if $o->{in};
                 $self->add_doc_lines($o->{summary} . ".") if $o->{summary};
-                $self->add_doc_lines("", $o->{description}) if $o->{description};
+                $self->add_doc_lines("", $o->{description})
+                    if $o->{description};
                 $self->dec_indent(2);
                 $self->add_doc_lines("");
             } else {
@@ -1251,7 +1254,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.81
+version 0.82
 
 =head1 SYNOPSIS
 
@@ -1815,6 +1818,13 @@ Can be used to set CLI program name.
 =item * PROGRESS => BOOL
 
 Explicitly turn the progress bar on/off.
+
+=item * PAGER => STR
+
+Like in other programs, can be set to select the pager program (when
+C<cmdline.page_result> result metadata is active). Can also be set to C<''> or
+C<0> to explicitly disable paging even though C<cmd.page_result> result metadata
+is active.
 
 =back
 

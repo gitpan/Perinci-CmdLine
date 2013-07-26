@@ -17,7 +17,7 @@ my %module_build_args = (
     "Steven Haryanto <stevenharyanto\@gmail.com>"
   ],
   "dist_name" => "Perinci-CmdLine",
-  "dist_version" => "0.81",
+  "dist_version" => "0.82",
   "license" => "perl",
   "module_name" => "Perinci::CmdLine",
   "recommends" => {},
@@ -59,6 +59,7 @@ my %module_build_args = (
   },
   "script_files" => [
     "bin/peri-run",
+    "bin/peri-func-usage",
     "bin/strip-result-env-yaml",
     "bin/strip-result-env-json"
   ],
