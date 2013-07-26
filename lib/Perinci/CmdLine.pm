@@ -12,7 +12,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '0.80'; # VERSION
+our $VERSION = '0.81'; # VERSION
 
 with 'Perinci::To::Text::AddDocLinesRole';
 with 'SHARYANTO::Role::Doc::Section';
@@ -468,8 +468,8 @@ sub run_version {
     say $self->loc("[_1] version [_2]", $self->program_name, $ver);
     {
         no strict 'refs';
-        say "  ", $self->loc("[_1] version [_2]",
-                             "Perinci::CmdLine", $Perinci::CmdLine::VERSION);
+        say "  ", $self->loc("[_1] version [_2]", "Perinci::CmdLine",
+                             $Perinci::CmdLine::VERSION || "dev");
     }
 
     0;
@@ -762,14 +762,14 @@ sub doc_gen_options {
             $self->inc_indent(1);
             $self->add_doc_lines($o->{getopt} . ($o->{getopt_note} ? " $o->{getopt_note}" : ""));
             if ($o->{in} || $o->{summary} || $o->{description}) {
-                $self->inc_indent(1);
+                $self->inc_indent(2);
                 $self->add_doc_lines(
                     "",
                     ucfirst($self->loc("value in")). ": $o->{in}")
                     if $o->{in};
-                $self->add_doc_lines("", $o->{summary} . ".") if $o->{summary};
+                $self->add_doc_lines($o->{summary} . ".") if $o->{summary};
                 $self->add_doc_lines("", $o->{description}) if $o->{description};
-                $self->dec_indent(1);
+                $self->dec_indent(2);
                 $self->add_doc_lines("");
             } else {
                 $self->add_doc_lines("");
@@ -1239,8 +1239,8 @@ sub run {
 1;
 # ABSTRACT: Rinci/Riap-based command-line application framework
 
-
 __END__
+
 =pod
 
 =encoding utf-8
@@ -1251,7 +1251,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.80
+version 0.81
 
 =head1 SYNOPSIS
 
@@ -1839,6 +1839,19 @@ for remote code as well as local Perl code.
 
 See L<Perinci::Result::Format>.
 
+=head2 My function has argument named 'format', but it is blocked by common option --format!
+
+To add/remove/rename common options, see the documentation on C<common_opts>
+attribute. In this case, you want:
+
+ delete $cmd->common_opts->{format};
+ #delete $cmd->common_opts->{format_options}; # you might also want this
+
+or perhaps rename it:
+
+ $cmd->common_opts->{output_format} = $cmd->common_opts->{format};
+ delete $cmd->common_opts->{format};
+
 =head2 How to accept input from STDIN (or files)?
 
 If you specify 'cmdline_src' to 'stdin' to a 'str' argument, the argument's
@@ -1902,4 +1915,3 @@ the same terms as the Perl 5 programming language system itself.
 None are exported by default, but they are exportable.
 
 =cut
-

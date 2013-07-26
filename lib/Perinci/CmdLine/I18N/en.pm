@@ -4,13 +4,12 @@ use parent qw(Perinci::CmdLine::I18N Perinci::To::Text::I18N::en);
 use Locale::Maketext::Lexicon::Gettext;
 our %Lexicon = %{ Locale::Maketext::Lexicon::Gettext->parse(<DATA>) };
 
-our $VERSION = '0.80'; # VERSION
+our $VERSION = '0.81'; # VERSION
 
 #use Data::Dump; dd \%Lexicon;
 
 1;
 # ABSTRACT: English translation for Perinci::CmdLine
-
 
 =pod
 
@@ -22,7 +21,7 @@ Perinci::CmdLine::I18N::en - English translation for Perinci::CmdLine
 
 =head1 VERSION
 
-version 0.80
+version 0.81
 
 =head1 AUTHOR
 
@@ -43,7 +42,6 @@ the same terms as the Perl 5 programming language system itself.
 None are exported by default, but they are exportable.
 
 =cut
-
 
 __DATA__
 

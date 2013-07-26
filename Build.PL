@@ -7,10 +7,7 @@ use Module::Build 0.3601;
 
 my %module_build_args = (
   "build_requires" => {
-    "Capture::Tiny" => 0,
-    "File::Slurp" => 0,
-    "Module::Build" => "0.3601",
-    "Test::More" => "0.96"
+    "Module::Build" => "0.3601"
   },
   "configure_requires" => {
     "Module::Build" => "0.3601"
@@ -20,7 +17,7 @@ my %module_build_args = (
     "Steven Haryanto <stevenharyanto\@gmail.com>"
   ],
   "dist_name" => "Perinci-CmdLine",
-  "dist_version" => "0.80",
+  "dist_version" => "0.81",
   "license" => "perl",
   "module_name" => "Perinci::CmdLine",
   "recommends" => {},
@@ -64,9 +61,27 @@ my %module_build_args = (
     "bin/peri-run",
     "bin/strip-result-env-yaml",
     "bin/strip-result-env-json"
-  ]
+  ],
+  "test_requires" => {
+    "Capture::Tiny" => 0,
+    "File::Slurp" => 0,
+    "Test::More" => "0.96"
+  }
 );
 
+
+unless ( eval { Module::Build->VERSION(0.4004) } ) {
+  my $tr = delete $module_build_args{test_requires};
+  my $br = $module_build_args{build_requires};
+  for my $mod ( keys %$tr ) {
+    if ( exists $br->{$mod} ) {
+      $br->{$mod} = $tr->{$mod} if $tr->{$mod} > $br->{$mod};
+    }
+    else {
+      $br->{$mod} = $tr->{$mod};
+    }
+  }
+}
 
 my $build = Module::Build->new(%module_build_args);
 

@@ -9,7 +9,7 @@ use Scalar::Util 'looks_like_number';
 
 my $json = JSON->new->allow_nonref;
 
-our $VERSION = '0.80'; # VERSION
+our $VERSION = '0.81'; # VERSION
 
 {
     local $/;
@@ -24,8 +24,8 @@ our $VERSION = '0.80'; # VERSION
 #ABSTRACT: Strip result envelope (JSON version)
 #PODNAME: strip-result-env-json
 
-
 __END__
+
 =pod
 
 =encoding utf-8
@@ -36,7 +36,7 @@ strip-result-env-json - Strip result envelope (JSON version)
 
 =head1 VERSION
 
-version 0.80
+version 0.81
 
 =head1 SYNOPSIS
 
@@ -76,4 +76,3 @@ This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
-

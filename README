@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.80
+    version 0.81
 
 SYNOPSIS
     In your command-line script:
@@ -555,6 +555,18 @@ FAQ
 
   How to add support for new output format (e.g. XML, HTML)?
     See Perinci::Result::Format.
+
+  My function has argument named 'format', but it is blocked by common option --format!
+    To add/remove/rename common options, see the documentation on
+    "common_opts" attribute. In this case, you want:
+
+     delete $cmd->common_opts->{format};
+     #delete $cmd->common_opts->{format_options}; # you might also want this
+
+    or perhaps rename it:
+
+     $cmd->common_opts->{output_format} = $cmd->common_opts->{format};
+     delete $cmd->common_opts->{format};
 
   How to accept input from STDIN (or files)?
     If you specify 'cmdline_src' to 'stdin' to a 'str' argument, the

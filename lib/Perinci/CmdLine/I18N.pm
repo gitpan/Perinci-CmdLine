@@ -2,12 +2,13 @@ package Perinci::CmdLine::I18N;
 
 use parent 'Perinci::To::Text::I18N';
 
-our $VERSION = '0.80'; # VERSION
+our $VERSION = '0.81'; # VERSION
 
 1;
 # ABSTRACT: Project class for Perinci::CmdLine
 
 __END__
+
 =pod
 
 =encoding utf-8
@@ -18,7 +19,7 @@ Perinci::CmdLine::I18N - Project class for Perinci::CmdLine
 
 =head1 VERSION
 
-version 0.80
+version 0.81
 
 =head1 AUTHOR
 
@@ -39,4 +40,3 @@ the same terms as the Perl 5 programming language system itself.
 None are exported by default, but they are exportable.
 
 =cut
-
