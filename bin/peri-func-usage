@@ -6,7 +6,7 @@ use warnings;
 
 use Perinci::CmdLine;
 
-our $VERSION = '0.82'; # VERSION
+our $VERSION = '0.83'; # VERSION
 
 our %SPEC;
 
@@ -59,7 +59,7 @@ peri-func-usage - Display command-line usage of a Riap function
 
 =head1 VERSION
 
-version 0.82
+version 0.83
 
 =head1 SYNOPSIS
 

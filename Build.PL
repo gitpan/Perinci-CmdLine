@@ -17,7 +17,7 @@ my %module_build_args = (
     "Steven Haryanto <stevenharyanto\@gmail.com>"
   ],
   "dist_name" => "Perinci-CmdLine",
-  "dist_version" => "0.82",
+  "dist_version" => "0.83",
   "license" => "perl",
   "module_name" => "Perinci::CmdLine",
   "recommends" => {},
@@ -40,7 +40,6 @@ my %module_build_args = (
     "Perinci::Result::Format" => "0.11",
     "Perinci::Sub::GetArgs::Argv" => "0.22",
     "Perinci::Sub::Wrapper" => "0.40",
-    "Perinci::To::Text::AddDocLinesRole" => "0.10",
     "Perinci::ToUtil" => 0,
     "Perinci::Tx::Manager" => "0.34",
     "Progress::Any" => "0.07",
@@ -48,7 +47,8 @@ my %module_build_args = (
     "Progress::Any::Output::TermProgressBarColor" => 0,
     "Rinci" => "v1.1.27",
     "SHARYANTO::Getopt::Long::Util" => 0,
-    "SHARYANTO::Role::Doc::Section" => 0,
+    "SHARYANTO::Role::Doc::Section" => "0.53",
+    "SHARYANTO::Role::Doc::Section::AddTextLines" => "0.53",
     "SHARYANTO::Role::I18N" => "0.46",
     "SHARYANTO::Role::I18NRinci" => 0,
     "Tie::Simple" => 0,
@@ -59,8 +59,8 @@ my %module_build_args = (
   },
   "script_files" => [
     "bin/peri-run",
-    "bin/peri-func-usage",
     "bin/strip-result-env-yaml",
+    "bin/peri-func-usage",
     "bin/strip-result-env-json"
   ],
   "test_requires" => {
