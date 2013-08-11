@@ -7,10 +7,12 @@ build_requires:
   File::Slurp: 0
   Module::Build: 0.3601
   Test::More: 0.96
+  Test::Script: 1.05
+  blib: 0
 configure_requires:
   Module::Build: 0.3601
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.300035, CPAN::Meta::Converter version 2.131560'
+generated_by: 'Dist::Zilla version 4.300035, CPAN::Meta::Converter version 2.132140'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -53,4 +55,4 @@ requires:
 resources:
   homepage: http://search.cpan.org/dist/Perinci-CmdLine/
   repository: http://github.com/sharyanto/perl-Perinci-CmdLine
-version: 0.83
+version: 0.84
