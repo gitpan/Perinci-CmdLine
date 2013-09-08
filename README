@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.86
+    version 0.87
 
 SYNOPSIS
     In your command-line script:
@@ -324,10 +324,6 @@ ATTRIBUTES
   custom_arg_completer => CODEREF | {ARGNAME=>CODEREF, ...}
     Will be passed to Perinci::BashComplete. See its documentation for more
     details.
-
-  dash_to_underscore => BOOL (optional, default 1)
-    If set to 1, subcommand like "a-b-c" will be converted to "a_b_c". This
-    is for convenience when typing in command line.
 
   pass_cmdline_object => BOOL (optional, default 0)
     Whether to pass special argument "-cmdline" containing the

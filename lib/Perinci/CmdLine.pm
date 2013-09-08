@@ -12,7 +12,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '0.86'; # VERSION
+our $VERSION = '0.87'; # VERSION
 
 with 'SHARYANTO::Role::Doc::Section';
 with 'SHARYANTO::Role::Doc::Section::AddTextLines';
@@ -38,7 +38,6 @@ has exit => (is => 'rw', default=>sub{1});
 has log_any_app => (is => 'rw', default=>sub{$ENV{LOG} // 1});
 has custom_completer => (is => 'rw');
 has custom_arg_completer => (is => 'rw');
-has dash_to_underscore => (is => 'rw', default=>sub{1});
 has pass_cmdline_object => (is => 'rw', default=>sub{0});
 has undo => (is=>'rw', default=>sub{0});
 has undo_dir => (
@@ -565,7 +564,8 @@ sub run_completion {
             url=>$sc->{url}, words=>$words, cword=>$cword,
             common_opts => $common_opts,
             custom_completer=>$self->custom_completer,
-            custom_arg_completer => $self->custom_arg_completer
+            custom_arg_completer => $self->custom_arg_completer,
+            pa => $self->_pa,
         );
 
     } else {
@@ -575,7 +575,8 @@ sub run_completion {
         my $scs = $self->list_subcommands;
         push @ary, keys %$scs;
         $res = Perinci::BashComplete::complete_array(
-            word=>$word, array=>\@ary);
+            word=>$word, array=>\@ary,
+        );
     }
 
     # display completion result for bash
@@ -1109,7 +1110,6 @@ sub _set_subcommand {
         } elsif (@ARGV) {
             $scn = shift @ARGV;
             $self->{_scn_in_argv} = $scn;
-            $scn =~ s/-/_/g if $self->dash_to_underscore;
         } else {
             goto L1;
         }
@@ -1244,7 +1244,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.86
+version 0.87
 
 =head1 SYNOPSIS
 
@@ -1579,11 +1579,6 @@ its documentation for more details.
 
 Will be passed to L<Perinci::BashComplete>. See its documentation for more
 details.
-
-=head2 dash_to_underscore => BOOL (optional, default 1)
-
-If set to 1, subcommand like C<a-b-c> will be converted to C<a_b_c>. This is for
-convenience when typing in command line.
 
 =head2 pass_cmdline_object => BOOL (optional, default 0)
 

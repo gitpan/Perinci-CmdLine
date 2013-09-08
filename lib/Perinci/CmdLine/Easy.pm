@@ -10,7 +10,7 @@ require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(run_cmdline_app);
 
-our $VERSION = '0.86'; # VERSION
+our $VERSION = '0.87'; # VERSION
 
 our %SPEC;
 
@@ -110,7 +110,7 @@ Perinci::CmdLine::Easy - A simple interface to run a subroutine as command-line 
 
 =head1 VERSION
 
-version 0.86
+version 0.87
 
 =head1 SYNOPSIS
 
@@ -196,7 +196,7 @@ the same terms as the Perl 5 programming language system itself.
 
 None are exported by default, but they are exportable.
 
-=head2 run_cmdline_app(%args) -> [status, msg, result, meta]
+=head2 run_cmdline_app(%args) -> any
 
 Arguments ('*' denotes required arguments):
 
@@ -221,7 +221,5 @@ Coderef or subroutine name.
 =back
 
 Return value:
-
-Returns an enveloped result (an array). First element (status) is an integer containing HTTP status code (200 means OK, 4xx caller error, 5xx function error). Second element (msg) is a string containing error message, or 'OK' if status is 200. Third element (result) is optional, the actual result. Fourth element (meta) is called result metadata and is optional, a hash that contains extra information.
 
 =cut
