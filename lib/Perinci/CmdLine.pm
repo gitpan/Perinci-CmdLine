@@ -12,7 +12,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '0.85'; # VERSION
+our $VERSION = '0.86'; # VERSION
 
 with 'SHARYANTO::Role::Doc::Section';
 with 'SHARYANTO::Role::Doc::Section::AddTextLines';
@@ -69,8 +69,9 @@ has _pa => (
         require Perinci::Access;
         my %args = %{$self->pa_args // {}};
         if ($self->undo) {
-            require Perinci::Access::InProcess;
-            my $pai = Perinci::Access::InProcess->new(
+            require Perinci::Access::Perl;
+            require Perinci::Access::Schemeless;
+            my %opts = (
                 use_tx => 1,
                 custom_tx_manager => sub {
                     my $pa = shift;
@@ -87,8 +88,8 @@ has _pa => (
                 },
             );
             $args{handlers} = {
-                pl   => $pai,
-                riap => $pai,
+                pl => Perinci::Access::Perl->new(%opts),
+                '' => Perinci::Access::Schemeless->new(%opts),
             };
         }
         $log->tracef("Creating Perinci::Access object with args: %s", \%args);
@@ -460,7 +461,7 @@ sub run_version {
     my $res = $self->_pa->request(meta => $url);
     my $ver;
     if ($res->[0] == 200) {
-        $ver = $res->[2]{entity_version} // "?";
+        $ver = $res->[2]{entity_v} // "?";
     } else {
         $log->warnf("Can't request 'meta' action on %s: %d - %s",
                     $url, $res->[0], $res->[1]);
@@ -1243,7 +1244,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.85
+version 0.86
 
 =head1 SYNOPSIS
 
