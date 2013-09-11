@@ -2,27 +2,29 @@
 use strict;
 use warnings;
 
-use Module::Build 0.3601;
+use 5.010001;
+
+use ExtUtils::MakeMaker 6.30;
 
 
-my %module_build_args = (
-  "build_requires" => {
-    "Module::Build" => "0.3601"
+
+my %WriteMakefileArgs = (
+  "ABSTRACT" => "Rinci/Riap-based command-line application framework",
+  "AUTHOR" => "Steven Haryanto <stevenharyanto\@gmail.com>",
+  "BUILD_REQUIRES" => {},
+  "CONFIGURE_REQUIRES" => {
+    "ExtUtils::MakeMaker" => "6.30"
   },
-  "configure_requires" => {
-    "Module::Build" => "0.3601"
-  },
-  "dist_abstract" => "Rinci/Riap-based command-line application framework",
-  "dist_author" => [
-    "Steven Haryanto <stevenharyanto\@gmail.com>"
+  "DISTNAME" => "Perinci-CmdLine",
+  "EXE_FILES" => [
+    "bin/peri-run",
+    "bin/peri-func-usage",
+    "bin/strip-result-env-yaml",
+    "bin/strip-result-env-json"
   ],
-  "dist_name" => "Perinci-CmdLine",
-  "dist_version" => "0.87",
-  "license" => "perl",
-  "module_name" => "Perinci::CmdLine",
-  "recommends" => {},
-  "recursive_test_files" => 1,
-  "requires" => {
+  "LICENSE" => "perl",
+  "NAME" => "Perinci::CmdLine",
+  "PREREQ_PM" => {
     "Data::Dump::OneLine" => 0,
     "Data::Format::Pretty::Console" => 0,
     "File::Which" => 0,
@@ -43,7 +45,6 @@ my %module_build_args = (
     "Perinci::Sub::Wrapper" => "0.40",
     "Perinci::To::Text" => "0.22",
     "Perinci::ToUtil" => 0,
-    "Perinci::Tx::Manager" => "0.34",
     "Progress::Any" => "0.10",
     "Progress::Any::Output" => 0,
     "Progress::Any::Output::TermProgressBarColor" => "0.04",
@@ -56,28 +57,23 @@ my %module_build_args = (
     "Tie::Simple" => 0,
     "UUID::Random" => 0,
     "YAML::Syck" => 0,
-    "experimental" => 0,
-    "perl" => "5.010001"
+    "experimental" => 0
   },
-  "script_files" => [
-    "bin/strip-result-env-json",
-    "bin/peri-func-usage",
-    "bin/strip-result-env-yaml",
-    "bin/peri-run"
-  ],
-  "test_requires" => {
+  "TEST_REQUIRES" => {
     "Capture::Tiny" => 0,
     "File::Slurp" => 0,
-    "Test::More" => "0.96",
-    "Test::Script" => "1.05",
-    "blib" => 0
+    "Test::More" => "0.96"
+  },
+  "VERSION" => "0.88",
+  "test" => {
+    "TESTS" => "t/*.t"
   }
 );
 
 
-unless ( eval { Module::Build->VERSION(0.4004) } ) {
-  my $tr = delete $module_build_args{test_requires};
-  my $br = $module_build_args{build_requires};
+unless ( eval { ExtUtils::MakeMaker->VERSION(6.63_03) } ) {
+  my $tr = delete $WriteMakefileArgs{TEST_REQUIRES};
+  my $br = $WriteMakefileArgs{BUILD_REQUIRES};
   for my $mod ( keys %$tr ) {
     if ( exists $br->{$mod} ) {
       $br->{$mod} = $tr->{$mod} if $tr->{$mod} > $br->{$mod};
@@ -88,6 +84,23 @@ unless ( eval { Module::Build->VERSION(0.4004) } ) {
   }
 }
 
-my $build = Module::Build->new(%module_build_args);
+unless ( eval { ExtUtils::MakeMaker->VERSION(6.56) } ) {
+  my $br = delete $WriteMakefileArgs{BUILD_REQUIRES};
+  my $pp = $WriteMakefileArgs{PREREQ_PM};
+  for my $mod ( keys %$br ) {
+    if ( exists $pp->{$mod} ) {
+      $pp->{$mod} = $br->{$mod} if $br->{$mod} > $pp->{$mod};
+    }
+    else {
+      $pp->{$mod} = $br->{$mod};
+    }
+  }
+}
 
-$build->create_build_script;
+delete $WriteMakefileArgs{CONFIGURE_REQUIRES}
+  unless eval { ExtUtils::MakeMaker->VERSION(6.52) };
+
+WriteMakefile(%WriteMakefileArgs);
+
+
+

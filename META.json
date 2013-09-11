@@ -4,7 +4,7 @@
       "Steven Haryanto <stevenharyanto@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 4.300035, CPAN::Meta::Converter version 2.132140",
+   "generated_by" : "Dist::Zilla version 4.300035, CPAN::Meta::Converter version 2.131560",
    "license" : [
       "perl_5"
    ],
@@ -14,14 +14,9 @@
    },
    "name" : "Perinci-CmdLine",
    "prereqs" : {
-      "build" : {
-         "requires" : {
-            "Module::Build" : "0.3601"
-         }
-      },
       "configure" : {
          "requires" : {
-            "Module::Build" : "0.3601"
+            "ExtUtils::MakeMaker" : "6.30"
          }
       },
       "develop" : {
@@ -33,6 +28,9 @@
          }
       },
       "runtime" : {
+         "recommends" : {
+            "Perinci::Tx::Manager" : "0.34"
+         },
          "requires" : {
             "Data::Dump::OneLine" : "0",
             "Data::Format::Pretty::Console" : "0",
@@ -54,7 +52,6 @@
             "Perinci::Sub::Wrapper" : "0.40",
             "Perinci::To::Text" : "0.22",
             "Perinci::ToUtil" : "0",
-            "Perinci::Tx::Manager" : "0.34",
             "Progress::Any" : "0.10",
             "Progress::Any::Output" : "0",
             "Progress::Any::Output::TermProgressBarColor" : "0.04",
@@ -75,9 +72,7 @@
          "requires" : {
             "Capture::Tiny" : "0",
             "File::Slurp" : "0",
-            "Test::More" : "0.96",
-            "Test::Script" : "1.05",
-            "blib" : "0"
+            "Test::More" : "0.96"
          }
       }
    },
@@ -88,6 +83,6 @@
          "url" : "http://github.com/sharyanto/perl-Perinci-CmdLine"
       }
    },
-   "version" : "0.87"
+   "version" : "0.88"
 }
 
