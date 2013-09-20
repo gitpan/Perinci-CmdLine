@@ -13,6 +13,7 @@ bin/strip-result-env-yaml
 dist.ini
 examples/doesnt-set-log-any-app
 examples/greedy-arg
+examples/prev-err
 examples/turn-off-log-any-app
 examples/turn-on-log-any-app
 examples/uc-file

@@ -4,7 +4,7 @@
       "Steven Haryanto <stevenharyanto@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 4.300035, CPAN::Meta::Converter version 2.131560",
+   "generated_by" : "Dist::Zilla version 4.300038, CPAN::Meta::Converter version 2.132510",
    "license" : [
       "perl_5"
    ],
@@ -34,6 +34,7 @@
          "requires" : {
             "Data::Dump::OneLine" : "0",
             "Data::Format::Pretty::Console" : "0",
+            "File::HomeDir" : "0",
             "File::Which" : "0",
             "JSON" : "0",
             "Log::Any" : "0",
@@ -47,15 +48,16 @@
             "Perinci::Access::Simple::Client" : "0",
             "Perinci::BashComplete" : "0.29",
             "Perinci::Object" : "0.11",
-            "Perinci::Result::Format" : "0.11",
+            "Perinci::Result::Format" : "0.32",
             "Perinci::Sub::GetArgs::Argv" : "0.22",
+            "Perinci::Sub::Util" : "0.36",
             "Perinci::Sub::Wrapper" : "0.40",
             "Perinci::To::Text" : "0.22",
             "Perinci::ToUtil" : "0",
             "Progress::Any" : "0.10",
             "Progress::Any::Output" : "0",
             "Progress::Any::Output::TermProgressBarColor" : "0.04",
-            "Rinci" : "v1.1.36",
+            "Rinci" : "v1.1.38",
             "SHARYANTO::Getopt::Long::Util" : "0",
             "SHARYANTO::Role::Doc::Section" : "0.53",
             "SHARYANTO::Role::Doc::Section::AddTextLines" : "0.53",
@@ -72,6 +74,8 @@
          "requires" : {
             "Capture::Tiny" : "0",
             "File::Slurp" : "0",
+            "IO::Handle" : "0",
+            "IPC::Open3" : "0",
             "Test::More" : "0.96"
          }
       }
@@ -83,6 +87,6 @@
          "url" : "http://github.com/sharyanto/perl-Perinci-CmdLine"
       }
    },
-   "version" : "0.88"
+   "version" : "0.89"
 }
 

@@ -12,7 +12,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '0.88'; # VERSION
+our $VERSION = '0.89'; # VERSION
 
 with 'SHARYANTO::Role::Doc::Section';
 with 'SHARYANTO::Role::Doc::Section::AddTextLines';
@@ -44,8 +44,10 @@ has undo_dir => (
     is => 'rw',
     lazy => 1,
     default => sub {
+        require File::HomeDir;
+
         my $self = shift;
-        my $dir = $ENV{HOME} . "/." . $self->program_name;
+        my $dir = File::HomeDir->my_home . "/." . $self->program_name;
         mkdir $dir unless -d $dir;
         $dir .= "/.undo";
         mkdir $dir unless -d $dir;
@@ -1244,7 +1246,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.88
+version 0.89
 
 =head1 SYNOPSIS
 
