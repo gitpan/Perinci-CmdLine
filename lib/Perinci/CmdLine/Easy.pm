@@ -10,7 +10,7 @@ require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(run_cmdline_app);
 
-our $VERSION = '0.89'; # VERSION
+our $VERSION = '0.90'; # VERSION
 
 our %SPEC;
 
@@ -110,7 +110,7 @@ Perinci::CmdLine::Easy - A simple interface to run a subroutine as command-line 
 
 =head1 VERSION
 
-version 0.89
+version 0.90
 
 =head1 SYNOPSIS
 
