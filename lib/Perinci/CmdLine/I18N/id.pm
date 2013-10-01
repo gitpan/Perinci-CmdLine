@@ -4,7 +4,7 @@ use parent qw(Perinci::CmdLine::I18N Perinci::To::Text::I18N::id);
 use Locale::Maketext::Lexicon::Gettext;
 our %Lexicon = %{ Locale::Maketext::Lexicon::Gettext->parse(<DATA>) };
 
-our $VERSION = '0.90'; # VERSION
+our $VERSION = '0.91'; # VERSION
 
 #use Data::Dump; dd \%Lexicon;
 
@@ -21,7 +21,7 @@ Perinci::CmdLine::I18N::id - Indonesian translation for Perinci::CmdLine
 
 =head1 VERSION
 
-version 0.90
+version 0.91
 
 =head1 AUTHOR
 
@@ -63,8 +63,8 @@ msgstr "%1 versi %2"
 msgid  "Usage"
 msgstr "Cara pakai"
 
-msgid  "--help (or -h, -?)"
-msgstr "--help (atau -h, -?)"
+msgid  "--help (or -h, -?) (--verbose)"
+msgstr "--help (atau -h, -?) [--verbose]"
 
 msgid  "--version (or -v)"
 msgstr "--version (atau -v)"
@@ -92,6 +92,18 @@ msgstr "Opsi umum"
 
 msgid  "Undo options"
 msgstr "Opsi pembatalan"
+
+msgid  "%1 options"
+msgstr "Opsi kategori '%1'"
+
+msgid  "required"
+msgstr "wajib"
+
+msgid  "Examples"
+msgstr "Contoh"
+
+msgid  "Links"
+msgstr "Tautan"
 
 # --format
 msgid  "Choose output format, e.g. json, text"
@@ -170,6 +182,9 @@ msgstr "Untuk pesan bantuan umum, ketik '%1'"
 
 msgid  "For help on a subcommand, type '%1'"
 msgstr "Untuk pesan bantuan subperintah tertentu, ketik '%1'"
+
+msgid  "For more complete help, try '--help --verbose'"
+msgstr "Untuk pesan bantuan lebih lengkap, gunakan '--help --verbose'"
 
 # usage/function
 

@@ -11,6 +11,8 @@ bin/peri-run
 bin/strip-result-env-json
 bin/strip-result-env-yaml
 dist.ini
+examples/demo-help
+examples/demo-list
 examples/doesnt-set-log-any-app
 examples/greedy-arg
 examples/prev-err
@@ -18,6 +20,7 @@ examples/turn-off-log-any-app
 examples/turn-on-log-any-app
 examples/uc-file
 lib/Perinci/CmdLine.pm
+lib/Perinci/CmdLine/ColorTheme/Default.pm
 lib/Perinci/CmdLine/Easy.pm
 lib/Perinci/CmdLine/I18N.pm
 lib/Perinci/CmdLine/I18N/en.pm

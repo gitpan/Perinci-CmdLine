@@ -1,5 +1,51 @@
 Revision history for Perinci-CmdLine
 
+0.91     2013-10-02 (SHARYANTO)
+
+         - This release focuses on making help message prettier: colors,
+           sorting, some tweaks/fixes. Details below. Formatting is now done
+           using Text::ANSITable. Producing help now causes a slight noticeable
+           delay (like 0.3-0.4s) on my PC/laptop, but since it is not annoying
+           enough or invoked frequently enough on a daily basis, it'll do for
+           now.
+
+         [ENHANCEMENTS]
+
+         - Generate colored help message, yay.
+
+         - Provide two versions of help: compact and verbose (--help --verbose).
+           The purpose of compact help is to be short and rarely exceed one
+           screen: it only displays usage, examples, and list of options (no
+           documentation on each option). The normal help is now the verbose
+           help.
+
+         - Show examples in help message.
+
+         - Show function description in verbose help message.
+
+         - Don't show 'name - summary' line in help message if summary is not
+           specified.
+
+         - To save a bit of screen space, don't list --help and --version in
+           compact help message, since they are already obvious from the usage
+           section.
+
+         - Observe 'x.perinci.cmdline.negative_summary' Rinci metadata
+           attribute. If there is a bool option with default=1 (e.g. --public,
+           with summary 'Only show public items') the help message now displays
+           '--nopublic' since --public is implicit. The summary should
+           accordingly be the negative summary (e.g. 'Only show private items').
+           This can now be put in said attribute. It can also be localized (e.g.
+           'x.perinci.cmdline.negative_summary.alt.lang.id_ID').
+
+         - Add examples/demo-help which contains various options to show how
+           --help and '--help --verbose' would display it.
+
+         - For "simple" actions like 'help', 'list', 'version', logging is
+           turned off by default to reduce startup overhead. However, you can
+           still turn on logging via LOG=1.
+
+
 0.90     2013-09-23 (SHARYANTO)
 
          - Add 'args' subcommand specification to prefill function arguments

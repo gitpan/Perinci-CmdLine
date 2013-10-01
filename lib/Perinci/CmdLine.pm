@@ -12,10 +12,9 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '0.90'; # VERSION
+our $VERSION = '0.91'; # VERSION
 
-with 'SHARYANTO::Role::Doc::Section';
-with 'SHARYANTO::Role::Doc::Section::AddTextLines';
+with 'SHARYANTO::Role::ColorTheme';
 with 'SHARYANTO::Role::I18N';
 with 'SHARYANTO::Role::I18NRinci';
 
@@ -35,7 +34,7 @@ has summary => (is => 'rw');
 has subcommands => (is => 'rw');
 has default_subcommand => (is => 'rw');
 has exit => (is => 'rw', default=>sub{1});
-has log_any_app => (is => 'rw', default=>sub{$ENV{LOG} // 1});
+has log_any_app => (is => 'rw', default=>sub{1});
 has custom_completer => (is => 'rw');
 has custom_arg_completer => (is => 'rw');
 has pass_cmdline_object => (is => 'rw', default=>sub{0});
@@ -121,6 +120,7 @@ has common_opts => (
             getopt  => "version|v",
             usage   => "--version (or -v)",
             summary => "Show version",
+            show_in_compact_help => 0,
             handler => sub {
                 die "ERROR: 'url' not set, required for --version\n"
                     unless $self->url;
@@ -131,8 +131,9 @@ has common_opts => (
 
         $opts{help} = {
             getopt  => "help|h|?",
-            usage   => "--help (or -h, -?)",
+            usage   => "--help (or -h, -?) (--verbose)",
             summary => "Display this help message",
+            show_in_compact_help => 0,
             handler => sub {
                 unshift @{$self->{_actions}}, 'help';
                 $self->{_check_required_args} = 0;
@@ -247,6 +248,35 @@ has common_opts => (
         \%opts;
     },
 );
+has action_metadata => (
+    is => 'rw',
+    default => sub {
+        +{
+            clear_history => {
+            },
+            help => {
+                default_log => 0,
+                use_utf8 => 1,
+            },
+            history => {
+            },
+            list => {
+                default_log => 0,
+                use_utf8 => 1,
+            },
+            redo => {
+            },
+            subcommand => {
+            },
+            undo => {
+            },
+            version => {
+                default_log => 0,
+                use_utf8 => 1,
+            },
+        },
+    },
+);
 
 sub __json_decode {
     require JSON;
@@ -256,7 +286,20 @@ sub __json_decode {
 
 sub BUILD {
     my ($self, $args) = @_;
-    #$self->{indent} = $args->{indent} // "    ";
+
+    # pick a default color theme
+    unless ($self->{color_theme}) {
+        my $ct;
+        if ($self->{use_color}) {
+            my $bg = $self->detect_terminal->{default_bgcolor} // '';
+            $ct = 'Default::default' .
+                ($bg eq 'ffffff' ? '_whitebg' : '');
+        } else {
+            $ct = 'Default::no_color';
+        }
+        $self->color_theme($ct);
+    }
+
 }
 
 sub format_result {
@@ -321,9 +364,6 @@ sub display_result {
     return unless $res;
 
     my $resmeta = $res->[3] // {};
-
-    # XXX allow programs to opt out from this
-    binmode(STDOUT, ":utf8");
 
     my $handle;
     {
@@ -586,26 +626,6 @@ sub run_completion {
     0;
 }
 
-sub before_gen_doc {
-    my ($self) = @_;
-
-    my $sc = $self->{_subcommand};
-    my $url = $sc ? $sc->{url} : $self->url;
-    if ($url) {
-        my $res = $self->_pa->request(info => $url);
-        die "ERROR: Can't info '$url': $res->[0] - $res->[1]\n"
-            unless $res->[0] == 200;
-        $self->{_doc_info} = $res->[2];
-        $res = $self->_pa->request(meta => $url);
-        die "ERROR: Can't meta '$url': $res->[0] - $res->[1]\n"
-            unless $res->[0] == 200;
-        $self->{_doc_meta} = $res->[2];
-        $self->_add_common_opts_after_meta;
-    }
-
-    $self->{_doc_res} = {};
-}
-
 # some common opts can be added only after we get the function metadata
 sub _add_common_opts_after_meta {
     my $self = shift;
@@ -626,34 +646,101 @@ sub _add_common_opts_after_meta {
     $self->{_go_specs_common} = \@go_opts;
 }
 
-sub gen_doc_section_summary {
-    my ($self) = @_;
+sub _help_draw_curtbl {
+    my $self = shift;
+
+    if ($self->{_help_curtbl}) {
+        print $self->{_help_curtbl}->draw;
+        undef $self->{_help_curtbl};
+    }
+}
+
+# ansitables are used to draw formatted help. they are 100% wide, with no
+# borders (except space), but you can customize the number of columns (which
+# will be divided equally)
+sub _help_add_table {
+    require Text::ANSITable;
+
+    my ($self, %args) = @_;
+    my $columns = $args{columns} // 1;
+
+    $self->_help_draw_curtbl;
+    my $tw = $self->term_width;
+    my $cw = int($tw/$columns)-1;
+    my $t = Text::ANSITable->new;
+    $t->border_style('Default::spacei_ascii');
+    $t->cell_pad(0);
+    $t->cell_width($cw);
+    $t->show_header(0);
+    $t->column_wrap(0); # we'll do our own wrapping, before indent
+    $t->columns([0..$columns-1]);
+
+    $self->{_help_curtbl} = $t;
+}
+
+sub _help_add_row {
+    my ($self, $row, $args) = @_;
+    $args //= {};
+    my $wrap    = $args->{wrap}   // 0;
+    my $indent  = $args->{indent} // 0;
+    my $columns = @$row;
+
+    # start a new table if necessary
+    $self->_help_add_table(columns=>$columns)
+        if !$self->{_help_curtbl} ||
+                $columns != @{ $self->{_help_curtbl}{columns} };
+
+    my $t = $self->{_help_curtbl};
+    my $rownum = @{ $t->{rows} };
+
+    $t->add_row($row);
+
+    for (0..@{$t->{columns}}-1) {
+        my %styles = (formats=>[]);
+        push @{ $styles{formats} }, [wrap=>{width=>$t->{cell_width}-$indent*2}]
+            if $wrap;
+        push @{ $styles{formats} }, [lins=>{text=>"  " x $indent}]
+            if $indent && $_ == 0;
+        $t->set_cell_style($rownum, $_, \%styles);
+    }
+}
+
+sub _help_add_heading {
+    my ($self, $heading) = @_;
+    $self->_help_add_row([$self->_color('heading', $heading)]);
+}
+
+sub _color {
+    my ($self, $color_name, $text) = @_;
+    my $color_code = $color_name ?
+        $self->get_theme_color_as_ansi($color_name) : "";
+    my $reset_code = $color_code ? "\e[0m" : "";
+    "$color_code$text$reset_code";
+}
+
+sub help_section_summary {
+    my ($self, %opts) = @_;
+
+    my $summary = $self->langprop($self->{_help_meta}, "summary");
+    return unless $summary;
 
     my $sc = $self->{_subcommand};
-    my $res = $self->{_doc_res};
-
-    $res->{name} = $self->program_name .
+    my $name = $self->program_name .
         ($sc && length($sc->{name}) ? " $sc->{name}" : "");
 
-    if ($self->{_doc_meta}) {
-        $res->{summary} =
-            $self->langprop($self->{_doc_meta}, "summary");
-    }
-
-    my $name_summary = join(
+    my $ct = join(
         "",
-        $res->{name} // "",
-        ($res->{name} && $res->{summary} ? ' - ' : ''),
-        $res->{summary} // ""
+        $self->_color('program_name', $name),
+        ($name && $summary ? ' - ' : ''),
+        $summary // "",
     );
-
-    $self->add_doc_lines($name_summary, "");
+    $self->_help_add_row([$ct], {wrap=>1});
 }
 
 sub _usage_args {
     my $self = shift;
 
-    my $m = $self->{_doc_meta};
+    my $m = $self->{_help_meta};
     return "" unless $m;
     my $aa = $m->{args};
     return "" unless $aa;
@@ -676,42 +763,46 @@ sub _usage_args {
     $res;
 }
 
-sub gen_doc_section_usage {
-    my ($self) = @_;
+sub help_section_usage {
+    my ($self, %opts) = @_;
 
     my $co = $self->common_opts;
     my @con = sort {
         ($co->{$a}{order}//1) <=> ($co->{$b}{order}//1) || $a cmp $b
     } keys %$co;
 
-
     $self->{_common_opts} = \@con; # save for doc_gen_options
-    $self->add_doc_lines($self->loc("Usage").":");
-    my $pn = $self->program_name;
+
+    my $pn = $self->_color('program_name', $self->program_name);
+    my $ct = "";
     for my $con (@con) {
         my $cov = $co->{$con};
         next unless $cov->{usage};
-        $self->add_doc_lines("    $pn ".$self->locopt($cov->{usage}));
+        $ct .= ($ct ? "\n" : "") . $pn . " " . $self->locopt($cov->{usage});
     }
     if ($self->subcommands) {
         if (defined $self->default_subcommand) {
-            $self->add_doc_lines("    $pn ".$self->loc("--cmd=OTHER_SUBCOMMAND (options)"));
+            $ct .= ($ct ? "\n" : "") . $pn .
+                " " . $self->loc("--cmd=OTHER_SUBCOMMAND (options)");
         } else {
-            $self->add_doc_lines("    $pn ".$self->loc("SUBCOMMAND (options)"));
+            $ct .= ($ct ? "\n" : "") . $pn .
+                " " . $self->loc("SUBCOMMAND (options)");
         }
     } else {
-        $self->add_doc_lines("    $pn ".$self->loc("(options)").
-                                 $self->_usage_args);
+            $ct .= ($ct ? "\n" : "") . $pn .
+                " " . $self->loc("(options)"). $self->_usage_args;
     }
-    $self->add_doc_lines("");
+    $self->_help_add_heading($self->loc("Usage"));
+    $self->_help_add_row([$ct], {indent=>1});
 }
 
-sub gen_doc_section_options {
+sub help_section_options {
     require SHARYANTO::Getopt::Long::Util;
 
-    my ($self) = @_;
-    my $info = $self->{_doc_info};
-    my $meta = $self->{_doc_meta};
+    my ($self, %opts) = @_;
+    my $verbose = $opts{verbose};
+    my $info = $self->{_help_info};
+    my $meta = $self->{_help_meta};
     my $args_p = $meta->{args};
     my $sc = $self->subcommands;
 
@@ -729,6 +820,7 @@ sub gen_doc_section_options {
     } keys %$co;
     for my $con (@con) {
         my $cov = $co->{$con};
+        next if !$verbose && !($cov->{show_in_compact_help} // 1);
         my $cat = $cov->{category} ? $self->locopt($cov->{category}) :
             ($sc ? $t_copts : $t_opts);
         my $go = $cov->{getopt};
@@ -746,13 +838,43 @@ sub gen_doc_section_options {
             } keys %$args_p) {
             my $a = $args_p->{$an};
             my $s = $a->{schema} || [any=>{}];
+            my $got = Perinci::ToUtil::sah2human_short($s);
             my $ane = $an; $ane =~ s/_/-/g; $ane =~ s/\W/-/g;
-            $ane = "no$ane" if $s->[0] eq 'bool' && $s->[1]{default};
+            my $summary = $self->langprop($a, "summary");
+
+            my $suf = "";
+            if ($s->[0] eq 'bool') {
+                $got = undef;
+                if ($s->[1]{default}) {
+                    $ane = "no$ane";
+                    my $negsummary = $self->langprop(
+                        $a, "x.perinci.cmdline.negative_summary");
+                    $summary = $negsummary if $negsummary;
+                } elsif (defined $s->[1]{default}) {
+                    #$ane = $ane;
+                } else {
+                    $ane = "[no]$ane";
+                }
+            } elsif ($s->[0] eq 'float' || $s->[0] eq 'num') {
+                $ane .= "=f";
+            } elsif ($s->[0] eq 'int') {
+                $ane .= "=i";
+            } elsif ($s->[0] eq 'hash' || $s->[0] eq 'array') {
+                $suf = "-json";
+                $ane = "$ane-json=val";
+            } else {
+                $ane .= "=s";
+            }
+
+            # add aliases which does not have code
             for my $al0 (keys %{ $a->{cmdline_aliases} // {}}) {
+                my $alspec = $a->{cmdline_aliases}{$al0};
+                next if $alspec->{code};
                 my $al = $al0; $al =~ s/_/-/g;
                 $al = length($al) > 1 ? "--$al" : "-$al";
-                $ane .= ", $al";
+                $ane .= ", $al$suf";
             }
+
             my $def = defined($s->[1]{default}) && $s->[0] ne 'bool' ?
                 " (default: ".dump1($s->[1]{default}).")" : "";
             my $src = $a->{cmdline_src} // "";
@@ -760,66 +882,214 @@ sub gen_doc_section_options {
             if ($s->[1]{in} && @{ $s->[1]{in} }) {
                 $in = dump1($s->[1]{in});
             }
-            push @{ $catopts{$t_opts} }, {
+
+            my $cat;
+            for (@{ $a->{tags} // []}) {
+                next unless /^category:(.+)/;
+                $cat = $1;
+                last;
+            }
+            if ($cat) {
+                $cat = $self->loc("[_1] options", ucfirst($cat));
+            } else {
+                $cat = $t_opts;
+            }
+
+            push @{ $catopts{$cat} }, {
                 getopt => "--$ane",
-                getopt_note => sprintf(
-                    "[%s]%s",
-                    Perinci::ToUtil::sah2human_short($s),
-                    join(
-                        "",
-                        (defined($a->{pos}) ? " (" .
-                             $self->loc("or as argument #[_1]",
-                                        ($a->{pos}+1).($a->{greedy} ? "+":"")).")":""),
-                        ($src eq 'stdin' ?
-                             " (" . $self->loc("or from stdin") . ")" : ""),
-                        ($src eq 'stdin_or_files' ?
-                             " (" . $self->loc("or from stdin/files") . ")" : ""),
-                        $def
-                    )),
-                summary => $self->langprop($a, "summary"),
+                getopt_type => $got,
+                getopt_note =>join(
+                    "",
+                    ($a->{req} ? " (" . $self->loc("required") . ")" : ""),
+                    (defined($a->{pos}) ? " (" .
+                         $self->loc("or as argument #[_1]",
+                                    ($a->{pos}+1).($a->{greedy} ? "+":"")).")":""),
+                    ($src eq 'stdin' ?
+                         " (" . $self->loc("or from stdin") . ")" : ""),
+                    ($src eq 'stdin_or_files' ?
+                         " (" . $self->loc("or from stdin/files") . ")" : ""),
+                    $def
+                ),
+                req => $a->{req},
+                summary => $summary,
                 description => $self->langprop($a, "description"),
                 in => $in,
             };
+
+            # add aliases which have code as separate options
+            for my $al0 (keys %{ $a->{cmdline_aliases} // {}}) {
+                my $alspec = $a->{cmdline_aliases}{$al0};
+                next unless $alspec->{code};
+                push @{ $catopts{$cat} }, {
+                    getopt => length($al0) > 1 ? "--$al0" : "-$al0",
+                    getopt_type => $got,
+                    getopt_note => undef,
+                    #req => $a->{req},
+                    summary => $self->langprop($alspec, "summary"),
+                    description => $self->langprop($alspec, "description"),
+                    #in => $in,
+                };
+            }
+
         }
     }
 
     # output gathered options
     for my $cat (sort keys %catopts) {
-        $self->add_doc_lines("$cat:\n", "");
-        for my $o (@{ $catopts{$cat} }) {
-            $self->inc_doc_indent(1);
-            $self->add_doc_lines($o->{getopt} . ($o->{getopt_note} ? " $o->{getopt_note}" : ""));
-            if ($o->{in} || $o->{summary} || $o->{description}) {
-                $self->inc_doc_indent(2);
-                $self->add_doc_lines(
-                    ucfirst($self->loc("value in")). ": $o->{in}",
-                    "")
-                    if $o->{in};
-                $self->add_doc_lines($o->{summary} . ".") if $o->{summary};
-                $self->add_doc_lines("", $o->{description})
-                    if $o->{description};
-                $self->dec_doc_indent(2);
-                $self->add_doc_lines("");
-            } else {
-                $self->add_doc_lines("");
+        $self->_help_add_heading($cat);
+        my @opts = sort {
+            my $va = $a->{getopt};
+            my $vb = $b->{getopt};
+            for ($va, $vb) { s/^--(\[no\])?// }
+            $va cmp $vb;
+        } @{$catopts{$cat}};
+        if ($verbose) {
+            for my $o (@opts) {
+                my $ct = $self->_color('option_name', $o->{getopt}) .
+                    ($o->{getopt_type} ? " [$o->{getopt_type}]" : "").
+                        ($o->{getopt_note} ? $o->{getopt_note} : "");
+                $self->_help_add_row([$ct], {indent=>1});
+                if ($o->{in} || $o->{summary} || $o->{description}) {
+                    my $ct = "";
+                    $ct .= ($ct ? "\n\n":"").ucfirst($self->loc("value in")).
+                        ": $o->{in}" if $o->{in};
+                    $ct .= ($ct ? "\n\n":"")."$o->{summary}." if $o->{summary};
+                    $ct .= ($ct ? "\n\n":"").$o->{description}
+                        if $o->{description};
+                    $self->_help_add_row([$ct], {indent=>2, wrap=>1});
+                }
             }
-            $self->dec_doc_indent(1);
+        } else {
+            # for compactness, display in columns
+            my $tw = $self->term_width;
+            my $columns = int($tw/40);
+            while (1) {
+                my @row;
+                for (1..$columns) {
+                    last unless @opts;
+                    my $o = shift @opts;
+                    push @row, $self->_color('option_name', $o->{getopt}) .
+                        #($o->{getopt_type} ? " [$o->{getopt_type}]" : "") .
+                            ($o->{getopt_note} ? $o->{getopt_note} : "");
+                }
+                last unless @row;
+                for (@row+1 .. $columns) { push @row, "" }
+                $self->_help_add_row(\@row, {indent=>1});
+            }
         }
     }
-
-    #$self->add_doc_lines("");
 }
 
-sub gen_doc_section_description {
+sub help_section_hint_verbose {
+    my ($self) = @_;
+    $self->_help_add_row(["\n" . $self->loc(
+        "For more complete help, try '--help --verbose'")."."], {wrap=>1});
+}
+
+sub help_section_description {
+    my ($self, %opts) = @_;
+
+    my $desc = $self->langprop($self->{_help_meta}, "description");
+    return unless $desc;
+
+    $self->_help_add_heading($self->loc("Description"));
+    $self->_help_add_row([$desc], {wrap=>1, indent=>1});
+}
+
+sub help_section_examples {
+    my ($self, %opts) = @_;
+
+    my $verbose = $opts{verbose};
+    my $meta = $self->{_help_meta};
+    my $egs = $meta->{examples};
+    return unless $egs && @$egs;
+
+    $self->_help_add_heading($self->loc("Examples"));
+    my $pn = $self->_color('program_name', $self->program_name);
+    require String::ShellQuote;
+    for my $eg (@$egs) {
+        my $argv;
+        if ($eg->{argv}) {
+            $argv = $eg->{argv};
+        } else {
+            require Perinci::Sub::ConvertArgs::Argv;
+            my $res = Perinci::Sub::ConvertArgs::Argv::convert_args_to_argv(
+                args => $eg->{args}, meta => $meta);
+            die "BUG: Can't convert args to argv: $res->[0] - $res->[1]"
+                unless $res->[0] == 200;
+            $argv = $res->[2];
+        }
+        my $ct = $pn;
+        for my $arg (@$argv) {
+            $arg = String::ShellQuote::shell_quote($arg);
+            if ($arg =~ /^-/) {
+                $ct .= " ".$self->_color('option_name', $arg);
+            } else {
+                $ct .= " $arg";
+            }
+        }
+        $self->_help_add_row([$ct], {indent=>1});
+        if ($verbose) {
+            $ct = "";
+            my $summary = $self->langprop($eg, 'summary');
+            if ($summary) { $ct .= "$summary." }
+            my $desc = $self->langprop($eg, 'description');
+            if ($desc) { $ct .= "\n\n$desc" }
+            $self->_help_add_row([$ct], {indent=>2}) if $ct;
+        }
+    }
+}
+
+sub help_section_links {
     # not yet
 }
 
-sub gen_doc_section_examples {
-    # not yet
-}
+sub run_help {
+    my ($self) = @_;
 
-sub gen_doc_section_links {
-    # not yet
+    my $verbose = $ENV{VERBOSE} // 0;
+    my %opts = (verbose=>$verbose);
+
+    # get function metadata first
+    my $sc = $self->{_subcommand};
+    my $url = $sc ? $sc->{url} : $self->url;
+    my $res = $self->_pa->request(info => $url);
+    die "ERROR: Can't info '$url': $res->[0] - $res->[1]\n"
+        unless $res->[0] == 200;
+    $self->{_help_info} = $res->[2];
+    $res = $self->_pa->request(meta => $url);
+    die "ERROR: Can't meta '$url': $res->[0] - $res->[1]\n"
+        unless $res->[0] == 200;
+    $self->{_help_meta} = $res->[2];
+
+    # determine which help sections should we generate
+    my @hsects;
+    if ($verbose) {
+        @hsects = (
+            'summary',
+            'usage',
+            'examples',
+            'description',
+            'options',
+            'links',
+        );
+    } else {
+        @hsects = (
+            'summary',
+            'usage',
+            'examples',
+            'options',
+            'hint_verbose',
+        );
+    }
+
+    for my $s (@hsects) {
+        my $meth = "help_section_$s";
+        $log->tracef("=> $meth(%s)", \%opts);
+        $self->$meth(%opts);
+    }
+    $self->_help_draw_curtbl;
+    0;
 }
 
 my ($ph1, $ph2); # patch handles
@@ -881,21 +1151,6 @@ sub _setup_progress_output {
             }
         ) if defined &{"Log::Log4perl::Appender::ScreenColoredLevels::log"};
     }
-}
-
-sub run_help {
-    my ($self) = @_;
-
-    $self->{doc_sections} //= [
-        'summary',
-        'usage',
-        'options',
-        'description',
-        'examples',
-        'links',
-    ];
-    print $self->gen_doc();
-    0;
 }
 
 sub run_subcommand {
@@ -1118,8 +1373,12 @@ sub parse_subcommand_opts {
     # We load Log::Any::App rather late here, to be able to customize level via
     # --debug, --dry-run, etc.
     unless ($ENV{COMP_LINE}) {
-        $self->_load_log_any_app if
-            $self->{_subcommand}{log_any_app} // $self->log_any_app;
+        my $do_log = $self->{_subcommand}{log_any_app};
+        $do_log //= $ENV{LOG};
+        $do_log //= $self->{action_metadata}{$self->{_actions}[0]}{default_log}
+            if @{ $self->{_actions} };
+        $do_log //= $self->log_any_app;
+        $self->_load_log_any_app if $do_log;
     }
 
     die "ERROR: Failed parsing arguments: $res->[0] - $res->[1]\n"
@@ -1248,6 +1507,14 @@ sub run {
     my $exit_code;
     while (@{$self->{_actions}}) {
         my $action = shift @{$self->{_actions}};
+
+        my $am = $self->action_metadata->{$action};
+        my $utf8 = $am->{use_utf8};
+        $utf8 //= $self->use_utf8; # involves detect_terminal
+        if ($utf8) {
+            binmode(STDOUT, ":utf8");
+        }
+
         my $meth = "run_$action";
         $log->tracef("-> %s()", $meth);
         $exit_code = $self->$meth;
@@ -1281,7 +1548,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.90
+version 0.91
 
 =head1 SYNOPSIS
 
@@ -1398,7 +1665,7 @@ etc) can be renamed or disabled.
 This module uses L<Log::Any> and L<Log::Any::App> for logging. This module uses
 L<Moo> for OO.
 
-=for Pod::Coverage ^(BUILD|run_.+|gen_doc.+|before_.+|after_.+|format_result|format_row|display_result|get_subcommand|list_subcommands|parse_common_opts|parse_subcommand_opts|format_set|format_options|format_options_set)$
+=for Pod::Coverage ^(BUILD|run_.+|help_section_.+|format_result|format_row|display_result|get_subcommand|list_subcommands|parse_common_opts|parse_subcommand_opts|format_set|format_options|format_options_set)$
 
 =head1 DISPATCHING
 
@@ -1471,6 +1738,21 @@ using the first argument (see B<subcommands>).
 =head2 summary => STR
 
 If unset, will be retrieved from function metadata when needed.
+
+=head2 action_metadata => HASH
+
+Contains a list of known actions and their metadata. Keys should be action
+names, values should be metadata. Metadata is a hash containing these keys:
+
+=over
+
+=item * default_log => BOOL
+
+Whether to enable logging by default (Log::Any::App) when C<LOG> environment
+variable is not set. To speed up program startup, logging is by default turned
+off for simple actions like C<help>, C<list>, C<version>.
+
+=back
 
 =head2 subcommands => {NAME => {ARGUMENT=>...}, ...} | CODEREF
 
@@ -1579,6 +1861,12 @@ Optional, displayed in usage line in help/usage text.
 
 Optional, displayed in description of the option in help/usage text.
 
+=item * show_in_compact_help (bool, default: 1)
+
+A flag, can be set to 0 if we want to skip showing this option in --help, to
+save some space. The default is for C<help> and C<version> to have this flag
+value set to 0, since they are already obvious from the usage message.
+
 =item * order (int)
 
 Optional, for ordering. Lower number means higher precedence, defaults to 1.
@@ -1591,9 +1879,10 @@ A partial example from the default set by the framework:
      help => {
          category    => 'Common options',
          getopt      => 'help|h|?',
-         usage       => '%1 --help (or -h, -?)',
+         usage       => '--help (or -h, -?)',
          handler     => sub { ... },
          order       => 0,
+         show_in_compact_help => 0,
      },
      format => {
          category    => 'Common options',
@@ -1653,11 +1942,32 @@ equivalent to executing the 'shutdown' subcommand:
 If set to 0, instead of exiting with exit(), run() will return the exit code
 instead.
 
-=head2 log_any_app => BOOL
+=head2 log_any_app => BOOL (default: 1)
 
-Whether to load L<Log::Any::App>. Default is yes, or to look at LOG environment
-variable. For faster startup, you might want to disable this or just use LOG=0
-when running your scripts.
+Whether to load L<Log::Any::App> (enable logging output) by default. Whether or
+not logging output is actually done is determined using this order of rules:
+
+=over
+
+=item * If running shell completion (C<COMP_LINE> is defined), logging is off
+
+=item * If LOG environment is defined, use that
+
+=item * If subcommand's log_any_app setting is defined, use that
+
+This allows you, e.g. to turn off logging by default for subcommands that need
+faster startup time. You can still turn on logging for those subcommands by
+LOG=1.
+
+=item * If action's default_log setting is defined, use that
+
+For example, actions like C<help>, C<list>, and C<version> has C<default_log>
+set to 0, for faster startup time. You can still turn on logging for those
+subcommands by LOG=1.
+
+=item * Use log_any_app attribute setting
+
+=back
 
 =head2 custom_completer => CODEREF
 

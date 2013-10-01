@@ -4,7 +4,7 @@ use parent qw(Perinci::CmdLine::I18N Perinci::To::Text::I18N::en);
 use Locale::Maketext::Lexicon::Gettext;
 our %Lexicon = %{ Locale::Maketext::Lexicon::Gettext->parse(<DATA>) };
 
-our $VERSION = '0.90'; # VERSION
+our $VERSION = '0.91'; # VERSION
 
 #use Data::Dump; dd \%Lexicon;
 
@@ -21,7 +21,7 @@ Perinci::CmdLine::I18N::en - English translation for Perinci::CmdLine
 
 =head1 VERSION
 
-version 0.90
+version 0.91
 
 =head1 AUTHOR
 
@@ -63,8 +63,8 @@ msgstr "%1 version %2"
 msgid  "Usage"
 msgstr "Usage"
 
-msgid  "--help (or -h, -?)"
-msgstr "--help (or -h, -?)"
+msgid  "--help (or -h, -?) (--verbose)"
+msgstr "--help (or -h, -?) [--verbose]"
 
 msgid  "--version (or -v)"
 msgstr "--version (or -v)"
@@ -92,6 +92,18 @@ msgstr "Common options"
 
 msgid  "Undo options"
 msgstr "Undo options"
+
+msgid  "%1 options"
+msgstr "%1 options"
+
+msgid  "required"
+msgstr "required"
+
+msgid  "Examples"
+msgstr "Examples"
+
+msgid  "Links"
+msgstr "Links"
 
 # --format
 msgid  "Choose output format, e.g. json, text"
@@ -170,6 +182,9 @@ msgstr "For general help, type '%1'"
 
 msgid  "For help on a subcommand, type '%1'"
 msgstr "For help on a subcommand, type '%1'"
+
+msgid  "For more complete help, try '--help --verbose'"
+msgstr "For more complete help, try '--help --verbose'"
 
 # usage/function
 

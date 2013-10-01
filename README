@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.90
+    version 0.91
 
 SYNOPSIS
     In your command-line script:
@@ -187,6 +187,18 @@ ATTRIBUTES
   summary => STR
     If unset, will be retrieved from function metadata when needed.
 
+  action_metadata => HASH
+    Contains a list of known actions and their metadata. Keys should be
+    action names, values should be metadata. Metadata is a hash containing
+    these keys:
+
+    *   default_log => BOOL
+
+        Whether to enable logging by default (Log::Any::App) when "LOG"
+        environment variable is not set. To speed up program startup,
+        logging is by default turned off for simple actions like "help",
+        "list", "version".
+
   subcommands => {NAME => {ARGUMENT=>...}, ...} | CODEREF
     Should be a hash of subcommand specifications or a coderef.
 
@@ -287,6 +299,13 @@ ATTRIBUTES
 
         Optional, displayed in description of the option in help/usage text.
 
+    *   show_in_compact_help (bool, default: 1)
+
+        A flag, can be set to 0 if we want to skip showing this option in
+        --help, to save some space. The default is for "help" and "version"
+        to have this flag value set to 0, since they are already obvious
+        from the usage message.
+
     *   order (int)
 
         Optional, for ordering. Lower number means higher precedence,
@@ -298,9 +317,10 @@ ATTRIBUTES
          help => {
              category    => 'Common options',
              getopt      => 'help|h|?',
-             usage       => '%1 --help (or -h, -?)',
+             usage       => '--help (or -h, -?)',
              handler     => sub { ... },
              order       => 0,
+             show_in_compact_help => 0,
          },
          format => {
              category    => 'Common options',
@@ -361,10 +381,28 @@ ATTRIBUTES
     If set to 0, instead of exiting with exit(), run() will return the exit
     code instead.
 
-  log_any_app => BOOL
-    Whether to load Log::Any::App. Default is yes, or to look at LOG
-    environment variable. For faster startup, you might want to disable this
-    or just use LOG=0 when running your scripts.
+  log_any_app => BOOL (default: 1)
+    Whether to load Log::Any::App (enable logging output) by default.
+    Whether or not logging output is actually done is determined using this
+    order of rules:
+
+    *   If running shell completion ("COMP_LINE" is defined), logging is off
+
+    *   If LOG environment is defined, use that
+
+    *   If subcommand's log_any_app setting is defined, use that
+
+        This allows you, e.g. to turn off logging by default for subcommands
+        that need faster startup time. You can still turn on logging for
+        those subcommands by LOG=1.
+
+    *   If action's default_log setting is defined, use that
+
+        For example, actions like "help", "list", and "version" has
+        "default_log" set to 0, for faster startup time. You can still turn
+        on logging for those subcommands by LOG=1.
+
+    *   Use log_any_app attribute setting
 
   custom_completer => CODEREF
     Will be passed to Perinci::BashComplete's "bash_complete_riap_func_arg".

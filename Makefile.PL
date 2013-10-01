@@ -17,16 +17,17 @@ my %WriteMakefileArgs = (
   },
   "DISTNAME" => "Perinci-CmdLine",
   "EXE_FILES" => [
-    "bin/peri-run",
+    "bin/strip-result-env-json",
     "bin/peri-func-usage",
     "bin/strip-result-env-yaml",
-    "bin/strip-result-env-json"
+    "bin/peri-run"
   ],
   "LICENSE" => "perl",
   "NAME" => "Perinci::CmdLine",
   "PREREQ_PM" => {
     "Data::Dump::OneLine" => 0,
     "Data::Format::Pretty::Console" => 0,
+    "Data::Unixish" => "1.39",
     "File::HomeDir" => 0,
     "File::Which" => 0,
     "JSON" => 0,
@@ -42,6 +43,7 @@ my %WriteMakefileArgs = (
     "Perinci::BashComplete" => "0.29",
     "Perinci::Object" => "0.11",
     "Perinci::Result::Format" => "0.32",
+    "Perinci::Sub::ConvertArgs::Argv" => 0,
     "Perinci::Sub::GetArgs::Argv" => "0.22",
     "Perinci::Sub::Util" => "0.36",
     "Perinci::Sub::Wrapper" => "0.40",
@@ -52,10 +54,11 @@ my %WriteMakefileArgs = (
     "Progress::Any::Output::TermProgressBarColor" => "0.04",
     "Rinci" => "v1.1.38",
     "SHARYANTO::Getopt::Long::Util" => 0,
-    "SHARYANTO::Role::Doc::Section" => "0.53",
-    "SHARYANTO::Role::Doc::Section::AddTextLines" => "0.53",
+    "SHARYANTO::Role::ColorTheme" => 0,
     "SHARYANTO::Role::I18N" => "0.46",
     "SHARYANTO::Role::I18NRinci" => 0,
+    "String::ShellQuote" => 0,
+    "Text::ANSITable" => "0.23",
     "Tie::Simple" => 0,
     "UUID::Random" => 0,
     "YAML::Syck" => 0,
@@ -64,11 +67,12 @@ my %WriteMakefileArgs = (
   "TEST_REQUIRES" => {
     "Capture::Tiny" => 0,
     "File::Slurp" => 0,
+    "File::Spec" => 0,
     "IO::Handle" => 0,
     "IPC::Open3" => 0,
     "Test::More" => "0.96"
   },
-  "VERSION" => "0.90",
+  "VERSION" => "0.91",
   "test" => {
     "TESTS" => "t/*.t"
   }
