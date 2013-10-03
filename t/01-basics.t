@@ -217,9 +217,9 @@ subtest 'completion' => sub {
         result      => [qw(
                            --action
                            --debug --format --format-options
-                           --help --list --log-level --quiet
+                           --help --log-level --quiet --subcommands
                            --trace --verbose --version
-                           -\? -h -l -v
+                           -\? -h -v
                       )],
     );
     test_complete(
@@ -235,9 +235,9 @@ subtest 'completion' => sub {
                            --action
                            --cmd
                            --debug --format --format-options
-                           --help --list --log-level --quiet
+                           --help --log-level --quiet --subcommands
                            --trace --verbose --version
-                           -\? -h -l -v
+                           -\? -h -v
                       )],
     );
 
@@ -367,14 +367,17 @@ for (qw(--help -h -?)) {
          );
 }
 
-test_run(name      => "common option (--version) before subcommand name",
-         args      => {url=>'/Foo/', subcommands=>{
-             ok=>{url=>'/Foo/ok'},
-             want_odd=>{url=>'/Foo/want_odd'}}},
-         argv      => [qw/--version want_odd --num 4/],
-         exit_code => 0,
-         output_re => qr/version 0\.123/m,
-     );
+{
+    local $ENV{COLOR} = 0;
+    test_run(name      => "common option (--version) before subcommand name",
+             args      => {url=>'/Foo/', subcommands=>{
+                 ok=>{url=>'/Foo/ok'},
+                 want_odd=>{url=>'/Foo/want_odd'}}},
+             argv      => [qw/--version want_odd --num 4/],
+             exit_code => 0,
+             output_re => qr/version 0\.123/m,
+         );
+}
 test_run(name      => "common option (--help) after subcommand name",
          args      => {subcommands=>{
              ok=>{url=>'/Foo/ok'},
@@ -415,8 +418,8 @@ test_run(name      => "common option (--help) bypass required argument check",
 #         );
 #}
 
-for (qw(--list -l)) {
-    test_run(name      => "list ($_)",
+for (qw(--subcommands)) {
+    test_run(name      => "subcommands ($_)",
              args      => {subcommands=>{
                  ok=>{url=>'/Foo/ok'},
                  want_odd=>{url=>'/Foo/want_odd'}}},

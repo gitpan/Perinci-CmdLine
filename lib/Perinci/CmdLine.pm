@@ -12,9 +12,10 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '0.91'; # VERSION
+our $VERSION = '0.92'; # VERSION
 
 with 'SHARYANTO::Role::ColorTheme';
+#with 'SHARYANTO::Role::TermAttrs'; already loaded by ColorTheme
 with 'SHARYANTO::Role::I18N';
 with 'SHARYANTO::Role::I18NRinci';
 
@@ -31,6 +32,7 @@ has program_name => (
 );
 has url => (is => 'rw');
 has summary => (is => 'rw');
+has description => (is => 'rw');
 has subcommands => (is => 'rw');
 has default_subcommand => (is => 'rw');
 has exit => (is => 'rw', default=>sub{1});
@@ -67,31 +69,30 @@ has _pa => (
         my $self = shift;
 
         require Perinci::Access;
+        require Perinci::Access::Perl;
+        require Perinci::Access::Schemeless;
         my %args = %{$self->pa_args // {}};
+        my %opts;
+        $opts{disk_cache} = 1;
+        # turn off arg validation generation to reduce startup cost
+        $opts{extra_wrapper_args} = 0 if $ENV{COMP_LINE};
+        $opts{use_utf8} = $self->use_utf8; # periap 0.51
         if ($self->undo) {
-            require Perinci::Access::Perl;
-            require Perinci::Access::Schemeless;
-            my %opts = (
-                use_tx => 1,
-                custom_tx_manager => sub {
-                    my $pa = shift;
-                    require Perinci::Tx::Manager;
-                    state $txm = Perinci::Tx::Manager->new(
-                        data_dir => $self->undo_dir,
-                        pa => $pa,
-                    );
-                    $txm;
-                },
-                extra_wrapper_args => {
-                    # turn off arg validation generation to reduce startup cost
-                    validate_args => $ENV{COMP_LINE} ? 0:undef,
-                },
-            );
-            $args{handlers} = {
-                pl => Perinci::Access::Perl->new(%opts),
-                '' => Perinci::Access::Schemeless->new(%opts),
+            $opts{use_tx} = 1;
+            $opts{custom_tx_manager} = sub {
+                my $pa = shift;
+                require Perinci::Tx::Manager;
+                state $txm = Perinci::Tx::Manager->new(
+                    data_dir => $self->undo_dir,
+                    pa => $pa,
+                );
+                $txm;
             };
         }
+        $args{handlers} = {
+            pl => Perinci::Access::Perl->new(%opts),
+            '' => Perinci::Access::Schemeless->new(%opts),
+        };
         $log->tracef("Creating Perinci::Access object with args: %s", \%args);
         Perinci::Access->new(%args);
     }
@@ -104,9 +105,10 @@ has common_opts => (
 
         my %opts;
 
-        # 'action=subcommand' can be used to override --help (or --list,
-        # --version) if one of function arguments happens to be 'help', 'list',
-        # or 'version'. currently this is undocumented.
+        # 'action=<subcommand>' can be used to override --help (or
+        # --subcommands, --version) if one of function arguments happens to be
+        # 'help', 'subcommands', or 'version'. currently this is deliberately(?)
+        # underdocumented.
         $opts{action} = {
             getopt  => "action=s",
             handler => sub {
@@ -120,9 +122,9 @@ has common_opts => (
             getopt  => "version|v",
             usage   => "--version (or -v)",
             summary => "Show version",
-            show_in_compact_help => 0,
+            show_in_options => sub { $ENV{VERBOSE} },
             handler => sub {
-                die "ERROR: 'url' not set, required for --version\n"
+                $self->_err("'url' not set, required for --version")
                     unless $self->url;
                 unshift @{$self->{_actions}}, 'version';
                 $self->{_check_required_args} = 0;
@@ -133,7 +135,7 @@ has common_opts => (
             getopt  => "help|h|?",
             usage   => "--help (or -h, -?) (--verbose)",
             summary => "Display this help message",
-            show_in_compact_help => 0,
+            show_in_options => sub { $ENV{VERBOSE} },
             handler => sub {
                 unshift @{$self->{_actions}}, 'help';
                 $self->{_check_required_args} = 0;
@@ -160,12 +162,22 @@ has common_opts => (
         };
 
         if ($self->subcommands) {
-            $opts{list} = {
-                getopt  => "list|l",
-                usage   => "--list (or -l)",
+            $opts{subcommands} = {
+                getopt  => "subcommands",
+                usage   => "--subcommands",
+                show_in_usage => sub {
+                    $ENV{VERBOSE} && !$self->{_subcommand};
+                },
+                show_in_options => sub {
+                    $ENV{VERBOSE} && !$self->{_subcommand};
+                },
+                show_usage_in_help => sub {
+                    my $self = shift;
+                },
                 summary => "List available subcommands",
+                show_in_help => 0,
                 handler => sub {
-                    unshift @{$self->{_actions}}, 'list';
+                    unshift @{$self->{_actions}}, 'subcommands';
                     $self->{_check_required_args} = 0;
                 },
             };
@@ -260,7 +272,7 @@ has action_metadata => (
             },
             history => {
             },
-            list => {
+            subcommands => {
                 default_log => 0,
                 use_utf8 => 1,
             },
@@ -284,21 +296,33 @@ sub __json_decode {
     $json->decode(shift);
 }
 
+sub _err {
+    my $self = shift;
+    my $msg = shift; $msg .= "\n" unless $msg =~ /\n\z/;
+    die $self->_color('error_label', "ERROR: ") . $msg;
+}
+
+sub _program_and_subcommand_name {
+    my $self = shift;
+    $self->program_name .
+        ($self->{_subcommand} ? " $self->{_subcommand}{name}" : "");
+}
+
 sub BUILD {
     my ($self, $args) = @_;
 
-    # pick a default color theme
-    unless ($self->{color_theme}) {
-        my $ct;
-        if ($self->{use_color}) {
+    # pick default color theme and set it
+    my $ct = $self->{color_theme} // $ENV{PERINCI_CMDLINE_COLOR_THEME};
+    if (!$ct) {
+        if ($self->use_color) {
             my $bg = $self->detect_terminal->{default_bgcolor} // '';
             $ct = 'Default::default' .
                 ($bg eq 'ffffff' ? '_whitebg' : '');
         } else {
             $ct = 'Default::no_color';
         }
-        $self->color_theme($ct);
     }
+    $self->color_theme($ct);
 
 }
 
@@ -318,8 +342,8 @@ sub format_result {
     my $format = $self->format_set ?
         $self->format :
             $self->{_meta}{"x.perinci.cmdline.default_format"} // $self->format;
-    die "ERROR: Unknown output format '$format', please choose one of: ".
-        join(", ", sort keys(%Perinci::Result::Format::Formats))."\n"
+    $self->_err("Unknown output format '$format', please choose one of: ".
+        join(", ", sort keys(%Perinci::Result::Format::Formats)))
             unless $Perinci::Result::Format::Formats{$format};
     if ($self->format_options_set) {
         $res->[3]{result_format_options} = $self->format_options;
@@ -377,7 +401,7 @@ sub display_result {
                 $pager = "more" if File::Which::which("more");
             }
             unless (defined $pager) {
-                die "Can't determine PAGER";
+                $self->_err("Can't determine PAGER");
             }
             last unless $pager; # ENV{PAGER} can be set 0/'' to disable paging
             $log->tracef("Paging output using %s", $pager);
@@ -387,8 +411,9 @@ sub display_result {
     $handle //= \*STDOUT;
 
     if ($resmeta->{is_stream}) {
-        die "Can't format stream as " . $self->format .
-            ", please use --format text\n" unless $self->format =~ /^text/;
+        $self->_err("Can't format stream as " . $self->format .
+                        ", please use --format text")
+            unless $self->format =~ /^text/;
         my $r = $res->[2];
         if (ref($r) eq 'GLOB') {
             while (!eof($r)) {
@@ -405,8 +430,8 @@ sub display_result {
                 print $self->format_row(shift(@$r));
             }
         } else {
-            die "Invalid stream in result (not a glob/IO::Handle-like object/".
-                "(tied) array)\n";
+            $self->_err("Invalid stream in result (not a glob/IO::Handle-like ".
+                            "object/(tied) array)\n");
         }
     } else {
         print $handle $self->{_fres} // "";
@@ -436,7 +461,7 @@ sub list_subcommands {
     if ($scs) {
         if (reftype($scs) eq 'CODE') {
             $scs = $scs->($self);
-            die "ERROR: Subcommands code didn't return a hashref\n"
+            $self->_err("Subcommands code didn't return a hashref")
                 unless ref($scs) eq 'HASH';
         }
         $res = $scs;
@@ -446,7 +471,7 @@ sub list_subcommands {
     $cached = $res;
 }
 
-sub run_list {
+sub run_subcommands {
     my ($self) = @_;
 
     if (!$self->subcommands) {
@@ -476,20 +501,21 @@ sub run_list {
 
     my $i = 0;
     for my $cat (sort keys %percat_subc) {
-        print "\n" if $i++;
         if ($has_many_cats) {
-            say $self->loc("List of available [_1] subcommands",
-                           ucfirst($cat) || "main") . ":";
-        } else {
-            say $self->loc("List of available subcommands") . ":";
+            $self->_help_add_heading(
+                $self->loc("[_1] subcommands",
+                           ucfirst($cat) || "main"));
         }
         my $subc = $percat_subc{$cat};
         for my $scn (sort keys %$subc) {
             my $sc = $subc->{$scn};
             my $summary = $self->langprop($sc, "summary");
-            say "  $scn", $summary ? " - $summary" : "";
+            $self->_help_add_row(
+                [$self->_color('program_name', $scn), $summary],
+                {column_widths=>[-17, -40], indent=>1});
         }
     }
+    $self->_help_draw_curtbl;
 
     0;
 }
@@ -509,11 +535,15 @@ sub run_version {
         $ver = '?';
     }
 
-    say $self->loc("[_1] version [_2]", $self->program_name, $ver);
+    say $self->loc(
+        "[_1] version [_2]",
+        $self->_color('program_name', $self->_program_and_subcommand_name),
+        $self->_color('emphasis', $ver));
     {
         no strict 'refs';
-        say "  ", $self->loc("[_1] version [_2]", "Perinci::CmdLine",
-                             $Perinci::CmdLine::VERSION || "dev");
+        say "  ", $self->loc(
+            "[_1] version [_2]", $self->_color('emphasis', "Perinci::CmdLine"),
+            $self->_color('emphasis', $Perinci::CmdLine::VERSION || "dev"));
     }
 
     0;
@@ -665,12 +695,18 @@ sub _help_add_table {
     my $columns = $args{columns} // 1;
 
     $self->_help_draw_curtbl;
-    my $tw = $self->term_width;
-    my $cw = int($tw/$columns)-1;
     my $t = Text::ANSITable->new;
     $t->border_style('Default::spacei_ascii');
     $t->cell_pad(0);
-    $t->cell_width($cw);
+    if ($args{column_widths}) {
+        for (0..$columns-1) {
+            $t->set_column_style($_, width => $args{column_widths}[$_]);
+        }
+    } else {
+        my $tw = $self->term_width;
+        my $cw = int($tw/$columns)-1;
+        $t->cell_width($cw);
+    }
     $t->show_header(0);
     $t->column_wrap(0); # we'll do our own wrapping, before indent
     $t->columns([0..$columns-1]);
@@ -686,9 +722,10 @@ sub _help_add_row {
     my $columns = @$row;
 
     # start a new table if necessary
-    $self->_help_add_table(columns=>$columns)
+    $self->_help_add_table(
+        columns=>$columns, column_widths=>$args->{column_widths})
         if !$self->{_help_curtbl} ||
-                $columns != @{ $self->{_help_curtbl}{columns} };
+            $columns != @{ $self->{_help_curtbl}{columns} };
 
     my $t = $self->{_help_curtbl};
     my $rownum = @{ $t->{rows} };
@@ -697,8 +734,9 @@ sub _help_add_row {
 
     for (0..@{$t->{columns}}-1) {
         my %styles = (formats=>[]);
-        push @{ $styles{formats} }, [wrap=>{width=>$t->{cell_width}-$indent*2}]
-            if $wrap;
+        push @{ $styles{formats} },
+            [wrap=>{ansi=>1, mb=>1, width=>$t->{cell_width}-$indent*2}]
+                if $wrap;
         push @{ $styles{formats} }, [lins=>{text=>"  " x $indent}]
             if $indent && $_ == 0;
         $t->set_cell_style($rownum, $_, \%styles);
@@ -724,10 +762,7 @@ sub help_section_summary {
     my $summary = $self->langprop($self->{_help_meta}, "summary");
     return unless $summary;
 
-    my $sc = $self->{_subcommand};
-    my $name = $self->program_name .
-        ($sc && length($sc->{name}) ? " $sc->{name}" : "");
-
+    my $name = $self->_program_and_subcommand_name;
     my $ct = join(
         "",
         $self->_color('program_name', $name),
@@ -751,13 +786,9 @@ sub _usage_args {
     my $res = "";
     for (@a) {
         $res .= " ";
-        my $label = uc($_);
-        $label .= " ..." if $aa->{$_}{greedy};
-        if ($aa->{$_}{req}) {
-            $res .= $label;
-        } else {
-            $res .= "[$label]";
-        }
+        my $label = lc($_);
+        $res .= $aa->{$_}{req} ? "<$label>" : "[$label]";
+        $res .= " ..." if $aa->{$_}{greedy};
         last if $aa->{$_}{greedy};
     }
     $res;
@@ -767,26 +798,29 @@ sub help_section_usage {
     my ($self, %opts) = @_;
 
     my $co = $self->common_opts;
-    my @con = sort {
+    my @con = grep {
+        my $cov = $co->{$_};
+        my $show = $cov->{show_in_usage} // 1;
+        for ($show) { if (ref($_) eq 'CODE') { $_ = $_->($self) } }
+        $show;
+    } sort {
         ($co->{$a}{order}//1) <=> ($co->{$b}{order}//1) || $a cmp $b
     } keys %$co;
 
-    $self->{_common_opts} = \@con; # save for doc_gen_options
-
-    my $pn = $self->_color('program_name', $self->program_name);
+    my $pn = $self->_color('program_name', $self->_program_and_subcommand_name);
     my $ct = "";
     for my $con (@con) {
         my $cov = $co->{$con};
         next unless $cov->{usage};
         $ct .= ($ct ? "\n" : "") . $pn . " " . $self->locopt($cov->{usage});
     }
-    if ($self->subcommands) {
+    if ($self->subcommands && !$self->{_subcommand}) {
         if (defined $self->default_subcommand) {
             $ct .= ($ct ? "\n" : "") . $pn .
-                " " . $self->loc("--cmd=OTHER_SUBCOMMAND (options)");
+                " " . $self->loc("--cmd=<other-subcommand> (options)");
         } else {
             $ct .= ($ct ? "\n" : "") . $pn .
-                " " . $self->loc("SUBCOMMAND (options)");
+                " " . $self->loc("<subcommand> (options)");
         }
     } else {
             $ct .= ($ct ? "\n" : "") . $pn .
@@ -815,12 +849,16 @@ sub help_section_options {
 
     # gather common opts
     my $co = $self->common_opts;
-    my @con = sort {
+    my @con = grep {
+        my $cov = $co->{$_};
+        my $show = $cov->{show_in_options} // 1;
+        for ($show) { if (ref($_) eq 'CODE') { $_ = $_->($self) } }
+        $show;
+    } sort {
         ($co->{$a}{order}//1) <=> ($co->{$b}{order}//1) || $a cmp $b
     } keys %$co;
     for my $con (@con) {
         my $cov = $co->{$con};
-        next if !$verbose && !($cov->{show_in_compact_help} // 1);
         my $cat = $cov->{category} ? $self->locopt($cov->{category}) :
             ($sc ? $t_copts : $t_opts);
         my $go = $cov->{getopt};
@@ -962,7 +1000,7 @@ sub help_section_options {
         } else {
             # for compactness, display in columns
             my $tw = $self->term_width;
-            my $columns = int($tw/40);
+            my $columns = int($tw/40); $columns = 1 if $columns < 1;
             while (1) {
                 my @row;
                 for (1..$columns) {
@@ -980,16 +1018,77 @@ sub help_section_options {
     }
 }
 
-sub help_section_hint_verbose {
-    my ($self) = @_;
-    $self->_help_add_row(["\n" . $self->loc(
-        "For more complete help, try '--help --verbose'")."."], {wrap=>1});
+sub help_section_subcommands {
+    my ($self, %opts) = @_;
+
+    my $scs = $self->subcommands;
+    return unless $scs && !$self->{_subcommand};
+
+    my @scs = sort keys %$scs;
+    my @shown_scs;
+    for my $scn (@scs) {
+        my $sc = $scs->{$scn};
+        next unless $sc->{show_in_help} // 1;
+        $sc->{name} = $scn;
+        push @shown_scs, $sc;
+    }
+
+    # for help_section_hints
+    my $some_not_shown = @scs > @shown_scs;
+    $self->{_some_subcommands_not_shown_in_help} = 1 if $some_not_shown;
+
+    $self->_help_add_heading(
+        $self->loc($some_not_shown ? "Popular subcommands" : "Subcommands"));
+
+    # in compact mode, we try to not exceed one screen, so show long mode only
+    # if there are a few subcommands.
+    my $long_mode = $opts{verbose} || @shown_scs < 12;
+    if ($long_mode) {
+        for (@shown_scs) {
+            my $summary = $self->langprop($_, "summary");
+            $self->_help_add_row(
+                [$self->_color('program_name', $_->{name}), $summary],
+                {column_widths=>[-17, -40], indent=>1});
+        }
+    } else {
+        # for compactness, display in columns
+        my $tw = $self->term_width;
+        my $columns = int($tw/25); $columns = 1 if $columns < 1;
+            while (1) {
+                my @row;
+                for (1..$columns) {
+                    last unless @shown_scs;
+                    my $sc = shift @shown_scs;
+                    push @row, $sc->{name};
+                }
+                last unless @row;
+                for (@row+1 .. $columns) { push @row, "" }
+                $self->_help_add_row(\@row, {indent=>1});
+            }
+
+    }
+}
+
+sub help_section_hints {
+    my ($self, %opts) = @_;
+    my @hints;
+    unless ($opts{verbose}) {
+        push @hints, "For more complete help, use '--help --verbose'";
+    }
+    if ($self->{_some_subcommands_not_shown_in_help}) {
+        push @hints, "To see all available subcommands, use '--subcommands'";
+    }
+    return unless @hints;
+
+    $self->_help_add_row(
+        ["\n" . join(" ", map { $self->loc($_)."." } @hints)], {wrap=>1});
 }
 
 sub help_section_description {
     my ($self, %opts) = @_;
 
-    my $desc = $self->langprop($self->{_help_meta}, "description");
+    my $desc = $self->langprop($self->{_help_meta}, "description") //
+        $self->description;
     return unless $desc;
 
     $self->_help_add_heading($self->loc("Description"));
@@ -1005,7 +1104,7 @@ sub help_section_examples {
     return unless $egs && @$egs;
 
     $self->_help_add_heading($self->loc("Examples"));
-    my $pn = $self->_color('program_name', $self->program_name);
+    my $pn = $self->_color('program_name', $self->_program_and_subcommand_name);
     require String::ShellQuote;
     for my $eg (@$egs) {
         my $argv;
@@ -1015,7 +1114,7 @@ sub help_section_examples {
             require Perinci::Sub::ConvertArgs::Argv;
             my $res = Perinci::Sub::ConvertArgs::Argv::convert_args_to_argv(
                 args => $eg->{args}, meta => $meta);
-            die "BUG: Can't convert args to argv: $res->[0] - $res->[1]"
+            $self->_err("Can't convert args to argv: $res->[0] - $res->[1]")
                 unless $res->[0] == 200;
             $argv = $res->[2];
         }
@@ -1053,14 +1152,16 @@ sub run_help {
     # get function metadata first
     my $sc = $self->{_subcommand};
     my $url = $sc ? $sc->{url} : $self->url;
-    my $res = $self->_pa->request(info => $url);
-    die "ERROR: Can't info '$url': $res->[0] - $res->[1]\n"
-        unless $res->[0] == 200;
-    $self->{_help_info} = $res->[2];
-    $res = $self->_pa->request(meta => $url);
-    die "ERROR: Can't meta '$url': $res->[0] - $res->[1]\n"
-        unless $res->[0] == 200;
-    $self->{_help_meta} = $res->[2];
+    if ($url) {
+        my $res = $self->_pa->request(info => $url);
+        $self->_err("Can't info '$url': $res->[0] - $res->[1]")
+            unless $res->[0] == 200;
+        $self->{_help_info} = $res->[2];
+        $res = $self->_pa->request(meta => $url);
+        $self->_err("Can't meta '$url': $res->[0] - $res->[1]")
+            unless $res->[0] == 200;
+        $self->{_help_meta} = $res->[2];
+    }
 
     # determine which help sections should we generate
     my @hsects;
@@ -1068,18 +1169,21 @@ sub run_help {
         @hsects = (
             'summary',
             'usage',
+            'subcommands',
             'examples',
             'description',
             'options',
             'links',
+            'hints',
         );
     } else {
         @hsects = (
             'summary',
             'usage',
+            'subcommands',
             'examples',
             'options',
-            'hint_verbose',
+            'hints',
         );
     }
 
@@ -1264,7 +1368,7 @@ sub _gen_go_specs_from_common_opts {
         ($co->{$a}{order}//1) <=> ($co->{$b}{order}//1) || $a cmp $b
     } keys %$co) {
         my $cov = $co->{$con};
-        die "Invalid common option '$con': empty getopt"
+        $self->_err("Invalid common option '$con': empty getopt")
             unless $cov->{getopt};
         push @go_opts, $cov->{getopt} => $cov->{handler};
     }
@@ -1343,12 +1447,14 @@ sub parse_subcommand_opts {
             my ($a, $aa, $as) = ($a{arg}, $a{args}, $a{spec});
             my $src = $as->{cmdline_src};
             if ($src) {
-                die "ERROR: Invalid 'cmdline_src' value for argument '$a': ".
-                    "$src\n" unless $src =~ /\A(stdin|stdin_or_files)\z/;
-                die "ERROR: Sorry, argument '$a' is set cmdline_src=$src, ".
-                    "but type is not 'str', only str is supported for now\n"
-                        unless $as->{schema}[0] eq 'str';
-                die "ERROR: Only one argument can be specified cmdline_src"
+                $self->_err(
+                    "Invalid 'cmdline_src' value for argument '$a': $src")
+                    unless $src =~ /\A(stdin|stdin_or_files)\z/;
+                $self->_err(
+                    "Sorry, argument '$a' is set cmdline_src=$src, ".
+                        "but type is not 'str', only str is supported for now")
+                    unless $as->{schema}[0] eq 'str';
+                $self->_err("Only one argument can be specified cmdline_src")
                     if $src_seen++;
                 if ($src eq 'stdin') {
                     $log->trace("Getting argument '$a' value from stdin ...");
@@ -1381,7 +1487,7 @@ sub parse_subcommand_opts {
         $self->_load_log_any_app if $do_log;
     }
 
-    die "ERROR: Failed parsing arguments: $res->[0] - $res->[1]\n"
+    $self->_err("Failed parsing arguments: $res->[0] - $res->[1]")
         unless $res->[0] == 200;
     for (keys %{ $res->[2] }) {
         $self->{_args}{$_} = $res->[2]{$_};
@@ -1414,9 +1520,10 @@ sub _set_subcommand {
             if ($ENV{COMP_LINE}) {
                 goto L1;
             } else {
-                die "ERROR: Unknown subcommand '$scn', use '".
-                    $self->program_name.
-                        " -l' to list available subcommands\n";
+                $self->_err(
+                    "Unknown subcommand '$scn', use '".
+                        $self->program_name.
+                            " --subcommands' to list available subcommands");
             }
         }
         $self->{_subcommand} = $sc;
@@ -1508,9 +1615,16 @@ sub run {
     while (@{$self->{_actions}}) {
         my $action = shift @{$self->{_actions}};
 
-        my $am = $self->action_metadata->{$action};
-        my $utf8 = $am->{use_utf8};
-        $utf8 //= $self->use_utf8; # involves detect_terminal
+        # determine whether to binmode(STDOUT,":utf8")
+        my $utf8 = $ENV{UTF8};
+        if (!defined($utf8)) {
+            my $am = $self->action_metadata->{$action};
+            $utf8 //= $am->{use_utf8};
+        }
+        if (!defined($utf8) && $self->{_subcommand}) {
+            $utf8 //= $self->{_subcommand}{use_utf8};
+        }
+        $utf8 //= $self->use_utf8;
         if ($utf8) {
             binmode(STDOUT, ":utf8");
         }
@@ -1548,7 +1662,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.91
+version 0.92
 
 =head1 SYNOPSIS
 
@@ -1723,9 +1837,144 @@ C<run_subcommand()> will call the function specified in the C<url> in the
 C<_subcommand> using C<Perinci::Access>. (Actually, C<run_help()> or
 C<run_completion()> can be called instead, depending on which action to run.)
 
+=head1 LOGGING
+
+Logging is done with L<Log::Any> (for producing) and L<Log::Any::App> (for
+displaying to outputs). Loading Log::Any::App will add to startup overhead time,
+so this module tries to be smart when determining whether or not to do logging
+output (i.e. whether or not to load Log::Any::App). Here are the order of rules
+being used:
+
+=over
+
+=item * If running shell completion (C<COMP_LINE> is defined), output is off
+
+Normally, shell completion does not need to show log output.
+
+=item * If LOG environment is defined, use that
+
+You can make a command-line program start a bit faster if you use LOG=0.
+
+=item * If subcommand's log_any_app setting is defined, use that
+
+This allows you, e.g. to turn off logging by default for subcommands that need
+faster startup time. You can still turn on logging for those subcommands by
+LOG=1.
+
+=item * If action metadata's default_log setting is defined, use that
+
+For example, actions like C<help>, C<list>, and C<version> has C<default_log>
+set to 0, for faster startup time. You can still turn on logging for those
+actions by LOG=1.
+
+=item * Use log_any_app attribute setting
+
+=back
+
+=head1 UTF8 OUTPUT
+
+By default, C<< binmode(STDOUT, ":utf8") >> is issued if utf8 output is desired.
+This is determined by, in order:
+
+=over
+
+=item * Use setting from environment UTF8, if defined.
+
+This allows you to force-disable or force-enable utf8 output.
+
+=item * Use setting from action metadata, if defined.
+
+Some actions like L<help>, L<list>, and L<version> output translated text, so
+they have their C<use_utf8> metadata set to 1.
+
+=item * Use setting from subcommand, if defined.
+
+=item * Use setting from C<use_utf8> attribute.
+
+This attribute comes from L<SHARYANTO::Role::TermAttrs>, its default is
+determined from L<UTF8> environment as well as terminal's capabilities.
+
+=back
+
+=head1 COLOR THEMES
+
+By default colors are used, but if terminal is detected as not having color
+support, they are turned off. You can also turn off colors by setting COLOR=0 or
+using PERINCI_CMDLINE_COLOR_THEME=Default::no_color.
+
+=head1 COMMAND-LINE OPTION/ARGUMENT PARSING
+
+This section describes how Perinci::CmdLine parses command-line
+options/arguments into function arguments. Command-line option parsing is
+implemented by L<Perinci::Sub::GetArgs::Argv>.
+
+For boolean function arguments, use C<--arg> to set C<arg> to true (1), and
+C<--noarg> to set C<arg> to false (0). A flag argument (C<< [bool => {is=>1}]
+>>) only recognizes C<--arg> and not C<--noarg>. For single letter arguments,
+only C<-X> is recognized, not C<--X> nor C<--noX>.
+
+For string and number function arguments, use C<--arg VALUE> or C<--arg=VALUE>
+(or C<-X VALUE> for single letter arguments) to set argument value. Other scalar
+arguments use the same way, except that some parsing will be done (e.g. for date
+type, --arg 1343920342 or --arg '2012-07-31' can be used to set a date value,
+which will be a DateTime object.) (Note that date parsing will be done by
+L<Data::Sah> and currently not implemented yet.)
+
+For arguments with type array of scalar, a series of C<--arg VALUE> is accepted,
+a la L<Getopt::Long>:
+
+ --tags tag1 --tags tag2 ; # will result in tags => ['tag1', 'tag2']
+
+For other non-scalar arguments, also use C<--arg VALUE> or C<--arg=VALUE>, but
+VALUE will be attempted to be parsed using JSON, and then YAML. This is
+convenient for common cases:
+
+ --aoa  '[[1],[2],[3]]'  # parsed as JSON
+ --hash '{a: 1, b: 2}'   # parsed as YAML
+
+For explicit JSON parsing, all arguments can also be set via --ARG-json. This
+can be used to input undefined value in scalars, or setting array value without
+using repetitive C<--arg VALUE>:
+
+ --str-json 'null'    # set undef value
+ --ary-json '[1,2,3]' # set array value without doing --ary 1 --ary 2 --ary 3
+ --ary-json '[]'      # set empty array value
+
+Likewise for explicit YAML parsing:
+
+ --str-yaml '~'       # set undef value
+ --ary-yaml '[a, b]'  # set array value without doing --ary a --ary b
+ --ary-yaml '[]'      # set empty array value
+
+=head1 BASH COMPLETION
+
+To do bash completion, first create your script, e.g. C<myscript>, that uses
+Perinci::CmdLine:
+
+ #!/usr/bin/perl
+ use Perinci::CmdLine;
+ Perinci::CmdLine->new(...)->run;
+
+then execute this in C<bash> (or put it in bash startup files like
+C</etc/bash.bashrc> or C<~/.bashrc> for future sessions):
+
+ % complete -C myscript myscript; # myscript must be in PATH
+
+=head1 PROGRESS INDICATOR
+
+For functions that express that they do progress updating (by setting their
+C<progress> feature to true), Perinci::CmdLine will setup an output, currently
+either L<Progress::Any::Output::TermProgressBar> if program runs interactively,
+or L<Progress::Any::Output::LogAny> if program doesn't run interactively.
+
 =head1 ATTRIBUTES
 
 =head2 program_name => STR (default from $0)
+
+=head2 use_utf8 => BOOL
+
+From L<SHARYANTO::Role::TermAttrs> (please see its docs for more details). There
+are several other attributes added by the role.
 
 =head2 url => STR
 
@@ -1746,11 +1995,16 @@ names, values should be metadata. Metadata is a hash containing these keys:
 
 =over
 
-=item * default_log => BOOL
+=item * default_log => BOOL (optional)
 
 Whether to enable logging by default (Log::Any::App) when C<LOG> environment
 variable is not set. To speed up program startup, logging is by default turned
 off for simple actions like C<help>, C<list>, C<version>.
+
+=item * use_utf8 => BOOL (optional)
+
+Whether to issue C<< binmode(STDOUT, ":utf8") >>. See L</"UTF8 OUTPUT"> for more
+details.
 
 =back
 
@@ -1770,6 +2024,10 @@ Location of function (accessed via Riap).
 
 Will be retrieved from function metadata at C<url> if unset
 
+=item * C<description> (str, optional)
+
+Shown in verbose help message, if description from function metadata is unset.
+
 =item * C<tags> (array of str, optional)
 
 For grouping or categorizing subcommands, e.g. when displaying list of
@@ -1778,12 +2036,23 @@ subcommands.
 =item * C<log_any_app> (bool, optional)
 
 Whether to load Log::Any::App, default is true. For subcommands that need fast
-startup you can try turning this off for said subcommands.
+startup you can try turning this off for said subcommands. See L</"LOGGING"> for
+more details.
+
+=item * C<use_utf8> (bool, optional)
+
+Whether to issue L<< binmode(STDOUT, ":utf8") >>. See L</"LOGGING"> for more
+details.
 
 =item * C<undo> (bool, optional)
 
 Can be set to 0 to disable transaction for this subcommand; this is only
 relevant when C<undo> attribute is set to true.
+
+=item * C<show_in_help> (bool, optional, default 1)
+
+If you have lots of subcommands, and want to show only some of them in --help
+message, set this to 0 for subcommands that you do not want to show.
 
 =item * C<pass_cmdline_object> (bool, optional, default 0)
 
@@ -1861,11 +2130,17 @@ Optional, displayed in usage line in help/usage text.
 
 Optional, displayed in description of the option in help/usage text.
 
-=item * show_in_compact_help (bool, default: 1)
+=item * show_in_usage (bool or code, default: 1)
 
-A flag, can be set to 0 if we want to skip showing this option in --help, to
-save some space. The default is for C<help> and C<version> to have this flag
-value set to 0, since they are already obvious from the usage message.
+A flag, can be set to 0 if we want to skip showing this option in usage in
+--help, to save some space. The default is to show all, except --subcommand when
+we are executing a subcommand (obviously).
+
+=item * show_in_options (bool or code, default: 1)
+
+A flag, can be set to 0 if we want to skip showing this option in options in
+--help. The default is to 0 for --help and --version in compact help. Or
+--subcommands, if we are executing a subcommand (obviously).
 
 =item * order (int)
 
@@ -1877,12 +2152,12 @@ A partial example from the default set by the framework:
 
  {
      help => {
-         category    => 'Common options',
-         getopt      => 'help|h|?',
-         usage       => '--help (or -h, -?)',
-         handler     => sub { ... },
-         order       => 0,
-         show_in_compact_help => 0,
+         category        => 'Common options',
+         getopt          => 'help|h|?',
+         usage           => '--help (or -h, -?)',
+         handler         => sub { ... },
+         order           => 0,
+         show_in_options => sub { $ENV{VERBOSE} },
      },
      format => {
          category    => 'Common options',
@@ -1944,30 +2219,8 @@ instead.
 
 =head2 log_any_app => BOOL (default: 1)
 
-Whether to load L<Log::Any::App> (enable logging output) by default. Whether or
-not logging output is actually done is determined using this order of rules:
-
-=over
-
-=item * If running shell completion (C<COMP_LINE> is defined), logging is off
-
-=item * If LOG environment is defined, use that
-
-=item * If subcommand's log_any_app setting is defined, use that
-
-This allows you, e.g. to turn off logging by default for subcommands that need
-faster startup time. You can still turn on logging for those subcommands by
-LOG=1.
-
-=item * If action's default_log setting is defined, use that
-
-For example, actions like C<help>, C<list>, and C<version> has C<default_log>
-set to 0, for faster startup time. You can still turn on logging for those
-subcommands by LOG=1.
-
-=item * Use log_any_app attribute setting
-
-=back
+Whether to load L<Log::Any::App> (enable logging output) by default. See
+L</"LOGGING"> for more details.
 
 =head2 custom_completer => CODEREF
 
@@ -2041,71 +2294,6 @@ returns undef, the next action candidate method will be tried.
 After that, exit() will be called with the exit code from the action method (or,
 if C<exit> attribute is set to false, routine will return with exit code
 instead).
-
-=head1 COMMAND-LINE OPTION/ARGUMENT PARSING
-
-This section describes how Perinci::CmdLine parses command-line
-options/arguments into function arguments. Command-line option parsing is
-implemented by L<Perinci::Sub::GetArgs::Argv>.
-
-For boolean function arguments, use C<--arg> to set C<arg> to true (1), and
-C<--noarg> to set C<arg> to false (0). A flag argument (C<< [bool => {is=>1}]
->>) only recognizes C<--arg> and not C<--noarg>. For single letter arguments,
-only C<-X> is recognized, not C<--X> nor C<--noX>.
-
-For string and number function arguments, use C<--arg VALUE> or C<--arg=VALUE>
-(or C<-X VALUE> for single letter arguments) to set argument value. Other scalar
-arguments use the same way, except that some parsing will be done (e.g. for date
-type, --arg 1343920342 or --arg '2012-07-31' can be used to set a date value,
-which will be a DateTime object.) (Note that date parsing will be done by
-L<Data::Sah> and currently not implemented yet.)
-
-For arguments with type array of scalar, a series of C<--arg VALUE> is accepted,
-a la L<Getopt::Long>:
-
- --tags tag1 --tags tag2 ; # will result in tags => ['tag1', 'tag2']
-
-For other non-scalar arguments, also use C<--arg VALUE> or C<--arg=VALUE>, but
-VALUE will be attempted to be parsed using JSON, and then YAML. This is
-convenient for common cases:
-
- --aoa  '[[1],[2],[3]]'  # parsed as JSON
- --hash '{a: 1, b: 2}'   # parsed as YAML
-
-For explicit JSON parsing, all arguments can also be set via --ARG-json. This
-can be used to input undefined value in scalars, or setting array value without
-using repetitive C<--arg VALUE>:
-
- --str-json 'null'    # set undef value
- --ary-json '[1,2,3]' # set array value without doing --ary 1 --ary 2 --ary 3
- --ary-json '[]'      # set empty array value
-
-Likewise for explicit YAML parsing:
-
- --str-yaml '~'       # set undef value
- --ary-yaml '[a, b]'  # set array value without doing --ary a --ary b
- --ary-yaml '[]'      # set empty array value
-
-=head1 BASH COMPLETION
-
-To do bash completion, first create your script, e.g. C<myscript>, that uses
-Perinci::CmdLine:
-
- #!/usr/bin/perl
- use Perinci::CmdLine;
- Perinci::CmdLine->new(...)->run;
-
-then execute this in C<bash> (or put it in bash startup files like
-C</etc/bash.bashrc> or C<~/.bashrc> for future sessions):
-
- % complete -C myscript myscript; # myscript must be in PATH
-
-=head1 PROGRESS INDICATOR
-
-For functions that express that they do progress updating (by setting their
-C<progress> feature to true), Perinci::CmdLine will setup an output, currently
-either L<Progress::Any::Output::TermProgressBar> if program runs interactively,
-or L<Progress::Any::Output::LogAny> if program doesn't run interactively.
 
 =head1 METADATA PROPERTY ATTRIBUTE
 
@@ -2199,6 +2387,10 @@ status - 300).
 
 Can be used to set CLI program name.
 
+=item * PERINCI_CMDLINE_COLOR_THEME => STR
+
+Can be used to set C<color_theme>.
+
 =item * PROGRESS => BOOL
 
 Explicitly turn the progress bar on/off.
@@ -2209,6 +2401,14 @@ Like in other programs, can be set to select the pager program (when
 C<cmdline.page_result> result metadata is active). Can also be set to C<''> or
 C<0> to explicitly disable paging even though C<cmd.page_result> result metadata
 is active.
+
+=item * COLOR => INT
+
+Please see L<SHARYANTO::Role::TermAttrs>.
+
+=item * UTF8 => BOOL
+
+Please see L<SHARYANTO::Role::TermAttrs>.
 
 =back
 

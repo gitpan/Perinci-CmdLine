@@ -3,7 +3,7 @@ use warnings;
 
 # this test was generated with Dist::Zilla::Plugin::Test::Compile 2.033
 
-use Test::More  tests => 10 + ($ENV{AUTHOR_TESTING} ? 1 : 0);
+use Test::More  tests => 11 + ($ENV{AUTHOR_TESTING} ? 1 : 0);
 
 
 
@@ -13,6 +13,7 @@ my @module_files = (
     'Perinci/CmdLine/Easy.pm',
     'Perinci/CmdLine/I18N.pm',
     'Perinci/CmdLine/I18N/en.pm',
+    'Perinci/CmdLine/I18N/fr.pm',
     'Perinci/CmdLine/I18N/id.pm'
 );
 

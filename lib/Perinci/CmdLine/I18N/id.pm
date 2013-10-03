@@ -4,7 +4,7 @@ use parent qw(Perinci::CmdLine::I18N Perinci::To::Text::I18N::id);
 use Locale::Maketext::Lexicon::Gettext;
 our %Lexicon = %{ Locale::Maketext::Lexicon::Gettext->parse(<DATA>) };
 
-our $VERSION = '0.91'; # VERSION
+our $VERSION = '0.92'; # VERSION
 
 #use Data::Dump; dd \%Lexicon;
 
@@ -21,7 +21,7 @@ Perinci::CmdLine::I18N::id - Indonesian translation for Perinci::CmdLine
 
 =head1 VERSION
 
-version 0.91
+version 0.92
 
 =head1 AUTHOR
 
@@ -50,8 +50,8 @@ __DATA__
 msgid  "There are no subcommands"
 msgstr "Tidak ada subperintah"
 
-msgid  "List of available %1 subcommands"
-msgstr "Daftar subperintah kategori '%1'"
+msgid  "%1 subcommands"
+msgstr "Subperintah kategori '%1'"
 
 ### action: version
 
@@ -69,20 +69,20 @@ msgstr "--help (atau -h, -?) [--verbose]"
 msgid  "--version (or -v)"
 msgstr "--version (atau -v)"
 
-msgid  "--list (or -l)"
-msgstr "--list (atau -l)"
+msgid  "--subcommand"
+msgstr "--subcommand"
 
 # usage when there are no subcommands
 msgid  "(options)"
 msgstr "[opsi]"
 
 # help when there are subcommands and no default subcommand
-msgid  "SUBCOMMAND (options)"
-msgstr "SUBPERINTAH [opsi]"
+msgid  "<subcommand> (options)"
+msgstr "<subperintah> [opsi]"
 
 # help when there are subcommands and there is a default subcommand
-msgid  "--cmd=OTHER_SUBCOMMAND (options)"
-msgstr "--cmd=SUBPERINTAH_LAIN [opsi]"
+msgid  "--cmd=<other-subcommand> (options)"
+msgstr "--cmd=<subperintah-lain> [opsi]"
 
 msgid  "Options"
 msgstr "Opsi"
@@ -141,7 +141,7 @@ msgstr "Tampilkan versi"
 msgid  "Display this help message"
 msgstr "Tampilkan pesan bantuan ini"
 
-# --list
+# --subcommand
 msgid  "List available subcommands"
 msgstr "Daftar subperintah yang ada"
 
@@ -168,23 +168,26 @@ msgid  "Set log level"
 msgstr "Set level log"
 
 
-msgid  "List of available subcommands"
-msgstr "Daftar subperintah yang ada"
-
 msgid  "Subcommand"
 msgstr "Subperintah"
 
 msgid  "Subcommands"
 msgstr "Subperintah"
 
-msgid  "For general help, type '%1'"
+msgid  "Popular subcommands"
+msgstr "Subperintah popular"
+
+msgid  "For general help, use '%1'"
 msgstr "Untuk pesan bantuan umum, ketik '%1'"
 
-msgid  "For help on a subcommand, type '%1'"
+msgid  "For help on a subcommand, use '%1'"
 msgstr "Untuk pesan bantuan subperintah tertentu, ketik '%1'"
 
-msgid  "For more complete help, try '--help --verbose'"
+msgid  "For more complete help, use '--help --verbose'"
 msgstr "Untuk pesan bantuan lebih lengkap, gunakan '--help --verbose'"
+
+msgid  "To see all available subcommands, use '--subcommands'"
+msgstr "Untuk melihat semua subperintah yang ada, gunakan '--subcommands'"
 
 # usage/function
 

@@ -12,9 +12,10 @@ bin/strip-result-env-json
 bin/strip-result-env-yaml
 dist.ini
 examples/demo-help
-examples/demo-list
+examples/demo-subcommands
 examples/doesnt-set-log-any-app
 examples/greedy-arg
+examples/num2word-fr
 examples/prev-err
 examples/turn-off-log-any-app
 examples/turn-on-log-any-app
@@ -24,6 +25,7 @@ lib/Perinci/CmdLine/ColorTheme/Default.pm
 lib/Perinci/CmdLine/Easy.pm
 lib/Perinci/CmdLine/I18N.pm
 lib/Perinci/CmdLine/I18N/en.pm
+lib/Perinci/CmdLine/I18N/fr.pm
 lib/Perinci/CmdLine/I18N/id.pm
 t/00-compile.t
 t/01-basics.t

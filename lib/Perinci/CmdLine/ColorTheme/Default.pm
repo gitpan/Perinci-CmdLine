@@ -4,7 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 
-our $VERSION = '0.91'; # VERSION
+our $VERSION = '0.92'; # VERSION
 
 our %color_themes = (
 
@@ -26,8 +26,9 @@ our %color_themes = (
             warning_label => 'cccc00',
             program_name  => {ansi_fg=>"\e[1m"}, # bold
             option_name   => 'cc6633',
+            emphasis      => {ansi_fg=>"\e[1m"}, # bold
             #option_value  => undef,
-            argument      => undef,
+            #argument      => undef,
         },
     },
 
@@ -55,7 +56,7 @@ Perinci::CmdLine::ColorTheme::Default - Default color themes
 
 =head1 VERSION
 
-version 0.91
+version 0.92
 
 =head1 AUTHOR
 

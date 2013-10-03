@@ -1,5 +1,7 @@
-package Perinci::CmdLine::I18N::en;
-use parent qw(Perinci::CmdLine::I18N Perinci::To::Text::I18N::en);
+use utf8;
+
+package Perinci::CmdLine::I18N::fr;
+use parent qw(Perinci::CmdLine::I18N Perinci::To::Text::I18N::fr);
 
 use Locale::Maketext::Lexicon::Gettext;
 our %Lexicon = %{ Locale::Maketext::Lexicon::Gettext->parse(<DATA>) };
@@ -9,7 +11,7 @@ our $VERSION = '0.92'; # VERSION
 #use Data::Dump; dd \%Lexicon;
 
 1;
-# ABSTRACT: English translation for Perinci::CmdLine
+# ABSTRACT: French translation for Perinci::CmdLine
 
 =pod
 
@@ -17,7 +19,7 @@ our $VERSION = '0.92'; # VERSION
 
 =head1 NAME
 
-Perinci::CmdLine::I18N::en - English translation for Perinci::CmdLine
+Perinci::CmdLine::I18N::fr - French translation for Perinci::CmdLine
 
 =head1 VERSION
 
@@ -48,10 +50,10 @@ __DATA__
 ### action: list
 
 msgid  "There are no subcommands"
-msgstr "There are no subcommands"
+msgstr "Il n'y a pas de sous-commandes"
 
 msgid  "%1 subcommands"
-msgstr "%1 subcommands"
+msgstr "Sous-commandes de la catégorie '%1'"
 
 ### action: version
 
@@ -61,16 +63,16 @@ msgstr "%1 version %2"
 ### action: help
 
 msgid  "Usage"
-msgstr "Usage"
+msgstr "Utilisation"
 
 msgid  "--help (or -h, -?) (--verbose)"
-msgstr "--help (or -h, -?) [--verbose]"
+msgstr "--help (ou -h, -?) [--verbose]"
 
 msgid  "--version (or -v)"
-msgstr "--version (or -v)"
+msgstr "--version (ou -v)"
 
-msgid  "--subcommands"
-msgstr "--subcommands"
+msgid  "--subcommand"
+msgstr "--subcommand"
 
 # usage when there are no subcommands
 msgid  "(options)"
@@ -78,129 +80,129 @@ msgstr "[options]"
 
 # help when there are subcommands and no default subcommand
 msgid  "<subcommand> (options)"
-msgstr "<subcommand> [options]"
+msgstr "<sous-commande> [options]"
 
 # help when there are subcommands and there is a default subcommand
 msgid  "--cmd=<other-subcommand> (options)"
-msgstr "--cmd=<other-subcommand> [options]"
+msgstr "--cmd=<autre-sous-commande> [options]"
 
 msgid  "Options"
 msgstr "Options"
 
 msgid  "Common options"
-msgstr "Common options"
+msgstr "Options communes"
 
 msgid  "Undo options"
-msgstr "Undo options"
+msgstr "Options d'annuler"
 
 msgid  "%1 options"
-msgstr "%1 options"
+msgstr "Options avec catégorie '%1'"
 
 msgid  "required"
-msgstr "required"
+msgstr "nécessaire"
 
 msgid  "Examples"
 msgstr "Examples"
 
 msgid  "Links"
-msgstr "Links"
+msgstr "Liens"
 
 # --format
 msgid  "Choose output format, e.g. json, text"
-msgstr "Choose output format, e.g. json, text"
+msgstr "Choisir le format de sortie, par exemple json, text"
 
 # --format-options
 msgid  "Pass options to formatter"
-msgstr "Pass options to formatter"
+msgstr "Passer des options au formateur"
 
 # --undo
 msgid  "Undo previous action"
-msgstr "Undo previous action"
+msgstr "Annuler l'action précédente"
 
 # --redo
 msgid  "Redo previous undone action"
-msgstr "Redo previous undone action"
+msgstr "Refaire l'action annulée"
 
 # --history
 msgid  "List actions history"
-msgstr "List actions history"
+msgstr "Énumérer historique des actions"
 
 # --clear-history
 msgid  "Clear actions history"
-msgstr "Clear actions history"
+msgstr "Effacer historique des actions"
 
 # --dry-run
 msgid  "Run in simulation mode (also via DRY_RUN=1)"
-msgstr "Run in simulation mode (also via DRY_RUN=1)"
+msgstr "Fonctionner en mode simulation (également via DRY_RUN=1)"
 
 # --version
 msgid  "Show version"
-msgstr "Show version"
+msgstr "Afficher la version"
 
 # --help
 msgid  "Display this help message"
-msgstr "Display this help message"
+msgstr "Afficher ce message d'aide"
 
-# --subcommands
+# --subcommand
 msgid  "List available subcommands"
-msgstr "List available subcommands"
+msgstr "Énumérer des sous-commandes disponibles"
 
 # --cmd
 msgid  "Select subcommand"
-msgstr "Select subcommand"
+msgstr "Sélectionner une sous-commande"
 
 # --action currently undocumented
 
 # --quiet, --verbose, --debug, --trace, --log-level
 msgid  "Set log level to quiet"
-msgstr "Set log level to quiet (error and up)"
+msgstr "Fixer le niveau de logging au quiet"
 
 msgid  "Set log level to verbose"
-msgstr "Set log level to verbose (info and up)"
+msgstr "Fixer le niveau de logging au verbose"
 
 msgid  "Set log level to debug"
-msgstr "Set log level to debug and up"
+msgstr "Fixer le niveau de logging au debug"
 
 msgid  "Set log level to trace"
-msgstr "Set log level to trace and up"
+msgstr "Fixer le niveau de logging au trace"
 
 msgid  "Set log level"
-msgstr "Set log level"
+msgstr "Fixer le niveau de logging"
 
 
 msgid  "Subcommand"
-msgstr "Subcommand"
+msgstr "Sous-commande"
 
 msgid  "Subcommands"
-msgstr "Subcommands"
+msgstr "Sous-commandes"
 
 msgid  "Popular subcommands"
-msgstr "Popular subcommands"
+msgstr "Sous-commandes populaires"
 
 msgid  "For general help, use '%1'"
-msgstr "For general help, use '%1'"
+msgstr "Pour de l'aide générale, utilisez '%1'"
 
 msgid  "For help on a subcommand, use '%1'"
-msgstr "For help on a subcommand, use '%1'"
+msgstr "Pour de l'aide sur une sous-commande, utilisez '%1'"
 
 msgid  "For more complete help, use '--help --verbose'"
-msgstr "For more complete help, use '--help --verbose'"
+msgstr "Pour de l'aide plus complète, utilisez '--help --verbose'"
 
 msgid  "To see all available subcommands, use '--subcommands'"
-msgstr "To see all available subcommands, use '--subcommands'"
+msgstr "Pour voir toutes les sous-commandes disponibles, utilisez '--subcommands'"
 
 # usage/function
 
 msgid  "or as argument #%1"
-msgstr "or as argument #%1"
+msgstr "ou comme argument #%1"
 
 msgid  "or from stdin"
-msgstr "or from stdin"
+msgstr "ou à partir de stdin"
 
 msgid  "or from stdin/files"
-msgstr "or from stdin/files"
+msgstr "ou à partir de stdin/des fichiers"
 
 # etc
 
 msgid  "value in"
-msgstr "value in"
+msgstr "valeur est l'une des"
