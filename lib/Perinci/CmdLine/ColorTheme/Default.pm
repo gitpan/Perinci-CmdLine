@@ -4,7 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 
-our $VERSION = '0.92'; # VERSION
+our $VERSION = '0.93'; # VERSION
 
 our %color_themes = (
 
@@ -56,7 +56,7 @@ Perinci::CmdLine::ColorTheme::Default - Default color themes
 
 =head1 VERSION
 
-version 0.92
+version 0.93
 
 =head1 AUTHOR
 

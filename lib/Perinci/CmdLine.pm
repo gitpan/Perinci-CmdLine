@@ -12,7 +12,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '0.92'; # VERSION
+our $VERSION = '0.93'; # VERSION
 
 with 'SHARYANTO::Role::ColorTheme';
 #with 'SHARYANTO::Role::TermAttrs'; already loaded by ColorTheme
@@ -487,12 +487,11 @@ sub run_subcommands {
     my %percat_subc; # (cat1 => {subcmd1=>..., ...}, ...)
     while (my ($scn, $sc) = each %$subcommands) {
         my $cat = "";
-        if ($sc->{tags}) {
-            for (@{$sc->{tags}}) {
-                next unless /^category:(.+)/;
-                $cat = $1;
-                last;
-            }
+        for my $tag (@{$sc->{tags} // []}) {
+            my $tn = ref($tag) ? $tag->{name} : $tag;
+            next unless $tn =~ /^category:(.+)/;
+            $cat = $1;
+            last;
         }
         $percat_subc{$cat}       //= {};
         $percat_subc{$cat}{$scn}   = $sc;
@@ -922,8 +921,9 @@ sub help_section_options {
             }
 
             my $cat;
-            for (@{ $a->{tags} // []}) {
-                next unless /^category:(.+)/;
+            for my $tag (@{ $a->{tags} // []}) {
+                my $tn = ref($tag) ? $tag->{name} : $tag;
+                next unless $tn =~ /^category:(.+)/;
                 $cat = $1;
                 last;
             }
@@ -1662,7 +1662,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.92
+version 0.93
 
 =head1 SYNOPSIS
 

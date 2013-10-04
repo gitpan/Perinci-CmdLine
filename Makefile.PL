@@ -55,7 +55,7 @@ my %WriteMakefileArgs = (
     "Progress::Any::Output::TermProgressBarColor" => "0.04",
     "Rinci" => "v1.1.38",
     "SHARYANTO::Getopt::Long::Util" => 0,
-    "SHARYANTO::Role::ColorTheme" => 0,
+    "SHARYANTO::Role::ColorTheme" => "0.62",
     "SHARYANTO::Role::I18N" => "0.46",
     "SHARYANTO::Role::I18NRinci" => 0,
     "String::ShellQuote" => 0,
@@ -73,7 +73,7 @@ my %WriteMakefileArgs = (
     "IPC::Open3" => 0,
     "Test::More" => "0.96"
   },
-  "VERSION" => "0.92",
+  "VERSION" => "0.93",
   "test" => {
     "TESTS" => "t/*.t"
   }
