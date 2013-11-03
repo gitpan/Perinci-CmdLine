@@ -12,7 +12,7 @@ build_requires:
 configure_requires:
   ExtUtils::MakeMaker: 6.30
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.300035, CPAN::Meta::Converter version 2.132140'
+generated_by: 'Dist::Zilla version 5.001, CPAN::Meta::Converter version 2.132140'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -34,22 +34,25 @@ requires:
   Moo: 0
   Perinci::Access: 0.30
   Perinci::Access::HTTP::Client: 0.06
-  Perinci::Access::Perl: 0.51
-  Perinci::Access::Schemeless: 0.51
+  Perinci::Access::Perl: 0.53
+  Perinci::Access::Schemeless: 0.53
   Perinci::Access::Simple::Client: 0
-  Perinci::BashComplete: 0.29
   Perinci::Object: 0.11
   Perinci::Result::Format: 0.33
+  Perinci::Sub::Complete: 0
   Perinci::Sub::ConvertArgs::Argv: 0
   Perinci::Sub::GetArgs::Argv: 0.22
   Perinci::Sub::Util: 0.36
   Perinci::Sub::Wrapper: 0.40
-  Perinci::To::Text: 0.22
+  Perinci::To::Text::I18N: 0.22
+  Perinci::To::Text::I18N::en: 0.22
+  Perinci::To::Text::I18N::fr: 0.22
+  Perinci::To::Text::I18N::id: 0.22
   Perinci::ToUtil: 0
   Progress::Any: 0.10
   Progress::Any::Output: 0
   Progress::Any::Output::TermProgressBarColor: 0.04
-  Rinci: v1.1.38
+  Rinci: v1.1.39
   SHARYANTO::Getopt::Long::Util: 0
   SHARYANTO::Role::ColorTheme: 0.62
   SHARYANTO::Role::I18N: 0.46
@@ -61,7 +64,5 @@ requires:
   YAML::Syck: 0
   experimental: 0
   perl: 5.010001
-resources:
-  homepage: http://search.cpan.org/dist/Perinci-CmdLine/
-  repository: http://github.com/sharyanto/perl-Perinci-CmdLine
-version: 0.93
+resources: {}
+version: 0.94

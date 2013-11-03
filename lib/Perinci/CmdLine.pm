@@ -12,7 +12,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '0.93'; # VERSION
+our $VERSION = '0.94'; # VERSION
 
 with 'SHARYANTO::Role::ColorTheme';
 #with 'SHARYANTO::Role::TermAttrs'; already loaded by ColorTheme
@@ -73,10 +73,8 @@ has _pa => (
         require Perinci::Access::Schemeless;
         my %args = %{$self->pa_args // {}};
         my %opts;
-        $opts{disk_cache} = 1;
         # turn off arg validation generation to reduce startup cost
         $opts{extra_wrapper_args} = 0 if $ENV{COMP_LINE};
-        $opts{use_utf8} = $self->use_utf8; # periap 0.51
         if ($self->undo) {
             $opts{use_tx} = 1;
             $opts{custom_tx_manager} = sub {
@@ -93,7 +91,7 @@ has _pa => (
             pl => Perinci::Access::Perl->new(%opts),
             '' => Perinci::Access::Schemeless->new(%opts),
         };
-        $log->tracef("Creating Perinci::Access object with args: %s", \%args);
+        #$log->tracef("Creating Perinci::Access object with args: %s", \%args);
         Perinci::Access->new(%args);
     }
 );
@@ -166,7 +164,7 @@ has common_opts => (
                 getopt  => "subcommands",
                 usage   => "--subcommands",
                 show_in_usage => sub {
-                    $ENV{VERBOSE} && !$self->{_subcommand};
+                    !$self->{_subcommand};
                 },
                 show_in_options => sub {
                     $ENV{VERBOSE} && !$self->{_subcommand};
@@ -304,8 +302,9 @@ sub _err {
 
 sub _program_and_subcommand_name {
     my $self = shift;
-    $self->program_name .
-        ($self->{_subcommand} ? " $self->{_subcommand}{name}" : "");
+    my $res = $self->program_name . " " . ($self->{_subcommand}{name} // "");
+    $res =~ s/\s+$//;
+    $res;
 }
 
 sub BUILD {
@@ -548,8 +547,14 @@ sub run_version {
     0;
 }
 
+sub _add_slashes {
+    my ($a) = @_;
+    $a =~ s!([^A-Za-z0-9,+._/:-])!\\$1!g;
+    $a;
+}
+
 sub run_completion {
-    # Perinci::BashComplete already required by run()
+    # Perinci::Sub::Complete already required by run()
 
     my ($self) = @_;
 
@@ -631,12 +636,26 @@ sub run_completion {
             }
         }
 
-        $res = Perinci::BashComplete::bash_complete_riap_func_arg(
-            url=>$sc->{url}, words=>$words, cword=>$cword,
+        my $rres = $self->_pa->request(meta => $sc->{url});
+        if ($rres->[0] != 200) {
+            $log->debug("Can't get meta for completion: $res->[0] - $res->[1]");
+            $res = [];
+            goto DISPLAY_RES;
+        }
+        my $meta = $rres->[2];
+
+        my $arg_completer = $self->custom_arg_completer;
+        $arg_completer //= sub {
+            my $rres = $self->_pa->request(complete_arg_val => $sc->{url});
+            return undef unless $rres->[0] == 20;
+            $rres->[2];
+        };
+
+        $res = Perinci::Sub::Complete::shell_complete_arg(
+            meta=>$meta, words=>$words, cword=>$cword,
             common_opts => $common_opts,
             custom_completer=>$self->custom_completer,
-            custom_arg_completer => $self->custom_arg_completer,
-            pa => $self->_pa,
+            custom_arg_completer => $arg_completer,
         );
 
     } else {
@@ -645,13 +664,14 @@ sub run_completion {
         push @ary, @top_opts;
         my $scs = $self->list_subcommands;
         push @ary, keys %$scs;
-        $res = Perinci::BashComplete::complete_array(
+        $res = Perinci::Sub::Complete::complete_array(
             word=>$word, array=>\@ary,
         );
     }
 
+  DISPLAY_RES:
     # display completion result for bash
-    print map {Perinci::BashComplete::_add_slashes($_), "\n"} @$res;
+    print map {_add_slashes($_), "\n"} grep {defined} @$res;
     0;
 }
 
@@ -1081,7 +1101,7 @@ sub help_section_hints {
     return unless @hints;
 
     $self->_help_add_row(
-        ["\n" . join(" ", map { $self->loc($_)."." } @hints)], {wrap=>1});
+        [join(" ", map { $self->loc($_)."." } @hints)], {wrap=>1});
 }
 
 sub help_section_description {
@@ -1105,26 +1125,31 @@ sub help_section_examples {
 
     $self->_help_add_heading($self->loc("Examples"));
     my $pn = $self->_color('program_name', $self->_program_and_subcommand_name);
-    require String::ShellQuote;
     for my $eg (@$egs) {
         my $argv;
-        if ($eg->{argv}) {
-            $argv = $eg->{argv};
+        my $ct;
+        if (defined($eg->{src}) && $eg->{src_plang} =~ /^(sh|bash)$/) {
+            $ct = $eg->{src};
         } else {
-            require Perinci::Sub::ConvertArgs::Argv;
-            my $res = Perinci::Sub::ConvertArgs::Argv::convert_args_to_argv(
-                args => $eg->{args}, meta => $meta);
-            $self->_err("Can't convert args to argv: $res->[0] - $res->[1]")
-                unless $res->[0] == 200;
-            $argv = $res->[2];
-        }
-        my $ct = $pn;
-        for my $arg (@$argv) {
-            $arg = String::ShellQuote::shell_quote($arg);
-            if ($arg =~ /^-/) {
-                $ct .= " ".$self->_color('option_name', $arg);
+            require String::ShellQuote;
+            if ($eg->{argv}) {
+                $argv = $eg->{argv};
             } else {
-                $ct .= " $arg";
+                require Perinci::Sub::ConvertArgs::Argv;
+                my $res = Perinci::Sub::ConvertArgs::Argv::convert_args_to_argv(
+                    args => $eg->{args}, meta => $meta);
+                $self->_err("Can't convert args to argv: $res->[0] - $res->[1]")
+                    unless $res->[0] == 200;
+                $argv = $res->[2];
+            }
+            $ct = $pn;
+            for my $arg (@$argv) {
+                $arg = String::ShellQuote::shell_quote($arg);
+                if ($arg =~ /^-/) {
+                    $ct .= " ".$self->_color('option_name', $arg);
+                } else {
+                    $ct .= " $arg";
+                }
             }
         }
         $self->_help_add_row([$ct], {indent=>1});
@@ -1580,8 +1605,8 @@ sub run {
     #
 
     if ($ENV{COMP_LINE}) {
-        require Perinci::BashComplete;
-        my $res = Perinci::BashComplete::_parse_request();
+        require Perinci::Sub::Complete;
+        my $res = Perinci::Sub::Complete::parse_shell_cmdline();
         @ARGV = @{ $res->{words} };
         $self->{_comp_parse_res} = $res; # store for run_completion()
     }
@@ -1662,7 +1687,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.93
+version 0.94
 
 =head1 SYNOPSIS
 
@@ -2224,13 +2249,13 @@ L</"LOGGING"> for more details.
 
 =head2 custom_completer => CODEREF
 
-Will be passed to L<Perinci::BashComplete>'s C<bash_complete_riap_func_arg>. See
-its documentation for more details.
+Will be passed to L<Perinci::Sub::Complete>'s C<shell_complete_arg()>. See its
+documentation for more details.
 
 =head2 custom_arg_completer => CODEREF | {ARGNAME=>CODEREF, ...}
 
-Will be passed to L<Perinci::BashComplete>. See its documentation for more
-details.
+Will be passed to L<Perinci::Sub::Complete>'s C<shell_complete_arg()>. See its
+documentation for more details.
 
 =head2 pass_cmdline_object => BOOL (optional, default 0)
 
@@ -2492,6 +2517,23 @@ L<Perinci>, L<Rinci>, L<Riap>.
 Other CPAN modules to write command-line applications: L<App::Cmd>, L<App::Rad>,
 L<MooseX::Getopt>.
 
+=head1 HOMEPAGE
+
+Please visit the project's homepage at L<https://metacpan.org/release/Perinci-CmdLine>.
+
+=head1 SOURCE
+
+Source repository is at L<https://github.com/sharyanto/perl-Perinci-CmdLine>.
+
+=head1 BUGS
+
+Please report any bugs or feature requests on the bugtracker website
+http://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-CmdLine
+
+When submitting a bug or request, please include a test-file or a
+patch to an existing test-file that illustrates the bug or desired
+feature.
+
 =head1 AUTHOR
 
 Steven Haryanto <stevenharyanto@gmail.com>
@@ -2502,10 +2544,5 @@ This software is copyright (c) 2013 by Steven Haryanto.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
-
-=head1 FUNCTIONS
-
-
-None are exported by default, but they are exportable.
 
 =cut

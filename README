@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.93
+    version 0.94
 
 SYNOPSIS
     In your command-line script:
@@ -537,12 +537,12 @@ ATTRIBUTES
     "LOGGING" for more details.
 
   custom_completer => CODEREF
-    Will be passed to Perinci::BashComplete's "bash_complete_riap_func_arg".
-    See its documentation for more details.
+    Will be passed to Perinci::Sub::Complete's "shell_complete_arg()". See
+    its documentation for more details.
 
   custom_arg_completer => CODEREF | {ARGNAME=>CODEREF, ...}
-    Will be passed to Perinci::BashComplete. See its documentation for more
-    details.
+    Will be passed to Perinci::Sub::Complete's "shell_complete_arg()". See
+    its documentation for more details.
 
   pass_cmdline_object => BOOL (optional, default 0)
     Whether to pass special argument "-cmdline" containing the
@@ -782,6 +782,21 @@ SEE ALSO
     Other CPAN modules to write command-line applications: App::Cmd,
     App::Rad, MooseX::Getopt.
 
+HOMEPAGE
+    Please visit the project's homepage at
+    <https://metacpan.org/release/Perinci-CmdLine>.
+
+SOURCE
+    Source repository is at
+    <https://github.com/sharyanto/perl-Perinci-CmdLine>.
+
+BUGS
+    Please report any bugs or feature requests on the bugtracker website
+    http://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-CmdLine
+
+    When submitting a bug or request, please include a test-file or a patch
+    to an existing test-file that illustrates the bug or desired feature.
+
 AUTHOR
     Steven Haryanto <stevenharyanto@gmail.com>
 
@@ -790,7 +805,4 @@ COPYRIGHT AND LICENSE
 
     This is free software; you can redistribute it and/or modify it under
     the same terms as the Perl 5 programming language system itself.
-
-FUNCTIONS
-    None are exported by default, but they are exportable.
 
