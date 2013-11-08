@@ -9,7 +9,7 @@ use Scalar::Util 'looks_like_number';
 
 my $json = JSON->new->allow_nonref;
 
-our $VERSION = '0.94'; # VERSION
+our $VERSION = '0.95'; # VERSION
 
 {
     local $/;
@@ -36,7 +36,7 @@ strip-result-env-json - Strip result envelope (JSON version)
 
 =head1 VERSION
 
-version 0.94
+version 0.95
 
 =head1 SYNOPSIS
 
@@ -75,7 +75,7 @@ Source repository is at L<https://github.com/sharyanto/perl-Perinci-CmdLine>.
 =head1 BUGS
 
 Please report any bugs or feature requests on the bugtracker website
-http://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-CmdLine
+L<https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-CmdLine>
 
 When submitting a bug or request, please include a test-file or a
 patch to an existing test-file that illustrates the bug or desired

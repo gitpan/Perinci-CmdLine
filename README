@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.94
+    version 0.95
 
 SYNOPSIS
     In your command-line script:
@@ -115,6 +115,9 @@ DESCRIPTION
 
     This module uses Log::Any and Log::Any::App for logging. This module
     uses Moo for OO.
+
+FUNCTIONS
+    None are exported by default, but they are exportable.
 
 DISPATCHING
     Below is the description of how the framework determines what action and
@@ -766,15 +769,70 @@ FAQ
      % cat file.txt | cmd
      arg is 'This is content of file.txt'
 
-  But I don't want it slurped into a single scalar, I want streaming!
-    See App::dux for an example on how to accomplish that. Basically in
-    App::dux, you feed an array tied with Tie::Diamond as a function
-    argument. Thus you can get lines from file/STDIN iteratively with
-    each().
+    If your function argument is an array, array of lines will be provided
+    to your function. A mechanism to be will be provided in the future
+    (currently not yet specified in Rinci::function specification).
+
+  But I don't want the whole file content slurped into string/array, I want streaming!
+    If your function argument is of type "stream" or "filehandle", an I/O
+    handle will be provided to your function instead. But this part is not
+    implemented yet.
+
+    Currently, see App::dux for an example on how to accomplish this on
+    function argument of type "array". Basically in App::dux, you feed an
+    array tied with Tie::Diamond as a function argument. Thus you can get
+    lines from file/STDIN iteratively with each().
+
+  My function has some cmdline_aliases or cmdline_src defined but I want to change it!
+    For example, your "f1" function metadata might look like this:
+
+     package Package::F1;
+     our %SPEC;
+     $SPEC{f1} = {
+         v => 1.1,
+         args => {
+             foo => {
+                 cmdline_aliases => { f=> {} },
+             },
+             bar => { ... },
+             fee => { ... },
+         },
+     };
+     sub f1 { ... }
+     1;
+
+    And your command-line script "f1":
+
+     #!perl
+     use Perinci::CmdLine;
+     Perinci::CmdLine->new(url => '/Package/F1/f1')->run;
+
+    Now you want to create a command-line script interface for this
+    function, but with "-f" as an alias for "--fee" instead of "--foo". This
+    is best done by modifying the metadata and creating a wrapper function
+    to do this, e.g. your command-line script "f1" becomes:
+
+     package main;
+     use Perinci::CmdLine;
+     use Package::F1;
+     use Data::Clone;
+     our %SPEC;
+     $SPEC{f1} = clone $Package::F1::SPEC{f1};
+     delete $SPEC{f1}{args}{foo}{cmdline_aliases};
+     $SPEC{f1}{args}{fee}{cmdline_aliases} = {f=>{}};
+     *f1 = \&Package::F1::f1;
+     Perinci::CmdLine->new(url => '/main/f1')->run;
+
+    This also demonstrates the convenience of having the metadata as a data
+    structure: you can manipulate it however you want.
 
   My application is OO?
     This framework is currently non-OO and function-centric. There are
     already several OO-based command-line frameworks on CPAN.
+
+TODOS
+    "cmdline_src" argument specification has not been fully implemented:
+    Providing I/O handle for argument of type "stream"/"filehandle".
 
 SEE ALSO
     Perinci, Rinci, Riap.
@@ -792,7 +850,7 @@ SOURCE
 
 BUGS
     Please report any bugs or feature requests on the bugtracker website
-    http://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-CmdLine
+    <https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-CmdLine>
 
     When submitting a bug or request, please include a test-file or a patch
     to an existing test-file that illustrates the bug or desired feature.

@@ -4,7 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 
-our $VERSION = '0.94'; # VERSION
+our $VERSION = '0.95'; # VERSION
 
 our %color_themes = (
 
@@ -56,7 +56,14 @@ Perinci::CmdLine::ColorTheme::Default - Default color themes
 
 =head1 VERSION
 
-version 0.94
+version 0.95
+
+=head1 DESCRIPTION
+
+=head1 FUNCTIONS
+
+
+None are exported by default, but they are exportable.
 
 =head1 HOMEPAGE
 
@@ -69,7 +76,7 @@ Source repository is at L<https://github.com/sharyanto/perl-Perinci-CmdLine>.
 =head1 BUGS
 
 Please report any bugs or feature requests on the bugtracker website
-http://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-CmdLine
+L<https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-CmdLine>
 
 When submitting a bug or request, please include a test-file or a
 patch to an existing test-file that illustrates the bug or desired

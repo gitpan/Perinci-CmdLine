@@ -12,7 +12,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '0.94'; # VERSION
+our $VERSION = '0.95'; # VERSION
 
 with 'SHARYANTO::Role::ColorTheme';
 #with 'SHARYANTO::Role::TermAttrs'; already loaded by ColorTheme
@@ -963,9 +963,9 @@ sub help_section_options {
                          $self->loc("or as argument #[_1]",
                                     ($a->{pos}+1).($a->{greedy} ? "+":"")).")":""),
                     ($src eq 'stdin' ?
-                         " (" . $self->loc("or from stdin") . ")" : ""),
+                         " (" . $self->loc("from stdin") . ")" : ""),
                     ($src eq 'stdin_or_files' ?
-                         " (" . $self->loc("or from stdin/files") . ")" : ""),
+                         " (" . $self->loc("from stdin/files") . ")" : ""),
                     $def
                 ),
                 req => $a->{req},
@@ -1469,29 +1469,11 @@ sub parse_subcommand_opts {
         per_arg_yaml        => 1,
         on_missing_required_args => sub {
             my %a = @_;
-            my ($a, $aa, $as) = ($a{arg}, $a{args}, $a{spec});
+            my ($an, $aa, $as) = ($a{arg}, $a{args}, $a{spec});
+            say "missing arg $an";
             my $src = $as->{cmdline_src};
-            if ($src) {
-                $self->_err(
-                    "Invalid 'cmdline_src' value for argument '$a': $src")
-                    unless $src =~ /\A(stdin|stdin_or_files)\z/;
-                $self->_err(
-                    "Sorry, argument '$a' is set cmdline_src=$src, ".
-                        "but type is not 'str', only str is supported for now")
-                    unless $as->{schema}[0] eq 'str';
-                $self->_err("Only one argument can be specified cmdline_src")
-                    if $src_seen++;
-                if ($src eq 'stdin') {
-                    $log->trace("Getting argument '$a' value from stdin ...");
-                    local $/;
-                    $aa->{$a} = <STDIN>;
-                } elsif ($src eq 'stdin_or_files') {
-                    $log->trace("Getting argument '$a' value from ".
-                                    "stdin_or_files ...");
-                    local $/;
-                    $aa->{$a} = <>;
-                }
-            }
+            # fill with undef first, will be filled from other source
+            $aa->{$an} = undef if $src && $as->{req};
         },
     );
     if ($self->{_force_subcommand}) {
@@ -1519,6 +1501,59 @@ sub parse_subcommand_opts {
     }
     $log->tracef("result of GetArgs for subcommand: remaining argv=%s, args=%s".
                      ", actions=%s", \@ARGV, $self->{_args}, $self->{_actions});
+
+    # handle cmdline_src
+    if (!$ENV{COMP_LINE} && ($self->{_actions}[0] // "") eq 'subcommand') {
+        my $args_p = $meta->{args} // {};
+        my $stdin_seen;
+        for my $an (sort keys %$args_p) {
+            my $as = $args_p->{$an};
+            my $src = $as->{cmdline_src};
+            if ($src) {
+                $self->_err(
+                    "Invalid 'cmdline_src' value for argument '$an': $src")
+                    unless $src =~ /\A(stdin|file|stdin_or_files)\z/;
+                $self->_err(
+                    "Sorry, argument '$an' is set cmdline_src=$src, but type ".
+                        "is not 'str' or 'array', only those are supported now")
+                    unless $as->{schema}[0] =~ /\A(str|array)\z/;
+                if ($src =~ /stdin/) {
+                    $self->_err("Only one argument can be specified ".
+                                    "cmdline_src stdin/stdin_or_files")
+                        if $stdin_seen++;
+                }
+                my $is_ary = $as->{schema}[0] eq 'array';
+                if ($src eq 'stdin' || $src eq 'file' &&
+                        ($self->{_args}{$an}//"") eq '-') {
+                    $self->_err("Argument $an must be set to '-' which means ".
+                                    "from stdin")
+                        if defined($self->{_args}{$an}) &&
+                            $self->{_args}{$an} ne '-';
+                    $log->trace("Getting argument '$an' value from stdin ...");
+                    $self->{_args}{$an} = $is_ary ? [<STDIN>] :
+                        do { local $/; <STDIN> };
+                } elsif ($src eq 'stdin_or_files') {
+                    $log->trace("Getting argument '$an' value from ".
+                                    "stdin_or_files ...");
+                    $self->{_args}{$an} = $is_ary ? [<>] : do { local $/; <> };
+                } elsif ($src eq 'file') {
+                    next unless exists $self->{_args}{$an};
+                    $self->_err("Please specify filename for argument '$an'")
+                        unless defined $self->{_args}{$an};
+                    $log->trace("Getting argument '$an' value from ".
+                                    "file ...");
+                    my $fh;
+                    unless (open $fh, "<", $self->{_args}{$an}) {
+                        $self->_err("Can't open file '$self->{_args}{$an}' ".
+                                        "for argument '$an': $!")
+                    }
+                    $self->{_args}{$an} = $is_ary ? [<$fh>] :
+                        do { local $/; <$fh> };
+                }
+            }
+        }
+    }
+    $log->tracef("args after cmdline_src is processed: %s", $self->{_args});
 
     $log->tracef("<- _parse_subcommand_opts()");
 }
@@ -1687,7 +1722,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.94
+version 0.95
 
 =head1 SYNOPSIS
 
@@ -1803,6 +1838,11 @@ etc) can be renamed or disabled.
 
 This module uses L<Log::Any> and L<Log::Any::App> for logging. This module uses
 L<Moo> for OO.
+
+=head1 FUNCTIONS
+
+
+None are exported by default, but they are exportable.
 
 =for Pod::Coverage ^(BUILD|run_.+|help_section_.+|format_result|format_row|display_result|get_subcommand|list_subcommands|parse_common_opts|parse_subcommand_opts|format_set|format_options|format_options_set)$
 
@@ -2499,16 +2539,73 @@ When run from command line:
  % cat file.txt | cmd
  arg is 'This is content of file.txt'
 
-=head2 But I don't want it slurped into a single scalar, I want streaming!
+If your function argument is an array, array of lines will be provided to your
+function. A mechanism to be will be provided in the future (currently not yet
+specified in L<Rinci::function> specification).
 
-See L<App::dux> for an example on how to accomplish that. Basically in App::dux,
-you feed an array tied with L<Tie::Diamond> as a function argument. Thus you can
-get lines from file/STDIN iteratively with each().
+=head2 But I don't want the whole file content slurped into string/array, I want streaming!
+
+If your function argument is of type C<stream> or C<filehandle>, an I/O handle
+will be provided to your function instead. But this part is not implemented yet.
+
+Currently, see L<App::dux> for an example on how to accomplish this on function
+argument of type C<array>. Basically in App::dux, you feed an array tied with
+L<Tie::Diamond> as a function argument. Thus you can get lines from file/STDIN
+iteratively with each().
+
+=head2 My function has some cmdline_aliases or cmdline_src defined but I want to change it!
+
+For example, your C<f1> function metadata might look like this:
+
+ package Package::F1;
+ our %SPEC;
+ $SPEC{f1} = {
+     v => 1.1,
+     args => {
+         foo => {
+             cmdline_aliases => { f=> {} },
+         },
+         bar => { ... },
+         fee => { ... },
+     },
+ };
+ sub f1 { ... }
+ 1;
+
+And your command-line script C<f1>:
+
+ #!perl
+ use Perinci::CmdLine;
+ Perinci::CmdLine->new(url => '/Package/F1/f1')->run;
+
+Now you want to create a command-line script interface for this function, but
+with C<-f> as an alias for C<--fee> instead of C<--foo>. This is best done by
+modifying the metadata and creating a wrapper function to do this, e.g. your
+command-line script C<f1> becomes:
+
+ package main;
+ use Perinci::CmdLine;
+ use Package::F1;
+ use Data::Clone;
+ our %SPEC;
+ $SPEC{f1} = clone $Package::F1::SPEC{f1};
+ delete $SPEC{f1}{args}{foo}{cmdline_aliases};
+ $SPEC{f1}{args}{fee}{cmdline_aliases} = {f=>{}};
+ *f1 = \&Package::F1::f1;
+ Perinci::CmdLine->new(url => '/main/f1')->run;
+
+This also demonstrates the convenience of having the metadata as a data
+structure: you can manipulate it however you want.
 
 =head2 My application is OO?
 
 This framework is currently non-OO and function-centric. There are already
 several OO-based command-line frameworks on CPAN.
+
+=head1 TODOS
+
+C<cmdline_src> argument specification has not been fully implemented: Providing
+I/O handle for argument of type C<stream>/C<filehandle>.
 
 =head1 SEE ALSO
 
@@ -2528,7 +2625,7 @@ Source repository is at L<https://github.com/sharyanto/perl-Perinci-CmdLine>.
 =head1 BUGS
 
 Please report any bugs or feature requests on the bugtracker website
-http://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-CmdLine
+L<https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-CmdLine>
 
 When submitting a bug or request, please include a test-file or a
 patch to an existing test-file that illustrates the bug or desired

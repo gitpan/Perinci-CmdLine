@@ -4,7 +4,7 @@ use parent qw(Perinci::CmdLine::I18N Perinci::To::Text::I18N::id);
 use Locale::Maketext::Lexicon::Gettext;
 our %Lexicon = %{ Locale::Maketext::Lexicon::Gettext->parse(<DATA>) };
 
-our $VERSION = '0.94'; # VERSION
+our $VERSION = '0.95'; # VERSION
 
 #use Data::Dump; dd \%Lexicon;
 
@@ -21,7 +21,14 @@ Perinci::CmdLine::I18N::id - Indonesian translation for Perinci::CmdLine
 
 =head1 VERSION
 
-version 0.94
+version 0.95
+
+=head1 DESCRIPTION
+
+=head1 FUNCTIONS
+
+
+None are exported by default, but they are exportable.
 
 =head1 HOMEPAGE
 
@@ -34,7 +41,7 @@ Source repository is at L<https://github.com/sharyanto/perl-Perinci-CmdLine>.
 =head1 BUGS
 
 Please report any bugs or feature requests on the bugtracker website
-http://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-CmdLine
+L<https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-CmdLine>
 
 When submitting a bug or request, please include a test-file or a
 patch to an existing test-file that illustrates the bug or desired
@@ -204,13 +211,21 @@ msgstr "Untuk melihat semua subperintah yang ada, gunakan '--subcommands'"
 msgid  "or as argument #%1"
 msgstr "atau sebagai argumen #%1"
 
-msgid  "or from stdin"
-msgstr "atau dari masukan standar"
+msgid  "from stdin"
+msgstr "dari masukan standar"
 
-msgid  "or from stdin/files"
-msgstr "atau dari berkas/masukan standar"
+msgid  "from file"
+msgstr "dari berkas"
+
+msgid  "from stdin/files"
+msgstr "dari berkas/masukan standar"
 
 # etc
 
 msgid  "value in"
 msgstr "nilai salah satu dari"
+
+# error messages
+
+msgid  "Argument %1 must be set to '-' which means from stdin"
+msgstr "Argumen %1 harus diset '-' yang berarti dari masukan standar"

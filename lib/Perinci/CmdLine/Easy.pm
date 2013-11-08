@@ -10,7 +10,7 @@ require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(run_cmdline_app);
 
-our $VERSION = '0.94'; # VERSION
+our $VERSION = '0.95'; # VERSION
 
 our %SPEC;
 
@@ -44,7 +44,7 @@ _
     "_perinci.sub.wrapper.validate_args" => 0,
 };
 sub run_cmdline_app {
-    my %args = @_; if (!exists($args{'sub'})) { return [400, "Missing argument: sub"] } my $_sahv_dpath = []; my $arg_err; if (exists($args{'summary'})) { ((defined($args{'summary'})) ? 1 : (($arg_err //= (@$_sahv_dpath ? '@'.join("/",@$_sahv_dpath).": " : "") . "Required input not specified"),0)) && ((!ref($args{'summary'})) ? 1 : (($arg_err //= (@$_sahv_dpath ? '@'.join("/",@$_sahv_dpath).": " : "") . "Input is not of type text"),0)); if ($arg_err) { return [400, "Invalid argument value for summary: $arg_err"] } }require List::Util; ($args{'argv'} //= [], 1) && ((defined($args{'argv'})) ? 1 : (($arg_err //= (@$_sahv_dpath ? '@'.join("/",@$_sahv_dpath).": " : "") . "Required input not specified"),0)) && ((ref($args{'argv'}) eq 'ARRAY') ? 1 : (($arg_err //= (@$_sahv_dpath ? '@'.join("/",@$_sahv_dpath).": " : "") . "Input is not of type array"),0)) && ((push(@$_sahv_dpath, undef), (!defined(List::Util::first(sub {!( ($_sahv_dpath->[-1] = defined($_sahv_dpath->[-1]) ? $_sahv_dpath->[-1]+1 : 0), ((defined($_)) ? 1 : (($arg_err //= (@$_sahv_dpath ? '@'.join("/",@$_sahv_dpath).": " : "") . "Required input not specified"),0)) && ((!ref($_)) ? 1 : (($arg_err //= (@$_sahv_dpath ? '@'.join("/",@$_sahv_dpath).": " : "") . "Input is not of type text"),0)) )}, @{$args{'argv'}})))) ? 1 : (($arg_err //= (@$_sahv_dpath ? '@'.join("/",@$_sahv_dpath).": " : "") . "Input is not of type text", pop(@$_sahv_dpath)),0)); if ($arg_err) { return [400, "Invalid argument value for argv: $arg_err"] } if (exists($args{'description'})) { ((defined($args{'description'})) ? 1 : (($arg_err //= (@$_sahv_dpath ? '@'.join("/",@$_sahv_dpath).": " : "") . "Required input not specified"),0)) && ((!ref($args{'description'})) ? 1 : (($arg_err //= (@$_sahv_dpath ? '@'.join("/",@$_sahv_dpath).": " : "") . "Input is not of type text"),0)); if ($arg_err) { return [400, "Invalid argument value for description: $arg_err"] } }# VALIDATE_ARGS
+    my %args = @_; if (!exists($args{'sub'})) { return [400, "Missing argument: sub"] } my $_sahv_dpath = []; my $arg_err; if (exists($args{'summary'})) { ((defined($args{'summary'})) ? 1 : (($arg_err //= (@$_sahv_dpath ? '@'.join("/",@$_sahv_dpath).": " : "") . "Required input not specified"),0)) && ((!ref($args{'summary'})) ? 1 : (($arg_err //= (@$_sahv_dpath ? '@'.join("/",@$_sahv_dpath).": " : "") . "Input is not of type text"),0)); if ($arg_err) { return [400, "Invalid argument value for summary: $arg_err"] } }require List::Util;($args{'argv'} //= [], 1) && ((defined($args{'argv'})) ? 1 : (($arg_err //= (@$_sahv_dpath ? '@'.join("/",@$_sahv_dpath).": " : "") . "Required input not specified"),0)) && ((ref($args{'argv'}) eq 'ARRAY') ? 1 : (($arg_err //= (@$_sahv_dpath ? '@'.join("/",@$_sahv_dpath).": " : "") . "Input is not of type array"),0)) && ((push(@$_sahv_dpath, undef), (!defined(List::Util::first(sub {!( ($_sahv_dpath->[-1] = defined($_sahv_dpath->[-1]) ? $_sahv_dpath->[-1]+1 : 0), ((defined($_)) ? 1 : (($arg_err //= (@$_sahv_dpath ? '@'.join("/",@$_sahv_dpath).": " : "") . "Required input not specified"),0)) && ((!ref($_)) ? 1 : (($arg_err //= (@$_sahv_dpath ? '@'.join("/",@$_sahv_dpath).": " : "") . "Input is not of type text"),0)) )}, @{$args{'argv'}})))) ? 1 : (($arg_err //= (@$_sahv_dpath ? '@'.join("/",@$_sahv_dpath).": " : "") . "Input is not of type text", pop(@$_sahv_dpath)),0)); if ($arg_err) { return [400, "Invalid argument value for argv: $arg_err"] } if (exists($args{'description'})) { ((defined($args{'description'})) ? 1 : (($arg_err //= (@$_sahv_dpath ? '@'.join("/",@$_sahv_dpath).": " : "") . "Required input not specified"),0)) && ((!ref($args{'description'})) ? 1 : (($arg_err //= (@$_sahv_dpath ? '@'.join("/",@$_sahv_dpath).": " : "") . "Input is not of type text"),0)); if ($arg_err) { return [400, "Invalid argument value for description: $arg_err"] } }# VALIDATE_ARGS
 
     my $meta = {
         v            => 1.1,
@@ -110,7 +110,7 @@ Perinci::CmdLine::Easy - A simple interface to run a subroutine as command-line 
 
 =head1 VERSION
 
-version 0.94
+version 0.95
 
 =head1 SYNOPSIS
 
@@ -177,9 +177,9 @@ What you'll get:
 =head1 FUNCTIONS
 
 
-=head2 run_cmdline_app(%args) -> [status, msg, result, meta]
+None are exported by default, but they are exportable.
 
-A simple interface to run a subroutine as command-line app.
+=head2 run_cmdline_app(%args) -> any
 
 Arguments ('*' denotes required arguments):
 
@@ -205,8 +205,6 @@ Coderef or subroutine name.
 
 Return value:
 
-Returns an enveloped result (an array). First element (status) is an integer containing HTTP status code (200 means OK, 4xx caller error, 5xx function error). Second element (msg) is a string containing error message, or 'OK' if status is 200. Third element (result) is optional, the actual result. Fourth element (meta) is called result metadata and is optional, a hash that contains extra information.
-
 =for Pod::Coverage .+
 
 =head1 SEE ALSO
@@ -224,7 +222,7 @@ Source repository is at L<https://github.com/sharyanto/perl-Perinci-CmdLine>.
 =head1 BUGS
 
 Please report any bugs or feature requests on the bugtracker website
-http://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-CmdLine
+L<https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-CmdLine>
 
 When submitting a bug or request, please include a test-file or a
 patch to an existing test-file that illustrates the bug or desired
