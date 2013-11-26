@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 0.95
+    version 0.96
 
 SYNOPSIS
     In your command-line script:
@@ -115,9 +115,6 @@ DESCRIPTION
 
     This module uses Log::Any and Log::Any::App for logging. This module
     uses Moo for OO.
-
-FUNCTIONS
-    None are exported by default, but they are exportable.
 
 DISPATCHING
     Below is the description of how the framework determines what action and
@@ -711,6 +708,10 @@ ENVIRONMENT
         Please see SHARYANTO::Role::TermAttrs.
 
 FAQ
+  How do I debug my program?
+    You can set environment DEBUG=1 or TRACE=1. See Log::Any::App for more
+    details.
+
   How does Perinci::CmdLine compare with other CLI-app frameworks?
     The main difference is that Perinci::CmdLine accesses your code through
     Riap protocol, not directly. This means that aside from local Perl code,
@@ -729,7 +730,7 @@ FAQ
   How to add support for new output format (e.g. XML, HTML)?
     See Perinci::Result::Format.
 
-  My function has argument named 'format', but it is blocked by common option --format!
+  My function has argument named 'format', but it is blocked by common option '--format'!
     To add/remove/rename common options, see the documentation on
     "common_opts" attribute. In this case, you want:
 
@@ -825,6 +826,57 @@ FAQ
 
     This also demonstrates the convenience of having the metadata as a data
     structure: you can manipulate it however you want.
+
+  How to do custom completion for my argument?
+    By default, Perinci::Sub::Complete's "complete_arg_val()" can employ
+    some heuristics to complete argument values, e.g. from the "in" clause
+    or "max" and "min":
+
+     $SPEC{set_ticket_status} = {
+         v => 1.1,
+         args => {
+             ticket_id => { ... },
+             status => {
+                 schema => ['str*', in => [qw/new open stalled resolved rejected/],
+             },
+         },
+     }
+
+    But if you want to supply custom completion, the Rinci::function
+    specification allows specifying a "completion" property for your
+    argument, for example:
+
+     use Perinci::Sub::Complete qw(complete_array);
+     $SPEC{del_user} = {
+         v => 1.1,
+         args => {
+             username => {
+                 schema => 'str*',
+                 req => 1,
+                 pos => 0,
+                 completion => sub {
+                     my %args = @_;
+
+                     # get list of users from database or whatever
+                     my @users = ...;
+                     complete_array(array=>\@users, word=>$args{word});
+                 },
+             },
+             ...
+         },
+     };
+
+    You can use completion your command-line program:
+
+     % del-user --username <tab>
+     % del-user <tab> ; # since the 'username' argument has pos=0
+
+  My custom completion does not work, how do I debug it?
+    Completion works by the shell invoking our (the same) program with
+    "COMP_LINE" and "COMP_POINT" environment variables. You can do something
+    like this to see debugging information:
+
+     % COMP_LINE='myprog --arg x' COMP_POINT=13 PERL5OPT=-MLog::Any::App TRACE=1 myprog --arg x
 
   My application is OO?
     This framework is currently non-OO and function-centric. There are

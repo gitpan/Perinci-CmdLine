@@ -12,12 +12,12 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '0.95'; # VERSION
+our $VERSION = '0.96'; # VERSION
 
-with 'SHARYANTO::Role::ColorTheme';
-#with 'SHARYANTO::Role::TermAttrs'; already loaded by ColorTheme
-with 'SHARYANTO::Role::I18N';
-with 'SHARYANTO::Role::I18NRinci';
+with 'SHARYANTO::Role::ColorTheme' unless $ENV{COMP_LINE};
+#with 'SHARYANTO::Role::TermAttrs' unless $ENV{COMP_LINE}; already loaded by ColorTheme
+with 'SHARYANTO::Role::I18N' unless $ENV{COMP_LINE};
+with 'SHARYANTO::Role::I18NRinci' unless $ENV{COMP_LINE};
 
 has program_name => (
     is => 'rw',
@@ -310,19 +310,20 @@ sub _program_and_subcommand_name {
 sub BUILD {
     my ($self, $args) = @_;
 
-    # pick default color theme and set it
-    my $ct = $self->{color_theme} // $ENV{PERINCI_CMDLINE_COLOR_THEME};
-    if (!$ct) {
-        if ($self->use_color) {
-            my $bg = $self->detect_terminal->{default_bgcolor} // '';
-            $ct = 'Default::default' .
-                ($bg eq 'ffffff' ? '_whitebg' : '');
-        } else {
-            $ct = 'Default::no_color';
+    unless ($ENV{COMP_LINE}) {
+        # pick default color theme and set it
+        my $ct = $self->{color_theme} // $ENV{PERINCI_CMDLINE_COLOR_THEME};
+        if (!$ct) {
+            if ($self->use_color) {
+                my $bg = $self->detect_terminal->{default_bgcolor} // '';
+                $ct = 'Default::default' .
+                    ($bg eq 'ffffff' ? '_whitebg' : '');
+            } else {
+                $ct = 'Default::no_color';
+            }
         }
+        $self->color_theme($ct);
     }
-    $self->color_theme($ct);
-
 }
 
 sub format_result {
@@ -1128,8 +1129,13 @@ sub help_section_examples {
     for my $eg (@$egs) {
         my $argv;
         my $ct;
-        if (defined($eg->{src}) && $eg->{src_plang} =~ /^(sh|bash)$/) {
-            $ct = $eg->{src};
+        if (defined($eg->{src})) {
+            # we only show shell command examples
+            if ($eg->{src_plang} =~ /^(sh|bash)$/) {
+                $ct = $eg->{src};
+            } else {
+                next;
+            }
         } else {
             require String::ShellQuote;
             if ($eg->{argv}) {
@@ -1675,18 +1681,20 @@ sub run {
     while (@{$self->{_actions}}) {
         my $action = shift @{$self->{_actions}};
 
-        # determine whether to binmode(STDOUT,":utf8")
-        my $utf8 = $ENV{UTF8};
-        if (!defined($utf8)) {
-            my $am = $self->action_metadata->{$action};
-            $utf8 //= $am->{use_utf8};
-        }
-        if (!defined($utf8) && $self->{_subcommand}) {
-            $utf8 //= $self->{_subcommand}{use_utf8};
-        }
-        $utf8 //= $self->use_utf8;
-        if ($utf8) {
-            binmode(STDOUT, ":utf8");
+        unless ($ENV{COMP_LINE}) {
+            # determine whether to binmode(STDOUT,":utf8")
+            my $utf8 = $ENV{UTF8};
+            if (!defined($utf8)) {
+                my $am = $self->action_metadata->{$action};
+                $utf8 //= $am->{use_utf8};
+            }
+            if (!defined($utf8) && $self->{_subcommand}) {
+                $utf8 //= $self->{_subcommand}{use_utf8};
+            }
+            $utf8 //= $self->use_utf8;
+            if ($utf8) {
+                binmode(STDOUT, ":utf8");
+            }
         }
 
         my $meth = "run_$action";
@@ -1714,7 +1722,7 @@ __END__
 
 =pod
 
-=encoding utf-8
+=encoding UTF-8
 
 =head1 NAME
 
@@ -1722,7 +1730,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.95
+version 0.96
 
 =head1 SYNOPSIS
 
@@ -1838,11 +1846,6 @@ etc) can be renamed or disabled.
 
 This module uses L<Log::Any> and L<Log::Any::App> for logging. This module uses
 L<Moo> for OO.
-
-=head1 FUNCTIONS
-
-
-None are exported by default, but they are exportable.
 
 =for Pod::Coverage ^(BUILD|run_.+|help_section_.+|format_result|format_row|display_result|get_subcommand|list_subcommands|parse_common_opts|parse_subcommand_opts|format_set|format_options|format_options_set)$
 
@@ -2479,6 +2482,11 @@ Please see L<SHARYANTO::Role::TermAttrs>.
 
 =head1 FAQ
 
+=head2 How do I debug my program?
+
+You can set environment DEBUG=1 or TRACE=1. See L<Log::Any::App> for more
+details.
+
 =head2 How does Perinci::CmdLine compare with other CLI-app frameworks?
 
 The main difference is that Perinci::CmdLine accesses your code through L<Riap>
@@ -2498,7 +2506,7 @@ for remote code as well as local Perl code.
 
 See L<Perinci::Result::Format>.
 
-=head2 My function has argument named 'format', but it is blocked by common option --format!
+=head2 My function has argument named 'format', but it is blocked by common option '--format'!
 
 To add/remove/rename common options, see the documentation on C<common_opts>
 attribute. In this case, you want:
@@ -2597,6 +2605,59 @@ command-line script C<f1> becomes:
 This also demonstrates the convenience of having the metadata as a data
 structure: you can manipulate it however you want.
 
+=head2 How to do custom completion for my argument?
+
+By default, L<Perinci::Sub::Complete>'s C<complete_arg_val()> can employ some
+heuristics to complete argument values, e.g. from the C<in> clause or C<max> and
+C<min>:
+
+ $SPEC{set_ticket_status} = {
+     v => 1.1,
+     args => {
+         ticket_id => { ... },
+         status => {
+             schema => ['str*', in => [qw/new open stalled resolved rejected/],
+         },
+     },
+ }
+
+But if you want to supply custom completion, the L<Rinci::function>
+specification allows specifying a C<completion> property for your argument, for
+example:
+
+ use Perinci::Sub::Complete qw(complete_array);
+ $SPEC{del_user} = {
+     v => 1.1,
+     args => {
+         username => {
+             schema => 'str*',
+             req => 1,
+             pos => 0,
+             completion => sub {
+                 my %args = @_;
+
+                 # get list of users from database or whatever
+                 my @users = ...;
+                 complete_array(array=>\@users, word=>$args{word});
+             },
+         },
+         ...
+     },
+ };
+
+You can use completion your command-line program:
+
+ % del-user --username <tab>
+ % del-user <tab> ; # since the 'username' argument has pos=0
+
+=head2 My custom completion does not work, how do I debug it?
+
+Completion works by the shell invoking our (the same) program with C<COMP_LINE>
+and C<COMP_POINT> environment variables. You can do something like this to see
+debugging information:
+
+ % COMP_LINE='myprog --arg x' COMP_POINT=13 PERL5OPT=-MLog::Any::App TRACE=1 myprog --arg x
+
 =head2 My application is OO?
 
 This framework is currently non-OO and function-centric. There are already
@@ -2624,8 +2685,7 @@ Source repository is at L<https://github.com/sharyanto/perl-Perinci-CmdLine>.
 
 =head1 BUGS
 
-Please report any bugs or feature requests on the bugtracker website
-L<https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-CmdLine>
+Please report any bugs or feature requests on the bugtracker website L<https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-CmdLine>
 
 When submitting a bug or request, please include a test-file or a
 patch to an existing test-file that illustrates the bug or desired
