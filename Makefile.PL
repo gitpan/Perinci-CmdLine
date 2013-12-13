@@ -6,6 +6,8 @@ use 5.010001;
 
 use ExtUtils::MakeMaker 6.30;
 
+use File::ShareDir::Install;
+install_share dist => "share";
 
 
 my %WriteMakefileArgs = (
@@ -13,14 +15,15 @@ my %WriteMakefileArgs = (
   "AUTHOR" => "Steven Haryanto <stevenharyanto\@gmail.com>",
   "BUILD_REQUIRES" => {},
   "CONFIGURE_REQUIRES" => {
-    "ExtUtils::MakeMaker" => "6.30"
+    "ExtUtils::MakeMaker" => "6.30",
+    "File::ShareDir::Install" => "0.03"
   },
   "DISTNAME" => "Perinci-CmdLine",
   "EXE_FILES" => [
-    "bin/strip-result-env-json",
+    "bin/peri-run",
     "bin/peri-func-usage",
     "bin/strip-result-env-yaml",
-    "bin/peri-run"
+    "bin/strip-result-env-json"
   ],
   "LICENSE" => "perl",
   "NAME" => "Perinci::CmdLine",
@@ -32,6 +35,8 @@ my %WriteMakefileArgs = (
     "File::Which" => 0,
     "JSON" => 0,
     "Lingua::FR::Nums2Words" => 0,
+    "Locale::Messages" => 0,
+    "Locale::TextDomain" => 0,
     "Log::Any" => 0,
     "Log::Any::App" => 0,
     "Monkey::Patch::Action" => 0,
@@ -48,10 +53,6 @@ my %WriteMakefileArgs = (
     "Perinci::Sub::GetArgs::Argv" => "0.28",
     "Perinci::Sub::Util" => "0.36",
     "Perinci::Sub::Wrapper" => "0.40",
-    "Perinci::To::Text::I18N" => "0.22",
-    "Perinci::To::Text::I18N::en" => "0.22",
-    "Perinci::To::Text::I18N::fr" => "0.22",
-    "Perinci::To::Text::I18N::id" => "0.22",
     "Perinci::ToUtil" => 0,
     "Progress::Any" => "0.10",
     "Progress::Any::Output" => 0,
@@ -59,8 +60,6 @@ my %WriteMakefileArgs = (
     "Rinci" => "v1.1.41",
     "SHARYANTO::Getopt::Long::Util" => 0,
     "SHARYANTO::Role::ColorTheme" => "0.62",
-    "SHARYANTO::Role::I18N" => "0.46",
-    "SHARYANTO::Role::I18NRinci" => 0,
     "String::ShellQuote" => 0,
     "Text::ANSITable" => "0.23",
     "Tie::Simple" => 0,
@@ -76,7 +75,7 @@ my %WriteMakefileArgs = (
     "IPC::Open3" => 0,
     "Test::More" => "0.96"
   },
-  "VERSION" => "0.96",
+  "VERSION" => "0.97",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -96,6 +95,8 @@ my %FallbackPrereqs = (
   "IPC::Open3" => 0,
   "JSON" => 0,
   "Lingua::FR::Nums2Words" => 0,
+  "Locale::Messages" => 0,
+  "Locale::TextDomain" => 0,
   "Log::Any" => 0,
   "Log::Any::App" => 0,
   "Monkey::Patch::Action" => 0,
@@ -112,10 +113,6 @@ my %FallbackPrereqs = (
   "Perinci::Sub::GetArgs::Argv" => "0.28",
   "Perinci::Sub::Util" => "0.36",
   "Perinci::Sub::Wrapper" => "0.40",
-  "Perinci::To::Text::I18N" => "0.22",
-  "Perinci::To::Text::I18N::en" => "0.22",
-  "Perinci::To::Text::I18N::fr" => "0.22",
-  "Perinci::To::Text::I18N::id" => "0.22",
   "Perinci::ToUtil" => 0,
   "Progress::Any" => "0.10",
   "Progress::Any::Output" => 0,
@@ -123,8 +120,6 @@ my %FallbackPrereqs = (
   "Rinci" => "v1.1.41",
   "SHARYANTO::Getopt::Long::Util" => 0,
   "SHARYANTO::Role::ColorTheme" => "0.62",
-  "SHARYANTO::Role::I18N" => "0.46",
-  "SHARYANTO::Role::I18NRinci" => 0,
   "String::ShellQuote" => 0,
   "Test::More" => "0.96",
   "Text::ANSITable" => "0.23",
@@ -146,5 +141,10 @@ delete $WriteMakefileArgs{CONFIGURE_REQUIRES}
 
 WriteMakefile(%WriteMakefileArgs);
 
+{
+package
+MY;
+use File::ShareDir::Install qw(postamble);
+}
 
 

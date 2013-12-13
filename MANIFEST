@@ -23,10 +23,8 @@ examples/uc-file
 lib/Perinci/CmdLine.pm
 lib/Perinci/CmdLine/ColorTheme/Default.pm
 lib/Perinci/CmdLine/Easy.pm
-lib/Perinci/CmdLine/I18N.pm
-lib/Perinci/CmdLine/I18N/en.pm
-lib/Perinci/CmdLine/I18N/fr.pm
-lib/Perinci/CmdLine/I18N/id.pm
+share/LocaleData/fr/LC_MESSAGES/Perinci-CmdLine.mo
+share/LocaleData/id/LC_MESSAGES/Perinci-CmdLine.mo
 t/00-compile.t
 t/01-basics.t
 t/release-pod-coverage.t

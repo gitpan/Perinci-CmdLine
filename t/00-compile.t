@@ -3,18 +3,14 @@ use warnings;
 
 # this test was generated with Dist::Zilla::Plugin::Test::Compile 2.037
 
-use Test::More  tests => 11 + ($ENV{AUTHOR_TESTING} ? 1 : 0);
+use Test::More  tests => 7 + ($ENV{AUTHOR_TESTING} ? 1 : 0);
 
 
 
 my @module_files = (
     'Perinci/CmdLine.pm',
     'Perinci/CmdLine/ColorTheme/Default.pm',
-    'Perinci/CmdLine/Easy.pm',
-    'Perinci/CmdLine/I18N.pm',
-    'Perinci/CmdLine/I18N/en.pm',
-    'Perinci/CmdLine/I18N/fr.pm',
-    'Perinci/CmdLine/I18N/id.pm'
+    'Perinci/CmdLine/Easy.pm'
 );
 
 my @scripts = (
