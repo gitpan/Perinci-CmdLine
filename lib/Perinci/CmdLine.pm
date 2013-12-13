@@ -13,7 +13,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '0.98'; # VERSION
+our $VERSION = '0.99'; # VERSION
 
 with 'SHARYANTO::Role::ColorTheme' unless $ENV{COMP_LINE};
 #with 'SHARYANTO::Role::TermAttrs' unless $ENV{COMP_LINE}; already loaded by ColorTheme
@@ -130,7 +130,7 @@ has common_opts => (
 
         $opts{help} = {
             getopt  => "help|h|?",
-            usage   => N__("--help (or -h, -?) (--verbose)"),
+            usage   => N__("--help (or -h, -?) [--verbose]"),
             summary => N__("Display this help message"),
             show_in_options => sub { $ENV{VERBOSE} },
             handler => sub {
@@ -195,15 +195,36 @@ has common_opts => (
         if ($self->log_any_app) {
             # since the cmdline opts is consumed, Log::Any::App doesn't see
             # this. we currently work around this via setting env.
-            for my $o (qw/quiet verbose debug trace/) {
-                $opts{$o} = {
-                    getopt  => $o,
-                    summary => N__("Set log level to $o"),
-                    handler => sub {
-                        $ENV{uc $o} = 1;
-                    },
-                };
-            }
+
+            $opts{quiet} = {
+                getopt  => "quiet",
+                summary => N__("Set log level to quiet"),
+                handler => sub {
+                    $ENV{QUIET} = 1;
+                },
+            };
+            $opts{verbose} = {
+                getopt  => "verbose",
+                summary => N__("Set log level to verbose"),
+                handler => sub {
+                    $ENV{VERBOSE} = 1;
+                },
+            };
+            $opts{debug} = {
+                getopt  => "debug",
+                summary => N__("Set log level to debug"),
+                handler => sub {
+                    $ENV{DEBUG} = 1;
+                },
+            };
+            $opts{trace} = {
+                getopt  => "trace",
+                summary => N__("Set log level to trace"),
+                handler => sub {
+                    $ENV{TRACE} = 1;
+                },
+            };
+
             $opts{log_level} = {
                 getopt  => "log-level=s",
                 summary => N__("Set log level"),
@@ -1743,7 +1764,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.98
+version 0.99
 
 =head1 SYNOPSIS
 
