@@ -8,12 +8,12 @@ use Log::Any '$log';
 use Data::Dump::OneLine qw(dump1);
 use Moo;
 use experimental 'smartmatch'; # must be after Moo
-use Locale::TextDomain 'Perinci-CmdLine';
+use Locale::TextDomain::UTF8 'Perinci-CmdLine';
 use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '0.97'; # VERSION
+our $VERSION = '0.98'; # VERSION
 
 with 'SHARYANTO::Role::ColorTheme' unless $ENV{COMP_LINE};
 #with 'SHARYANTO::Role::TermAttrs' unless $ENV{COMP_LINE}; already loaded by ColorTheme
@@ -1663,10 +1663,6 @@ sub run {
         my $locale = $ENV{LANGUAGE} || $ENV{LANG};
         POSIX::setlocale(POSIX::LC_ALL(), $locale)
               or warn "Can't setlocale to $locale";
-        require Locale::Messages;
-        $ENV{OUTPUT_CHARSET} = 'UTF-8';
-        Locale::Messages::bind_textdomain_filter(
-            'Perinci-CmdLine' => \&Encode::decode_utf8);
     }
 
     $self->{_actions} = []; # first action will be tried first, then 2nd, ...
@@ -1747,7 +1743,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.97
+version 0.98
 
 =head1 SYNOPSIS
 
