@@ -13,7 +13,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '0.99'; # VERSION
+our $VERSION = '1.00'; # VERSION
 
 with 'SHARYANTO::Role::ColorTheme' unless $ENV{COMP_LINE};
 #with 'SHARYANTO::Role::TermAttrs' unless $ENV{COMP_LINE}; already loaded by ColorTheme
@@ -1676,16 +1676,6 @@ sub run {
         $self->{_comp_parse_res} = $res; # store for run_completion()
     }
 
-    #
-    # set locale
-    #
-    {
-        require POSIX;
-        my $locale = $ENV{LANGUAGE} || $ENV{LANG};
-        POSIX::setlocale(POSIX::LC_ALL(), $locale)
-              or warn "Can't setlocale to $locale";
-    }
-
     $self->{_actions} = []; # first action will be tried first, then 2nd, ...
 
     #
@@ -1764,7 +1754,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 0.99
+version 1.00
 
 =head1 SYNOPSIS
 
