@@ -13,7 +13,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '1.00'; # VERSION
+our $VERSION = '1.01'; # VERSION
 
 with 'SHARYANTO::Role::ColorTheme' unless $ENV{COMP_LINE};
 #with 'SHARYANTO::Role::TermAttrs' unless $ENV{COMP_LINE}; already loaded by ColorTheme
@@ -1500,10 +1500,15 @@ sub parse_subcommand_opts {
         on_missing_required_args => sub {
             my %a = @_;
             my ($an, $aa, $as) = ($a{arg}, $a{args}, $a{spec});
-            say "missing arg $an";
             my $src = $as->{cmdline_src};
-            # fill with undef first, will be filled from other source
-            $aa->{$an} = undef if $src && $as->{req};
+            if ($src && $as->{req}) {
+                # don't complain, we will fill argument from other source
+                return 1;
+            } else {
+                # we have no other sources, so we complain about missing arg
+                say "missing arg $an";
+            }
+            0;
         },
     );
     if ($self->{_force_subcommand}) {
@@ -1537,6 +1542,7 @@ sub parse_subcommand_opts {
         my $args_p = $meta->{args} // {};
         my $stdin_seen;
         for my $an (sort keys %$args_p) {
+            #$log->tracef("TMP: handle cmdline_src for arg=%s", $an);
             my $as = $args_p->{$an};
             my $src = $as->{cmdline_src};
             if ($src) {
@@ -1563,11 +1569,23 @@ sub parse_subcommand_opts {
                     $self->{_args}{$an} = $is_ary ? [<STDIN>] :
                         do { local $/; <STDIN> };
                 } elsif ($src eq 'stdin_or_files') {
-                    $log->trace("Getting argument '$an' value from ".
-                                    "stdin_or_files ...");
+                    # push back argument value to @ARGV so <> can work to slurp
+                    # all the specified files
+                    local @ARGV = @ARGV;
+                    unshift @ARGV, $self->{_args}{$an}
+                        if defined $self->{_args}{$an};
+                    $log->tracef("Getting argument '$an' value from ".
+                                     "stdin_or_files, \@ARGV=%s ...", \@ARGV);
                     $self->{_args}{$an} = $is_ary ? [<>] : do { local $/; <> };
                 } elsif ($src eq 'file') {
-                    next unless exists $self->{_args}{$an};
+                    unless (exists $self->{_args}{$an}) {
+                        if ($as->{req}) {
+                            $self->_err(
+                                "Please specify filename for argument '$an'");
+                        } else {
+                            next;
+                        }
+                    }
                     $self->_err("Please specify filename for argument '$an'")
                         unless defined $self->{_args}{$an};
                     $log->trace("Getting argument '$an' value from ".
@@ -1754,7 +1772,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 1.00
+version 1.01
 
 =head1 SYNOPSIS
 
@@ -2721,7 +2739,7 @@ Steven Haryanto <stevenharyanto@gmail.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2013 by Steven Haryanto.
+This software is copyright (c) 2014 by Steven Haryanto.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

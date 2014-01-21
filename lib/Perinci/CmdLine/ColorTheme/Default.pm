@@ -4,7 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 
-our $VERSION = '1.00'; # VERSION
+our $VERSION = '1.01'; # VERSION
 
 our %color_themes = (
 
@@ -56,7 +56,7 @@ Perinci::CmdLine::ColorTheme::Default - Default color themes
 
 =head1 VERSION
 
-version 1.00
+version 1.01
 
 =head1 HOMEPAGE
 
@@ -80,7 +80,7 @@ Steven Haryanto <stevenharyanto@gmail.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2013 by Steven Haryanto.
+This software is copyright (c) 2014 by Steven Haryanto.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
