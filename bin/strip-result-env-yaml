@@ -8,7 +8,7 @@ use JSON;
 use Scalar::Util 'looks_like_number';
 use YAML::Syck;
 
-our $VERSION = '1.01'; # VERSION
+our $VERSION = '1.02'; # VERSION
 
 {
     local $/;
@@ -37,7 +37,7 @@ strip-result-env-yaml - Strip result envelope (YAML version)
 
 =head1 VERSION
 
-version 1.01
+version 1.02
 
 =head1 SYNOPSIS
 

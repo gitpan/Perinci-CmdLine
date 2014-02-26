@@ -10,7 +10,7 @@ require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(run_cmdline_app);
 
-our $VERSION = '1.01'; # VERSION
+our $VERSION = '1.02'; # VERSION
 
 our %SPEC;
 
@@ -110,7 +110,7 @@ Perinci::CmdLine::Easy - A simple interface to run a subroutine as command-line 
 
 =head1 VERSION
 
-version 1.01
+version 1.02
 
 =head1 SYNOPSIS
 
@@ -187,19 +187,19 @@ Arguments ('*' denotes required arguments):
 
 =item * B<argv> => I<array> (default: [])
 
-A simple interface to run a subroutine as command-line app.
+List of arguments.
+
+Each argument is NAME, NAME* (marking required argument), or NAME+ (marking
+greedy argument, where the rest of command-line arguments will be fed into this
+array).
 
 =item * B<description> => I<str>
 
-A simple interface to run a subroutine as command-line app.
-
 =item * B<sub>* => I<any>
 
-A simple interface to run a subroutine as command-line app.
+Coderef or subroutine name.
 
 =item * B<summary> => I<str>
-
-A simple interface to run a subroutine as command-line app.
 
 =back
 

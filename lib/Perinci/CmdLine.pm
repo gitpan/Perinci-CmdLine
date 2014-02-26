@@ -13,7 +13,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '1.01'; # VERSION
+our $VERSION = '1.02'; # VERSION
 
 with 'SHARYANTO::Role::ColorTheme' unless $ENV{COMP_LINE};
 #with 'SHARYANTO::Role::TermAttrs' unless $ENV{COMP_LINE}; already loaded by ColorTheme
@@ -1252,6 +1252,7 @@ sub run_help {
 }
 
 my ($ph1, $ph2); # patch handles
+my $setup_progress;
 sub _setup_progress_output {
     my $self = shift;
 
@@ -1259,6 +1260,7 @@ sub _setup_progress_output {
         require Progress::Any::Output;
         Progress::Any::Output->set("TermProgressBarColor");
         my $out = $Progress::Any::outputs{''}[0];
+        $setup_progress = 1;
         # we need to patch the logger adapters so it won't interfere with
         # progress meter's output
         require Monkey::Patch::Action;
@@ -1278,6 +1280,10 @@ sub _setup_progress_output {
                                 "\b" x $out->{lastlen};
                     undef $out->{lastlen};
                 }
+
+                # force output update so progress bar is displayed again
+                # immediately
+                $Progress::Any::output_data{"$out"}{force_update} = 1;
 
                 say $msg;
             },
@@ -1303,6 +1309,10 @@ sub _setup_progress_output {
                     undef $out->{lastlen};
                 }
 
+                # force output update so progress bar is displayed again
+                # immediately
+                $Progress::Any::output_data{"$out"}{force_update} = 1;
+
                 # XXX duplicated code above, perhaps move this to
                 # TermProgressBarColor's clean_bar() or something
 
@@ -1310,6 +1320,17 @@ sub _setup_progress_output {
             }
         ) if defined &{"Log::Log4perl::Appender::ScreenColoredLevels::log"};
     }
+}
+
+sub _unsetup_progress_output {
+    my $self = shift;
+
+    return unless $setup_progress;
+    my $out = $Progress::Any::outputs{''}[0];
+    $out->cleanup if $out->can("cleanup");
+    undef $ph1;
+    undef $ph2;
+    $setup_progress = 0;
 }
 
 sub run_subcommand {
@@ -1340,12 +1361,8 @@ sub run_subcommand {
     }
 
     # setup output progress indicator
-    state $setup_progress;
     if ($self->{_meta}{features}{progress}) {
-        unless ($setup_progress) {
-            $self->_setup_progress_output;
-            $setup_progress++;
-        }
+        $self->_setup_progress_output;
     }
 
     # call function
@@ -1751,8 +1768,10 @@ sub run {
     $log->tracef("<- CmdLine's run(), exit code=%s", $exit_code);
     if ($self->exit) {
         $log->debugf("Program ending with exit code %d", $exit_code);
+        $self->_unsetup_progress_output;
         exit $exit_code;
     } else {
+        $self->_unsetup_progress_output;
         return $exit_code;
     }
 }
@@ -1772,7 +1791,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 1.01
+version 1.02
 
 =head1 SYNOPSIS
 
