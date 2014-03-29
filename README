@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 1.02
+    version 1.03
 
 SYNOPSIS
     In your command-line script:
@@ -609,9 +609,9 @@ METADATA PROPERTY ATTRIBUTE
     command-line option).
 
 RESULT METADATA
-    This module interprets the following result metadata keys:
+    This module interprets the following result metadata property/attribute:
 
-  is_stream => BOOL
+  property: is_stream => BOOL
     XXX should perhaps be defined as standard in Rinci::function.
 
     If set to 1, signify that result is a stream. Result must be a glob, or
@@ -646,7 +646,7 @@ RESULT METADATA
 
     See also Data::Unixish and App::dux which deals with streams.
 
-  cmdline.display_result => BOOL
+  attribute: cmdline.display_result => BOOL
     If you don't want to display function output (for example, function
     output is a detailed data structure which might not be important for end
     users), you can set "cmdline.display_result" result metadata to false.
@@ -658,7 +658,7 @@ RESULT METADATA
          [200, "OK", $data, {"cmdline.display_result"=>0}];
      }
 
-  cmdline.page_result => BOOL
+  attribute: cmdline.page_result => BOOL
     If you want to filter the result through pager (currently defaults to
     $ENV{PAGER} or "less -FRSX"), you can set "cmdline.page_result" in
     result metadata to true.
@@ -671,11 +671,11 @@ RESULT METADATA
          [200, "OK", $doc, {"cmdline.page_result"=>1}];
      }
 
-  cmdline.pager => STR
+  attribute: cmdline.pager => STR
     Instruct Perinci::CmdLine to use specified pager instead of $ENV{PAGER}
     or the default "less" or "more".
 
-  cmdline.exit_code => INT
+  attribute: cmdline.exit_code => INT
     Instruct Perinci::CmdLine to use this exit code, instead of using
     (function status - 300).
 

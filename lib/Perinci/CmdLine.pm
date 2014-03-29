@@ -13,7 +13,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '1.02'; # VERSION
+our $VERSION = '1.03'; # VERSION
 
 with 'SHARYANTO::Role::ColorTheme' unless $ENV{COMP_LINE};
 #with 'SHARYANTO::Role::TermAttrs' unless $ENV{COMP_LINE}; already loaded by ColorTheme
@@ -1504,8 +1504,6 @@ sub parse_subcommand_opts {
     do { $self->{_dry_run} = 1; $ENV{VERBOSE} = 1 } if $ENV{DRY_RUN};
 
     # parse argv
-    $Perinci::Sub::GetArgs::Argv::_pa_skip_check_required_args = 1
-        if $self->{_pa_skip_check_required_args};
     my $src_seen;
     my %ga_args = (
         argv                => \@ARGV,
@@ -1523,7 +1521,7 @@ sub parse_subcommand_opts {
                 return 1;
             } else {
                 # we have no other sources, so we complain about missing arg
-                say "missing arg $an";
+                say "missing arg $an" if $self->{_check_required_args} // 1;
             }
             0;
         },
@@ -1791,7 +1789,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 1.02
+version 1.03
 
 =head1 SYNOPSIS
 
@@ -2435,9 +2433,9 @@ option).
 
 =head1 RESULT METADATA
 
-This module interprets the following result metadata keys:
+This module interprets the following result metadata property/attribute:
 
-=head2 is_stream => BOOL
+=head2 property: is_stream => BOOL
 
 XXX should perhaps be defined as standard in L<Rinci::function>.
 
@@ -2472,7 +2470,7 @@ another example:
 
 See also L<Data::Unixish> and L<App::dux> which deals with streams.
 
-=head2 cmdline.display_result => BOOL
+=head2 attribute: cmdline.display_result => BOOL
 
 If you don't want to display function output (for example, function output is a
 detailed data structure which might not be important for end users), you can set
@@ -2484,7 +2482,7 @@ C<cmdline.display_result> result metadata to false. Example:
      [200, "OK", $data, {"cmdline.display_result"=>0}];
  }
 
-=head2 cmdline.page_result => BOOL
+=head2 attribute: cmdline.page_result => BOOL
 
 If you want to filter the result through pager (currently defaults to
 C<$ENV{PAGER}> or C<less -FRSX>), you can set C<cmdline.page_result> in result
@@ -2498,12 +2496,12 @@ For example:
      [200, "OK", $doc, {"cmdline.page_result"=>1}];
  }
 
-=head2 cmdline.pager => STR
+=head2 attribute: cmdline.pager => STR
 
 Instruct Perinci::CmdLine to use specified pager instead of C<$ENV{PAGER}> or
 the default C<less> or C<more>.
 
-=head2 cmdline.exit_code => INT
+=head2 attribute: cmdline.exit_code => INT
 
 Instruct Perinci::CmdLine to use this exit code, instead of using (function
 status - 300).
