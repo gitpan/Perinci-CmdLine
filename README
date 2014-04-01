@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 1.03
+    version 1.04
 
 SYNOPSIS
     In your command-line script:
@@ -10,7 +10,7 @@ SYNOPSIS
      #!/usr/bin/perl
      use 5.010;
      use Log::Any '$log';
-     use Perinci::CmdLine;
+     use Perinci::CmdLine 1.04;
 
      our %SPEC;
      $SPEC{foo} = {
@@ -489,12 +489,14 @@ ATTRIBUTES
 
     The default contains: help (getopt "help|h|?"), version (getopt
     "version|v"), action (getopt "action"), format (getopt "format=s"),
-    format_options (getopt "format-options=s"). If there are more than one
-    subcommands, this will also be added: list (getopt "list|l"). If dry-run
-    is supported by function, there will also be: dry_run (getopt
-    "dry-run"). If undo is turned on, there will also be: undo (getopt
-    "undo"), redo (getopt "redo"), history (getopt "history"), clear_history
-    (getopt "clear-history").
+    format_options (getopt "format-options=s"), json*, yaml*, perl*. If
+    there are more than one subcommands, this will also be added: list
+    (getopt "list|l"). If dry-run is supported by function, there will also
+    be: dry_run (getopt "dry-run"). If undo is turned on, there will also
+    be: undo (getopt "undo"), redo (getopt "redo"), history (getopt
+    "history"), clear_history (getopt "clear-history").
+
+    *) Currently only added if you say "use Perinci::CmdLine 1.04".
 
     Sometimes you do not want some options, e.g. to remove "format" and
     "format_options":
