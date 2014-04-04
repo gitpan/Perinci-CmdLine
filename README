@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 1.05
+    version 1.06
 
 SYNOPSIS
     In your command-line script:
@@ -103,7 +103,7 @@ DESCRIPTION
 
     *   Version (--version, -v)
 
-    *   List available subcommands (--list, -l)
+    *   List available subcommands (--subcommands)
 
     *   Configurable output format (--format, --format-options)
 
@@ -125,22 +125,22 @@ DISPATCHING
     potential actions to choose, in order. It will then be filled out
     according to the command-line options specified. For example, if
     "--help" is specified, "help" action is shifted to the beginning of
-    "_actions". Likewise for "--list", etc. Finally, the "subcommand" action
-    (which means an action to call our function) is added to this list.
-    After we are finished filling out the "_actions" array, the first action
-    is chosen by running a method called "run_<ACTION>". For example if the
-    chosen action is "help", "run_help()" is called. These "run_*" methods
-    must execute the action, display the output, and return an exit code.
-    Program will end with this exit code. A "run_*" method can choose to
-    decline handling the action by returning undef, in which case the next
-    action will be tried, and so on until a defined exit code is returned.
+    "_actions". Likewise for "--subcommands", etc. Finally, the "call"
+    action (which means an action to call our function) is added to this
+    list. After we are finished filling out the "_actions" array, the first
+    action is chosen by running a method called "run_<ACTION>". For example
+    if the chosen action is "help", "run_help()" is called. These "run_*"
+    methods must execute the action, display the output, and return an exit
+    code. Program will end with this exit code. A "run_*" method can choose
+    to decline handling the action by returning undef, in which case the
+    next action will be tried, and so on until a defined exit code is
+    returned.
 
-    The subcommand action and determining which subcommand (function) to
-    call. The "subcommand" action (implemented by "run_subcommand()") is the
-    one that actually does the real job, calling the function and displaying
-    its result. The "_subcommand" attribute stores information on the
-    subcommand to run, including its Riap URL. If there are subcommands,
-    e.g.:
+    The 'call' action and determining which subcommand (function) to call.
+    The "call" action (implemented by "run_call()") is the one that actually
+    does the real job, calling the function and displaying its result. The
+    "_subcommand" attribute stores information on the subcommand to run,
+    including its Riap URL. If there are subcommands, e.g.:
 
      my $cmd = Perinci::CmdLine->new(
          subcommands => {
@@ -159,10 +159,10 @@ DISPATCHING
      % myapp sub1 ...
 
     then "_subcommand" attribute will contain "{url=>'/MyApp/func1'}". When
-    no subcommand is specified on the command line, "run_subcommand()" will
+    no subcommand is specified on the command line, "run_call()" will
     decline handling the action and returning undef, and the next action
     e.g. "help" will be executed. But if "default_subcommand" attribute is
-    set, "run_subcommand()" will run the default subcommand instead.
+    set, "run_call()" will run the default subcommand instead.
 
     When there are no subcommands, e.g.:
 
@@ -170,7 +170,7 @@ DISPATCHING
 
     "_subcommand" will simply contain "{url=>'/MyApp/func'}".
 
-    "run_subcommand()" will call the function specified in the "url" in the
+    "run_call()" will call the function specified in the "url" in the
     "_subcommand" using "Perinci::Access". (Actually, "run_help()" or
     "run_completion()" can be called instead, depending on which action to
     run.)
@@ -410,9 +410,9 @@ ATTRIBUTES
     Subcommands can also be a coderef, for dynamic list of subcommands. The
     coderef will be called as a method with hash arguments. It can be called
     in two cases. First, if called without argument "name" (usually when
-    doing --list) it must return a hashref of subcommand specifications. If
-    called with argument "name" it must return subcommand specification for
-    subcommand with the requested name only.
+    doing --subcommands) it must return a hashref of subcommand
+    specifications. If called with argument "name" it must return subcommand
+    specification for subcommand with the requested name only.
 
   default_subcommand => NAME
     If set, subcommand will always be set to this instead of from the first
@@ -594,10 +594,9 @@ METHODS
 
   run() -> INT
     The main routine. Its job is to parse command-line options in @ARGV and
-    determine which action method (e.g. run_subcommand(), run_help(), etc)
-    to run. Action method should return an integer containing exit code. If
-    action method returns undef, the next action candidate method will be
-    tried.
+    determine which action method (e.g. run_call(), run_help(), etc) to run.
+    Action method should return an integer containing exit code. If action
+    method returns undef, the next action candidate method will be tried.
 
     After that, exit() will be called with the exit code from the action
     method (or, if "exit" attribute is set to false, routine will return
