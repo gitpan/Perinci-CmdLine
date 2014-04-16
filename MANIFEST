@@ -2,7 +2,6 @@
 Changes
 LICENSE
 MANIFEST
-MANIFEST.SKIP
 META.json
 META.yml
 Makefile.PL
@@ -26,6 +25,9 @@ examples/uc-file
 lib/Perinci/CmdLine.pm
 lib/Perinci/CmdLine/ColorTheme/Default.pm
 lib/Perinci/CmdLine/Easy.pm
+po/Perinci-CmdLine.pot
+po/fr.po
+po/id.po
 share/LocaleData/fr/LC_MESSAGES/Perinci-CmdLine.mo
 share/LocaleData/id/LC_MESSAGES/Perinci-CmdLine.mo
 t/00-compile.t

@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 1.06
+    version 1.07
 
 SYNOPSIS
     In your command-line script:

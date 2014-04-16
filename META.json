@@ -47,14 +47,14 @@
             "Moo" : "0",
             "Perinci::Access" : "0.30",
             "Perinci::Access::HTTP::Client" : "0.06",
-            "Perinci::Access::Perl" : "0.53",
-            "Perinci::Access::Schemeless" : "0.53",
+            "Perinci::Access::Perl" : "0.64",
+            "Perinci::Access::Schemeless" : "0.64",
             "Perinci::Access::Simple::Client" : "0",
             "Perinci::Object" : "0.11",
             "Perinci::Result::Format" : "0.33",
             "Perinci::Sub::Complete" : "0",
             "Perinci::Sub::ConvertArgs::Argv" : "0",
-            "Perinci::Sub::GetArgs::Argv" : "0.31",
+            "Perinci::Sub::GetArgs::Argv" : "0.34",
             "Perinci::Sub::Util" : "0.36",
             "Perinci::Sub::Wrapper" : "0.40",
             "Perinci::ToUtil" : "0",
@@ -96,7 +96,7 @@
          "web" : "https://github.com/sharyanto/perl-Perinci-CmdLine"
       }
    },
-   "version" : "1.06",
+   "version" : "1.07",
    "x_Dist_Zilla" : {
       "perl" : {
          "version" : "5.018002"
@@ -328,6 +328,11 @@
             "version" : "4.005"
          },
          {
+            "class" : "Dist::Zilla::Plugin::PruneFiles",
+            "name" : "@Author::SHARYANTO/PruneFiles",
+            "version" : "5.015"
+         },
+         {
             "class" : "Dist::Zilla::Plugin::ReadmeFromPod",
             "name" : "@Author::SHARYANTO/ReadmeFromPod",
             "version" : "0.21"
@@ -351,22 +356,12 @@
                }
             },
             "name" : "@Author::SHARYANTO/Test::Compile",
-            "version" : "2.039"
+            "version" : "2.040"
          },
          {
             "class" : "Dist::Zilla::Plugin::Test::Rinci",
             "name" : "@Author::SHARYANTO/Test::Rinci",
             "version" : "0.01"
-         },
-         {
-            "class" : "Dist::Zilla::Plugin::Run::BeforeBuild",
-            "name" : "@Author::SHARYANTO/Run::BeforeBuild",
-            "version" : "0.021"
-         },
-         {
-            "class" : "Dist::Zilla::Plugin::Run::Release",
-            "name" : "@Author::SHARYANTO/Run::Release",
-            "version" : "0.021"
          },
          {
             "class" : "Dist::Zilla::Plugin::LocaleTextDomain",
