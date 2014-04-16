@@ -36,8 +36,8 @@ requires:
   Moo: '0'
   Perinci::Access: '0.30'
   Perinci::Access::HTTP::Client: '0.06'
-  Perinci::Access::Perl: '0.64'
-  Perinci::Access::Schemeless: '0.64'
+  Perinci::Access::Perl: '0.65'
+  Perinci::Access::Schemeless: '0.65'
   Perinci::Access::Simple::Client: '0'
   Perinci::Object: '0.11'
   Perinci::Result::Format: '0.33'
@@ -64,7 +64,7 @@ resources:
   bugtracker: https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-CmdLine
   homepage: https://metacpan.org/release/Perinci-CmdLine
   repository: git://github.com/sharyanto/perl-Perinci-CmdLine.git
-version: '1.07'
+version: '1.08'
 x_Dist_Zilla:
   perl:
     version: '5.018002'
@@ -149,9 +149,9 @@ x_Dist_Zilla:
       name: '@Author::SHARYANTO/MetaConfig'
       version: '5.015'
     -
-      class: Dist::Zilla::Plugin::SHARYANTO::OurPkgVersion
-      name: '@Author::SHARYANTO/SHARYANTO::OurPkgVersion'
-      version: '0.02'
+      class: Dist::Zilla::Plugin::OurDate
+      name: '@Author::SHARYANTO/OurDate'
+      version: '0.01'
     -
       class: Dist::Zilla::Plugin::PodWeaver
       config:
@@ -258,6 +258,10 @@ x_Dist_Zilla:
       class: Dist::Zilla::Plugin::Rinci::Validate
       name: '@Author::SHARYANTO/Rinci::Validate'
       version: '0.12'
+    -
+      class: Dist::Zilla::Plugin::SHARYANTO::OurPkgVersion
+      name: '@Author::SHARYANTO/SHARYANTO::OurPkgVersion'
+      version: '0.02'
     -
       class: Dist::Zilla::Plugin::Test::Compile
       config:
