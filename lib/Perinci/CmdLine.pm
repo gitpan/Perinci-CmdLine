@@ -13,7 +13,8 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '1.08'; # VERSION
+our $VERSION = '1.09'; # VERSION
+our $DATE = '2014-04-30'; # DATE
 
 our $REQ_VERSION = 0; # version requested by user
 
@@ -74,8 +75,6 @@ has _pa => (
         require Perinci::Access::Schemeless;
         my %args = %{$self->pa_args // {}};
         my %opts;
-        # turn off arg validation generation to reduce startup cost
-        $opts{extra_wrapper_args} = 0 if $ENV{COMP_LINE};
         if ($self->undo) {
             $opts{use_tx} = 1;
             $opts{custom_tx_manager} = sub {
@@ -913,7 +912,7 @@ sub help_section_usage {
 }
 
 sub help_section_options {
-    require SHARYANTO::Getopt::Long::Util;
+    require Getopt::Long::Util;
 
     my ($self, %opts) = @_;
     my $verbose = $opts{verbose};
@@ -945,7 +944,7 @@ sub help_section_options {
             ($sc ? $t_copts : $t_opts);
         my $go = $cov->{getopt};
         push @{ $catopts{$cat} }, {
-            getopt=>SHARYANTO::Getopt::Long::Util::gospec2human($cov->{getopt}),
+            getopt=>Getopt::Long::Util::humanize_getopt_long_opt_spec($cov->{getopt}),
             summary=> $cov->{summary} ? __($cov->{summary}) : "",
         };
     }
@@ -1922,7 +1921,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-version 1.08
+This document describes version 1.09 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-04-30.
 
 =head1 SYNOPSIS
 

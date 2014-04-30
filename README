@@ -2,7 +2,8 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    version 1.08
+    This document describes version 1.09 of Perinci::CmdLine (from Perl
+    distribution Perinci-CmdLine), released on 2014-04-30.
 
 SYNOPSIS
     In your command-line script:

@@ -7,7 +7,7 @@ use Log::Any '$log';
 
 use Perinci::CmdLine;
 
-our $VERSION = '1.08'; # VERSION
+our $VERSION = '1.09'; # VERSION
 
 our %SPEC;
 
@@ -61,7 +61,7 @@ peri-func-usage - Display command-line usage of a Riap function
 
 =head1 VERSION
 
-version 1.08
+This document describes version 1.09 of peri-func-usage (from Perl distribution Perinci-CmdLine), released on 2014-04-30.
 
 =head1 SYNOPSIS
 

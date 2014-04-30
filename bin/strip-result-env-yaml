@@ -8,7 +8,7 @@ use JSON;
 use Scalar::Util 'looks_like_number';
 use YAML::Syck;
 
-our $VERSION = '1.08'; # VERSION
+our $VERSION = '1.09'; # VERSION
 
 {
     local $/;
@@ -37,7 +37,7 @@ strip-result-env-yaml - Strip result envelope (YAML version)
 
 =head1 VERSION
 
-version 1.08
+This document describes version 1.09 of strip-result-env-yaml (from Perl distribution Perinci-CmdLine), released on 2014-04-30.
 
 =head1 SYNOPSIS
 
