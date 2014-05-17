@@ -13,8 +13,8 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '1.09'; # VERSION
-our $DATE = '2014-04-30'; # DATE
+our $VERSION = '1.10'; # VERSION
+our $DATE = '2014-05-17'; # DATE
 
 our $REQ_VERSION = 0; # version requested by user
 
@@ -1319,6 +1319,13 @@ sub run_help {
         $self->{_help_meta} = $res->[2];
     }
 
+    # ux: since --verbose will potentially show lots of paragraph text, let's
+    # default to 80 and not wider width, unless user specifically requests
+    # column width via COLUMNS.
+    if ($verbose && !defined($ENV{COLUMNS}) && $self->term_width > 80) {
+        $self->term_width(80);
+    }
+
     # determine which help sections should we generate
     my @hsects;
     if ($verbose) {
@@ -1921,7 +1928,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-This document describes version 1.09 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-04-30.
+This document describes version 1.10 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-05-17.
 
 =head1 SYNOPSIS
 

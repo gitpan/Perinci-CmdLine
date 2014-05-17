@@ -7,7 +7,7 @@ use warnings;
 use Getopt::Long;
 use Perinci::CmdLine;
 
-our $VERSION = '1.09'; # VERSION
+our $VERSION = '1.10'; # VERSION
 
 my %opts = (
     library => [],
@@ -167,7 +167,7 @@ peri-run - Run commands (from any Riap function) on the command-line
 
 =head1 VERSION
 
-This document describes version 1.09 of peri-run (from Perl distribution Perinci-CmdLine), released on 2014-04-30.
+This document describes version 1.10 of peri-run (from Perl distribution Perinci-CmdLine), released on 2014-05-17.
 
 =head1 SYNOPSIS
 
