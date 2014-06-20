@@ -2,8 +2,8 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    This document describes version 1.10 of Perinci::CmdLine (from Perl
-    distribution Perinci-CmdLine), released on 2014-05-17.
+    This document describes version 1.11 of Perinci::CmdLine (from Perl
+    distribution Perinci-CmdLine), released on 2014-06-20.
 
 SYNOPSIS
     In your command-line script:
@@ -848,7 +848,7 @@ FAQ
     specification allows specifying a "completion" property for your
     argument, for example:
 
-     use Perinci::Sub::Complete qw(complete_array);
+     use SHARYANTO::Complete::Util qw(complete_array);
      $SPEC{del_user} = {
          v => 1.1,
          args => {

@@ -13,8 +13,8 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '1.10'; # VERSION
-our $DATE = '2014-05-17'; # DATE
+our $VERSION = '1.11'; # VERSION
+our $DATE = '2014-06-20'; # DATE
 
 our $REQ_VERSION = 0; # version requested by user
 
@@ -700,24 +700,20 @@ sub run_completion {
 
         my $rres = $self->_pa->request(meta => $sc->{url});
         if ($rres->[0] != 200) {
-            $log->debug("Can't get meta for completion: $res->[0] - $res->[1]");
+            $log->debugf("Can't get meta for completion: %s", $rres);
             $res = [];
             goto DISPLAY_RES;
         }
         my $meta = $rres->[2];
 
-        my $arg_completer = $self->custom_arg_completer;
-        $arg_completer //= sub {
-            my $rres = $self->_pa->request(complete_arg_val => $sc->{url});
-            return undef unless $rres->[0] == 20;
-            $rres->[2];
-        };
-
         $res = Perinci::Sub::Complete::shell_complete_arg(
             meta=>$meta, words=>$words, cword=>$cword,
             common_opts => $common_opts,
-            custom_completer=>$self->custom_completer,
-            custom_arg_completer => $arg_completer,
+            riap_server_url => $sc->{url},
+            riap_uri        => undef,
+            riap_client     => $self->_pa,
+            custom_completer     => $self->custom_completer,
+            custom_arg_completer => $self->custom_arg_completer,
         );
 
     } else {
@@ -1489,6 +1485,7 @@ sub run_call {
             {argv=>$self->{_orig_argv}}, # XXX tx_id, dry_run (see above)
         );
     } else {
+        #$log->tracef("Calling function via _pa with arguments: %s", \%fargs);
         $self->{_res} = $self->_pa->request(
             call => $self->{_subcommand}{url},
             {args=>\%fargs, tx_id=>$tx_id, dry_run=>$dry_run});
@@ -1928,7 +1925,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-This document describes version 1.10 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-05-17.
+This document describes version 1.11 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-06-20.
 
 =head1 SYNOPSIS
 
@@ -2825,7 +2822,7 @@ But if you want to supply custom completion, the L<Rinci::function>
 specification allows specifying a C<completion> property for your argument, for
 example:
 
- use Perinci::Sub::Complete qw(complete_array);
+ use SHARYANTO::Complete::Util qw(complete_array);
  $SPEC{del_user} = {
      v => 1.1,
      args => {
