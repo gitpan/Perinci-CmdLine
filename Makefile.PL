@@ -22,14 +22,15 @@ my %WriteMakefileArgs = (
   },
   "DISTNAME" => "Perinci-CmdLine",
   "EXE_FILES" => [
-    "bin/peri-run",
-    "bin/peri-func-usage",
     "bin/strip-result-env-yaml",
-    "bin/strip-result-env-json"
+    "bin/strip-result-env-json",
+    "bin/peri-run",
+    "bin/peri-func-usage"
   ],
   "LICENSE" => "perl",
   "NAME" => "Perinci::CmdLine",
   "PREREQ_PM" => {
+    "Complete::Util" => "0.10",
     "Data::Dump::OneLine" => 0,
     "Data::Format::Pretty::Console" => 0,
     "Data::Unixish" => "1.39",
@@ -50,7 +51,7 @@ my %WriteMakefileArgs = (
     "Perinci::Access::Simple::Client" => 0,
     "Perinci::Object" => "0.11",
     "Perinci::Result::Format" => "0.33",
-    "Perinci::Sub::Complete" => "0.40",
+    "Perinci::Sub::Complete" => "0.48",
     "Perinci::Sub::ConvertArgs::Argv" => 0,
     "Perinci::Sub::GetArgs::Argv" => "0.34",
     "Perinci::Sub::Util" => "0.36",
@@ -76,7 +77,7 @@ my %WriteMakefileArgs = (
     "IPC::Open3" => 0,
     "Test::More" => "0.96"
   },
-  "VERSION" => "1.11",
+  "VERSION" => "1.12",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -85,6 +86,7 @@ my %WriteMakefileArgs = (
 
 my %FallbackPrereqs = (
   "Capture::Tiny" => 0,
+  "Complete::Util" => "0.10",
   "Data::Dump::OneLine" => 0,
   "Data::Format::Pretty::Console" => 0,
   "Data::Unixish" => "1.39",
@@ -109,7 +111,7 @@ my %FallbackPrereqs = (
   "Perinci::Access::Simple::Client" => 0,
   "Perinci::Object" => "0.11",
   "Perinci::Result::Format" => "0.33",
-  "Perinci::Sub::Complete" => "0.40",
+  "Perinci::Sub::Complete" => "0.48",
   "Perinci::Sub::ConvertArgs::Argv" => 0,
   "Perinci::Sub::GetArgs::Argv" => "0.34",
   "Perinci::Sub::Util" => "0.36",

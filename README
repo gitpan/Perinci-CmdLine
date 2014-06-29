@@ -2,8 +2,8 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    This document describes version 1.11 of Perinci::CmdLine (from Perl
-    distribution Perinci-CmdLine), released on 2014-06-20.
+    This document describes version 1.12 of Perinci::CmdLine (from Perl
+    distribution Perinci-CmdLine), released on 2014-06-29.
 
 SYNOPSIS
     In your command-line script:
@@ -827,7 +827,23 @@ FAQ
      Perinci::CmdLine->new(url => '/main/f1')->run;
 
     This also demonstrates the convenience of having the metadata as a data
-    structure: you can manipulate it however you want.
+    structure: you can manipulate it however you want. There is also a
+    convenient function available in Perinci::Sub::Util when you want to
+    create a modified subroutine based on another:
+
+     package main;
+     use Perinci::CmdLine;
+     use Perinci::Sub::Util qw(gen_modified_sub);
+
+     gen_modified_sub(
+         output_name => 'f1',
+         base_name   => 'Package::F1::f1',
+         modify_args => {
+             foo => sub { my $as = shift; delete $as->{cmdline_aliases}   },
+             fee => sub { my $as = shift; $as->{cmdline_aliases} = {f=>{} },
+         },
+     );
+     Perinci::CmdLine->new(url => '/main/f1')->run;
 
   How to do custom completion for my argument?
     By default, Perinci::Sub::Complete's "complete_arg_val()" can employ
@@ -885,8 +901,20 @@ FAQ
     already several OO-based command-line frameworks on CPAN.
 
 TODOS
-    "cmdline_src" argument specification has not been fully implemented:
-    Providing I/O handle for argument of type "stream"/"filehandle".
+    *   startup overhead
+
+        One of the most important and annoying thing to fix is startup
+        overhead. Running a simple function like:
+
+         $SPEC{hello} = { v=>1.1 };
+         sub hello { say "hello"; [200] }
+
+        can take between 0.2-0.5s (on a 2012/2013-model laptop and PC).
+
+    *   cmdline_src
+
+        "cmdline_src" argument specification has not been fully implemented:
+        Providing I/O handle for argument of type "stream"/"filehandle".
 
 SEE ALSO
     Perinci, Rinci, Riap.

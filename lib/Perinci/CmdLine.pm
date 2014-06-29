@@ -13,8 +13,8 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '1.11'; # VERSION
-our $DATE = '2014-06-20'; # DATE
+our $VERSION = '1.12'; # VERSION
+our $DATE = '2014-06-29'; # DATE
 
 our $REQ_VERSION = 0; # version requested by user
 
@@ -609,14 +609,9 @@ sub run_version {
     0;
 }
 
-sub _add_slashes {
-    my ($a) = @_;
-    $a =~ s!([^A-Za-z0-9,+._/:-])!\\$1!g;
-    $a;
-}
-
 sub run_completion {
-    # Perinci::Sub::Complete already required by run()
+    require Complete::Util;
+    require Perinci::Sub::Complete;
 
     my ($self) = @_;
 
@@ -722,14 +717,16 @@ sub run_completion {
         push @ary, @top_opts;
         my $scs = $self->list_subcommands;
         push @ary, keys %$scs;
-        $res = Perinci::Sub::Complete::complete_array(
-            word=>$word, array=>\@ary,
-        );
+        $res = {
+            completion => Complete::Util::complete_array(
+                word=>$word, array=>\@ary,
+            ),
+            type=>'option',
+        };
     }
 
   DISPLAY_RES:
-    # display completion result for bash
-    print map {_add_slashes($_), "\n"} grep {defined} @$res;
+    print Complete::Util::format_shell_completion($res);
     0;
 }
 
@@ -1581,7 +1578,11 @@ sub parse_common_opts {
     my @go_opts = $self->_gen_go_specs_from_common_opts;
     $self->{_go_specs_common} = \@go_opts;
     my $old_go_opts = Getopt::Long::Configure(
-        "pass_through", "no_ignore_case", "no_getopt_compat");
+        "pass_through", "no_ignore_case", "no_getopt_compat", "no_auto_abbrev");
+    # we disable auto abbreviation to reduce surprise, e.g. -a can be
+    # abbreviated from common option --action. this is still not the proper
+    # solution. the proper solution is to only do option parsing once, but is it
+    # feasible?
     Getopt::Long::GetOptions(@go_opts);
     $log->tracef("result of GetOptions for common options: remaining argv=%s, ".
                      "actions=%s", \@ARGV, $self->{_actions});
@@ -1925,7 +1926,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-This document describes version 1.11 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-06-20.
+This document describes version 1.12 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-06-29.
 
 =head1 SYNOPSIS
 
@@ -2800,7 +2801,23 @@ command-line script C<f1> becomes:
  Perinci::CmdLine->new(url => '/main/f1')->run;
 
 This also demonstrates the convenience of having the metadata as a data
-structure: you can manipulate it however you want.
+structure: you can manipulate it however you want. There is also a convenient
+function available in L<Perinci::Sub::Util> when you want to create a modified
+subroutine based on another:
+
+ package main;
+ use Perinci::CmdLine;
+ use Perinci::Sub::Util qw(gen_modified_sub);
+
+ gen_modified_sub(
+     output_name => 'f1',
+     base_name   => 'Package::F1::f1',
+     modify_args => {
+         foo => sub { my $as = shift; delete $as->{cmdline_aliases}   },
+         fee => sub { my $as = shift; $as->{cmdline_aliases} = {f=>{} },
+     },
+ );
+ Perinci::CmdLine->new(url => '/main/f1')->run;
 
 =head2 How to do custom completion for my argument?
 
@@ -2862,8 +2879,24 @@ several OO-based command-line frameworks on CPAN.
 
 =head1 TODOS
 
+=over
+
+=item * startup overhead
+
+One of the most important and annoying thing to fix is startup overhead. Running
+a simple function like:
+
+ $SPEC{hello} = { v=>1.1 };
+ sub hello { say "hello"; [200] }
+
+can take between 0.2-0.5s (on a 2012/2013-model laptop and PC).
+
+=item * cmdline_src
+
 C<cmdline_src> argument specification has not been fully implemented: Providing
 I/O handle for argument of type C<stream>/C<filehandle>.
+
+=back
 
 =head1 SEE ALSO
 
