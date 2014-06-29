@@ -13,7 +13,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '1.12'; # VERSION
+our $VERSION = '1.13'; # VERSION
 our $DATE = '2014-06-29'; # DATE
 
 our $REQ_VERSION = 0; # version requested by user
@@ -1926,7 +1926,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-This document describes version 1.12 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-06-29.
+This document describes version 1.13 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-06-29.
 
 =head1 SYNOPSIS
 
