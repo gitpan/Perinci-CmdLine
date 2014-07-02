@@ -13,7 +13,7 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '1.14'; # VERSION
+our $VERSION = '1.15'; # VERSION
 our $DATE = '2014-07-02'; # DATE
 
 our $REQ_VERSION = 0; # version requested by user
@@ -701,7 +701,7 @@ sub run_completion {
         }
         my $meta = $rres->[2];
 
-        $res = Perinci::Sub::Complete::shell_complete_arg(
+        $res = Perinci::Sub::Complete::complete_cli_arg(
             meta=>$meta, words=>$words, cword=>$cword,
             common_opts => $common_opts,
             riap_server_url => $sc->{url},
@@ -1926,7 +1926,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-This document describes version 1.14 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-07-02.
+This document describes version 1.15 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-07-02.
 
 =head1 SYNOPSIS
 
@@ -2490,12 +2490,12 @@ L</"LOGGING"> for more details.
 
 =head2 custom_completer => CODEREF
 
-Will be passed to L<Perinci::Sub::Complete>'s C<shell_complete_arg()>. See its
+Will be passed to L<Perinci::Sub::Complete>'s C<complete_cli_arg()>. See its
 documentation for more details.
 
 =head2 custom_arg_completer => CODEREF | {ARGNAME=>CODEREF, ...}
 
-Will be passed to L<Perinci::Sub::Complete>'s C<shell_complete_arg()>. See its
+Will be passed to L<Perinci::Sub::Complete>'s C<complete_cli_arg()>. See its
 documentation for more details.
 
 =head2 pass_cmdline_object => BOOL (optional, default 0)

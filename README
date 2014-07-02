@@ -2,7 +2,7 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    This document describes version 1.14 of Perinci::CmdLine (from Perl
+    This document describes version 1.15 of Perinci::CmdLine (from Perl
     distribution Perinci-CmdLine), released on 2014-07-02.
 
 SYNOPSIS
@@ -540,12 +540,12 @@ ATTRIBUTES
     "LOGGING" for more details.
 
   custom_completer => CODEREF
-    Will be passed to Perinci::Sub::Complete's "shell_complete_arg()". See
-    its documentation for more details.
+    Will be passed to Perinci::Sub::Complete's "complete_cli_arg()". See its
+    documentation for more details.
 
   custom_arg_completer => CODEREF | {ARGNAME=>CODEREF, ...}
-    Will be passed to Perinci::Sub::Complete's "shell_complete_arg()". See
-    its documentation for more details.
+    Will be passed to Perinci::Sub::Complete's "complete_cli_arg()". See its
+    documentation for more details.
 
   pass_cmdline_object => BOOL (optional, default 0)
     Whether to pass special argument "-cmdline" containing the
