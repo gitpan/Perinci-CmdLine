@@ -13,7 +13,7 @@ configure_requires:
   ExtUtils::MakeMaker: '6.30'
   File::ShareDir::Install: '0.06'
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 5.019, CPAN::Meta::Converter version 2.141520'
+generated_by: 'Dist::Zilla version 5.019, CPAN::Meta::Converter version 2.141170'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -22,7 +22,8 @@ name: Perinci-CmdLine
 recommends:
   Perinci::Tx::Manager: '0.34'
 requires:
-  Complete::Util: '0.10'
+  Complete::Bash: '0'
+  Complete::Util: '0.12'
   Data::Dump::OneLine: '0'
   Data::Format::Pretty::Console: '0'
   Data::Unixish: '1.39'
@@ -65,7 +66,7 @@ resources:
   bugtracker: https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-CmdLine
   homepage: https://metacpan.org/release/Perinci-CmdLine
   repository: git://github.com/sharyanto/perl-Perinci-CmdLine.git
-version: '1.13'
+version: '1.14'
 x_Dist_Zilla:
   perl:
     version: '5.018002'
@@ -273,7 +274,7 @@ x_Dist_Zilla:
           script_finder:
             - ':ExecFiles'
       name: '@Author::SHARYANTO/Test::Compile'
-      version: '2.043'
+      version: '2.040'
     -
       class: Dist::Zilla::Plugin::Test::Rinci
       name: '@Author::SHARYANTO/Test::Rinci'

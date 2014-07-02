@@ -10,7 +10,7 @@ require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(run_cmdline_app);
 
-our $VERSION = '1.13'; # VERSION
+our $VERSION = '1.14'; # VERSION
 
 our %SPEC;
 
@@ -110,7 +110,7 @@ Perinci::CmdLine::Easy - A simple interface to run a subroutine as command-line 
 
 =head1 VERSION
 
-This document describes version 1.13 of Perinci::CmdLine::Easy (from Perl distribution Perinci-CmdLine), released on 2014-06-29.
+This document describes version 1.14 of Perinci::CmdLine::Easy (from Perl distribution Perinci-CmdLine), released on 2014-07-02.
 
 =head1 SYNOPSIS
 

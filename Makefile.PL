@@ -22,15 +22,16 @@ my %WriteMakefileArgs = (
   },
   "DISTNAME" => "Perinci-CmdLine",
   "EXE_FILES" => [
-    "bin/strip-result-env-yaml",
-    "bin/strip-result-env-json",
     "bin/peri-run",
-    "bin/peri-func-usage"
+    "bin/peri-func-usage",
+    "bin/strip-result-env-yaml",
+    "bin/strip-result-env-json"
   ],
   "LICENSE" => "perl",
   "NAME" => "Perinci::CmdLine",
   "PREREQ_PM" => {
-    "Complete::Util" => "0.10",
+    "Complete::Bash" => 0,
+    "Complete::Util" => "0.12",
     "Data::Dump::OneLine" => 0,
     "Data::Format::Pretty::Console" => 0,
     "Data::Unixish" => "1.39",
@@ -77,7 +78,7 @@ my %WriteMakefileArgs = (
     "IPC::Open3" => 0,
     "Test::More" => "0.96"
   },
-  "VERSION" => "1.13",
+  "VERSION" => "1.14",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -86,7 +87,8 @@ my %WriteMakefileArgs = (
 
 my %FallbackPrereqs = (
   "Capture::Tiny" => 0,
-  "Complete::Util" => "0.10",
+  "Complete::Bash" => 0,
+  "Complete::Util" => "0.12",
   "Data::Dump::OneLine" => 0,
   "Data::Format::Pretty::Console" => 0,
   "Data::Unixish" => "1.39",

@@ -4,7 +4,7 @@
       "Steven Haryanto <stevenharyanto@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 5.019, CPAN::Meta::Converter version 2.141520",
+   "generated_by" : "Dist::Zilla version 5.019, CPAN::Meta::Converter version 2.141170",
    "license" : [
       "perl_5"
    ],
@@ -33,7 +33,8 @@
             "Perinci::Tx::Manager" : "0.34"
          },
          "requires" : {
-            "Complete::Util" : "0.10",
+            "Complete::Bash" : "0",
+            "Complete::Util" : "0.12",
             "Data::Dump::OneLine" : "0",
             "Data::Format::Pretty::Console" : "0",
             "Data::Unixish" : "1.39",
@@ -97,7 +98,7 @@
          "web" : "https://github.com/sharyanto/perl-Perinci-CmdLine"
       }
    },
-   "version" : "1.13",
+   "version" : "1.14",
    "x_Dist_Zilla" : {
       "perl" : {
          "version" : "5.018002"
@@ -362,7 +363,7 @@
                }
             },
             "name" : "@Author::SHARYANTO/Test::Compile",
-            "version" : "2.043"
+            "version" : "2.040"
          },
          {
             "class" : "Dist::Zilla::Plugin::Test::Rinci",

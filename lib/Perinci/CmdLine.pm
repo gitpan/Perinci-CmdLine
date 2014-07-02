@@ -13,8 +13,8 @@ use Perinci::Object;
 use Perinci::ToUtil;
 use Scalar::Util qw(reftype blessed);
 
-our $VERSION = '1.13'; # VERSION
-our $DATE = '2014-06-29'; # DATE
+our $VERSION = '1.14'; # VERSION
+our $DATE = '2014-07-02'; # DATE
 
 our $REQ_VERSION = 0; # version requested by user
 
@@ -610,14 +610,14 @@ sub run_version {
 }
 
 sub run_completion {
+    require Complete::Bash;
     require Complete::Util;
     require Perinci::Sub::Complete;
 
     my ($self) = @_;
 
     my $sc = $self->{_subcommand};
-    my $words = $self->{_comp_parse_res}{words};
-    my $cword = $self->{_comp_parse_res}{cword};
+    my ($words, $cword) = @{ $self->{_comp_parse_res} };
     my $word  = $words->[$cword] // "";
 
     # determine whether we should complete function arg names/values or just
@@ -718,7 +718,7 @@ sub run_completion {
         my $scs = $self->list_subcommands;
         push @ary, keys %$scs;
         $res = {
-            completion => Complete::Util::complete_array(
+            completion => Complete::Util::complete_array_elem(
                 word=>$word, array=>\@ary,
             ),
             type=>'option',
@@ -726,7 +726,7 @@ sub run_completion {
     }
 
   DISPLAY_RES:
-    print Complete::Util::format_shell_completion($res);
+    print Complete::Bash::format_completion($res);
     0;
 }
 
@@ -1836,10 +1836,10 @@ sub run {
     #
 
     if ($ENV{COMP_LINE}) {
-        require Perinci::Sub::Complete;
-        my $res = Perinci::Sub::Complete::parse_shell_cmdline();
-        @ARGV = @{ $res->{words} };
-        $self->{_comp_parse_res} = $res; # store for run_completion()
+        require Complete::Bash;
+        my ($words, $cword) = Complete::Bash::parse_cmdline();
+        @ARGV = @$words;
+        $self->{_comp_parse_res} = [$words, $cword]; # store for run_completion()
     }
 
     $self->{_actions} = []; # first action will be tried first, then 2nd, ...
@@ -1926,7 +1926,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-This document describes version 1.13 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-06-29.
+This document describes version 1.14 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-07-02.
 
 =head1 SYNOPSIS
 
@@ -2839,7 +2839,7 @@ But if you want to supply custom completion, the L<Rinci::function>
 specification allows specifying a C<completion> property for your argument, for
 example:
 
- use SHARYANTO::Complete::Util qw(complete_array);
+ use SHARYANTO::Complete::Util qw(complete_array_elem);
  $SPEC{del_user} = {
      v => 1.1,
      args => {
@@ -2852,7 +2852,7 @@ example:
 
                  # get list of users from database or whatever
                  my @users = ...;
-                 complete_array(array=>\@users, word=>$args{word});
+                 complete_array_elem(array=>\@users, word=>$args{word});
              },
          },
          ...
