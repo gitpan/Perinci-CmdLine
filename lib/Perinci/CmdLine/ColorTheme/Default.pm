@@ -4,7 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 
-our $VERSION = '1.16'; # VERSION
+our $VERSION = '1.17'; # VERSION
 
 our %color_themes = (
 
@@ -56,7 +56,7 @@ Perinci::CmdLine::ColorTheme::Default - Default color themes
 
 =head1 VERSION
 
-This document describes version 1.16 of Perinci::CmdLine::ColorTheme::Default (from Perl distribution Perinci-CmdLine), released on 2014-07-03.
+This document describes version 1.17 of Perinci::CmdLine::ColorTheme::Default (from Perl distribution Perinci-CmdLine), released on 2014-08-22.
 
 =head1 HOMEPAGE
 
