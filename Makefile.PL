@@ -65,11 +65,11 @@ my %WriteMakefileArgs = (
     "File::Spec" => 0,
     "IO::Handle" => 0,
     "IPC::Open3" => 0,
-    "Perinci::Examples" => "0.30",
+    "Perinci::Examples" => "0.31",
     "Test::More" => "0.98",
     "Test::Perinci::CmdLine" => 0
   },
-  "VERSION" => "1.18",
+  "VERSION" => "1.19",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -99,7 +99,7 @@ my %FallbackPrereqs = (
   "Perinci::Access::Schemeless" => "0.65",
   "Perinci::Access::Simple::Client" => 0,
   "Perinci::CmdLine::Base" => "0.16",
-  "Perinci::Examples" => "0.30",
+  "Perinci::Examples" => "0.31",
   "Perinci::Object" => "0.11",
   "Perinci::Result::Format" => "0.33",
   "Perinci::Sub::ConvertArgs::Argv" => 0,

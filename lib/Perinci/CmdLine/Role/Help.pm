@@ -1,7 +1,7 @@
 package Perinci::CmdLine::Role::Help;
 
-our $DATE = '2014-08-22'; # DATE
-our $VERSION = '1.18'; # VERSION
+our $DATE = '2014-08-23'; # DATE
+our $VERSION = '1.19'; # VERSION
 
 # split here just so it's more organized
 
@@ -621,7 +621,7 @@ sub run_help {
         $self->$meth($r);
     }
     $self->_help_draw_curtbl($r);
-    [200, "OK", $r->{_help_buf}, {"x.perinci.cmdline._skip_format"=>1}];
+    [200, "OK", $r->{_help_buf}, {"x.perinci.cmdline.skip_format"=>1}];
 }
 
 1;
@@ -639,7 +639,7 @@ Perinci::CmdLine::Role::Help - Help-related routines
 
 =head1 VERSION
 
-This document describes version 1.18 of Perinci::CmdLine::Role::Help (from Perl distribution Perinci-CmdLine), released on 2014-08-22.
+This document describes version 1.19 of Perinci::CmdLine::Role::Help (from Perl distribution Perinci-CmdLine), released on 2014-08-23.
 
 =for Pod::Coverage ^(.+)$
 
