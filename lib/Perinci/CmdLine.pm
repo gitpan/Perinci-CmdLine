@@ -1,7 +1,7 @@
 package Perinci::CmdLine;
 
-our $DATE = '2014-08-24'; # DATE
-our $VERSION = '1.20'; # VERSION
+our $DATE = '2014-08-25'; # DATE
+our $VERSION = '1.21'; # VERSION
 
 use 5.010001;
 #use strict; # enabled by Moo
@@ -243,6 +243,34 @@ sub BUILD {
                     my ($go, $val, $r) = @_;
                     $r->{subcommand_name} = $val;
                     $r->{subcommand_name_from} = '--cmd';
+                },
+            };
+        }
+
+        if ($self->read_config) {
+            $copts->{config_path} = {
+                getopt  => 'config-path=s@',
+                summary => N__('Set path to configuration file'),
+                handler => sub {
+                    my ($go, $val, $r) = @_;
+                    $r->{config_paths} //= [];
+                    push @{ $r->{config_paths} }, $val;
+                },
+            };
+            $copts->{no_config} = {
+                getopt  => 'noconfig|no-config',
+                summary => N__('Do not use any configuration file'),
+                handler => sub {
+                    my ($go, $val, $r) = @_;
+                    $r->{read_config} = 0;
+                },
+            };
+            $copts->{config_profile} = {
+                getopt  => 'config-profile=s',
+                summary => N__('Set configuration profile to use'),
+                handler => sub {
+                    my ($go, $val, $r) = @_;
+                    $r->{config_profile} = $val;
                 },
             };
         }
@@ -940,7 +968,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-This document describes version 1.20 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-08-24.
+This document describes version 1.21 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-08-25.
 
 =head1 SYNOPSIS
 
