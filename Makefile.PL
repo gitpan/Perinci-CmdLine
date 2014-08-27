@@ -15,7 +15,7 @@ install_share dist => "share";
 
 my %WriteMakefileArgs = (
   "ABSTRACT" => "Rinci/Riap-based command-line application framework",
-  "AUTHOR" => "Steven Haryanto <stevenharyanto\@gmail.com>",
+  "AUTHOR" => "perlancar <perlancar\@cpan.org>",
   "CONFIGURE_REQUIRES" => {
     "ExtUtils::MakeMaker" => "6.30",
     "File::ShareDir::Install" => "0.06"
@@ -44,7 +44,7 @@ my %WriteMakefileArgs = (
     "Perinci::Access::Perl" => "0.66",
     "Perinci::Access::Schemeless" => "0.65",
     "Perinci::Access::Simple::Client" => 0,
-    "Perinci::CmdLine::Base" => "0.22",
+    "Perinci::CmdLine::Base" => "0.23",
     "Perinci::Object" => "0.11",
     "Perinci::Result::Format" => "0.33",
     "Perinci::Sub::ConvertArgs::Argv" => 0,
@@ -69,7 +69,7 @@ my %WriteMakefileArgs = (
     "Test::More" => "0.98",
     "Test::Perinci::CmdLine" => 0
   },
-  "VERSION" => "1.23",
+  "VERSION" => "1.24",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -98,7 +98,7 @@ my %FallbackPrereqs = (
   "Perinci::Access::Perl" => "0.66",
   "Perinci::Access::Schemeless" => "0.65",
   "Perinci::Access::Simple::Client" => 0,
-  "Perinci::CmdLine::Base" => "0.22",
+  "Perinci::CmdLine::Base" => "0.23",
   "Perinci::Examples" => "0.31",
   "Perinci::Object" => "0.11",
   "Perinci::Result::Format" => "0.33",
