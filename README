@@ -2,8 +2,8 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    This document describes version 1.24 of Perinci::CmdLine (from Perl
-    distribution Perinci-CmdLine), released on 2014-08-27.
+    This document describes version 1.25 of Perinci::CmdLine (from Perl
+    distribution Perinci-CmdLine), released on 2014-09-02.
 
 SYNOPSIS
     See Perinci::CmdLine::Manual::Examples.
@@ -152,7 +152,7 @@ HOMEPAGE
 
 SOURCE
     Source repository is at
-    <https://github.com/perlancar/perl-Perinci-CmdLine>.
+    <https://github.com/sharyanto/perl-Perinci-CmdLine>.
 
 BUGS
     Please report any bugs or feature requests on the bugtracker website
