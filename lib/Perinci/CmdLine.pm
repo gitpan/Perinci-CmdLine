@@ -1,7 +1,7 @@
 package Perinci::CmdLine;
 
-our $DATE = '2014-09-02'; # DATE
-our $VERSION = '1.25'; # VERSION
+our $DATE = '2014-09-03'; # DATE
+our $VERSION = '1.26'; # VERSION
 
 use 5.010001;
 #use strict; # enabled by Moo
@@ -429,14 +429,10 @@ sub format_row {
     }
 }
 
-sub get_meta {
-    my ($self, $url) = @_;
+sub hook_after_get_meta {
+    my ($self, $r) = @_;
 
-    my $res = $self->riap_client->request(meta => $url);
-    die $res unless $res->[0] == 200;
-    my $meta = $res->[2];
-
-    if (risub($meta)->can_dry_run) {
+    if (risub($r->{meta})->can_dry_run) {
         $self->common_opts->{dry_run} = {
             getopt  => 'dry-run',
             summary => N__("Run in simulation mode (also via DRY_RUN=1)"),
@@ -447,8 +443,6 @@ sub get_meta {
             },
         };
     }
-
-    $meta;
 }
 
 my ($ph1, $ph2); # patch handles
@@ -760,7 +754,7 @@ sub run_version {
     my ($self, $r) = @_;
 
     my $url = $r->{subcommand_data}{url} // $self->url;
-    my $meta = $self->get_meta($url);
+    my $meta = $self->get_meta($r, $url);
     my $ver = $meta->{entity_v} // "?";
     my $date = $meta->{entity_date};
 
@@ -897,7 +891,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-This document describes version 1.25 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-09-02.
+This document describes version 1.26 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-09-03.
 
 =head1 SYNOPSIS
 
@@ -1075,7 +1069,7 @@ Please visit the project's homepage at L<https://metacpan.org/release/Perinci-Cm
 
 =head1 SOURCE
 
-Source repository is at L<https://github.com/sharyanto/perl-Perinci-CmdLine>.
+Source repository is at L<https://github.com/perlancar/perl-Perinci-CmdLine>.
 
 =head1 BUGS
 
