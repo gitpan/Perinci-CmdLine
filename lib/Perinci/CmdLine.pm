@@ -1,7 +1,7 @@
 package Perinci::CmdLine;
 
-our $DATE = '2014-09-03'; # DATE
-our $VERSION = '1.26'; # VERSION
+our $DATE = '2014-09-04'; # DATE
+our $VERSION = '1.27'; # VERSION
 
 use 5.010001;
 #use strict; # enabled by Moo
@@ -567,18 +567,6 @@ sub hook_after_parse_argv {
         $do_log //= $self->log_any_app;
         $self->_load_log_any_app($r) if $do_log;
     }
-
-    # we'll try giving argv to server side, but this currently means we skip
-    # processing cmdline_src.
-    if ($r->{parse_argv_res}[0] == 502) {
-        #$log->debugf("Failed parsing arguments (status 502), will try to send ".
-        #                 "argv to server");
-        $r->{send_argv} = 1;
-        return;
-    }
-
-    #$log->tracef("result of GetArgs for subcommand: remaining argv=%s, args=%s".
-    #                 ", action=%s", \@ARGV, $r->{args}, $r->{action});
 }
 
 sub hook_format_result {
@@ -891,7 +879,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-This document describes version 1.26 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-09-03.
+This document describes version 1.27 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-09-04.
 
 =head1 SYNOPSIS
 
