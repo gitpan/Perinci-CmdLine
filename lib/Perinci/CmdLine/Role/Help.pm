@@ -1,7 +1,7 @@
 package Perinci::CmdLine::Role::Help;
 
 our $DATE = '2014-09-04'; # DATE
-our $VERSION = '1.27'; # VERSION
+our $VERSION = '1.28'; # VERSION
 
 # split here just so it's more organized
 
@@ -261,7 +261,7 @@ sub help_section_options {
             my $src = $a->{cmdline_src} // "";
             my $in;
             if ($s->[1]{in} && @{ $s->[1]{in} }) {
-                $in = $s->[1]{in};
+                $in = Perinci::CmdLine::__json_encode($s->[1]{in});
             }
 
             my $cat;
@@ -639,7 +639,7 @@ Perinci::CmdLine::Role::Help - Help-related routines
 
 =head1 VERSION
 
-This document describes version 1.27 of Perinci::CmdLine::Role::Help (from Perl distribution Perinci-CmdLine), released on 2014-09-04.
+This document describes version 1.28 of Perinci::CmdLine::Role::Help (from Perl distribution Perinci-CmdLine), released on 2014-09-04.
 
 =for Pod::Coverage ^(.+)$
 

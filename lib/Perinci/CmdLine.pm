@@ -1,7 +1,7 @@
 package Perinci::CmdLine;
 
 our $DATE = '2014-09-04'; # DATE
-our $VERSION = '1.27'; # VERSION
+our $VERSION = '1.28'; # VERSION
 
 use 5.010001;
 #use strict; # enabled by Moo
@@ -392,6 +392,12 @@ sub __json_decode {
     require JSON;
     state $json = do { JSON->new->allow_nonref };
     $json->decode(shift);
+}
+
+sub __json_encode {
+    require JSON;
+    state $json = do { JSON->new->allow_nonref };
+    $json->encode(shift);
 }
 
 sub _color {
@@ -879,7 +885,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-This document describes version 1.27 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-09-04.
+This document describes version 1.28 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-09-04.
 
 =head1 SYNOPSIS
 
