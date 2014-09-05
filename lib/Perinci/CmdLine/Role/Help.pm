@@ -1,7 +1,7 @@
 package Perinci::CmdLine::Role::Help;
 
-our $DATE = '2014-09-04'; # DATE
-our $VERSION = '1.28'; # VERSION
+our $DATE = '2014-09-05'; # DATE
+our $VERSION = '1.29'; # VERSION
 
 # split here just so it's more organized
 
@@ -212,6 +212,7 @@ sub help_section_options {
             ($args_p->{$a}{pos} // 99) <=> ($args_p->{$b}{pos} // 99) ||
                 $a cmp $b
             } keys %$args_p) {
+            #say "D:arg $an";
             my $a = $args_p->{$an};
             my $s = $a->{schema} || [any=>{}];
             my $got = Perinci::ToUtil::sah2human_short($s);
@@ -257,7 +258,7 @@ sub help_section_options {
             }
 
             my $def = defined($s->[1]{default}) && $s->[0] ne 'bool' ?
-                " (default: ".Perinci::CmdLine::__json_decode($s->[1]{default}).")" : "";
+                " (default: ".Perinci::CmdLine::__json_encode($s->[1]{default}).")" : "";
             my $src = $a->{cmdline_src} // "";
             my $in;
             if ($s->[1]{in} && @{ $s->[1]{in} }) {
@@ -639,7 +640,7 @@ Perinci::CmdLine::Role::Help - Help-related routines
 
 =head1 VERSION
 
-This document describes version 1.28 of Perinci::CmdLine::Role::Help (from Perl distribution Perinci-CmdLine), released on 2014-09-04.
+This document describes version 1.29 of Perinci::CmdLine::Role::Help (from Perl distribution Perinci-CmdLine), released on 2014-09-05.
 
 =for Pod::Coverage ^(.+)$
 

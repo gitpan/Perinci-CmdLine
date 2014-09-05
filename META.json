@@ -92,7 +92,7 @@
          "web" : "https://github.com/perlancar/perl-Perinci-CmdLine"
       }
    },
-   "version" : "1.28",
+   "version" : "1.29",
    "x_Dist_Zilla" : {
       "perl" : {
          "version" : "5.018002"
