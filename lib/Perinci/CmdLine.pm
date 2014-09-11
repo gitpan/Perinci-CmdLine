@@ -1,7 +1,7 @@
 package Perinci::CmdLine;
 
-our $DATE = '2014-09-05'; # DATE
-our $VERSION = '1.29'; # VERSION
+our $DATE = '2014-09-11'; # DATE
+our $VERSION = '1.30'; # VERSION
 
 use 5.010001;
 #use strict; # enabled by Moo
@@ -98,6 +98,7 @@ has action_metadata => (
         },
     },
 );
+has default_prompt_template => (is=>'rw');
 
 sub VERSION {
     my ($pkg, $req) = @_;
@@ -111,6 +112,10 @@ sub BUILD {
                          text text-simple text-pretty
                          json json-pretty yaml perl
                          ruby phpserialization)];
+
+    if (!$self->{default_prompt_template}) {
+        $self->{default_prompt_template} = N__("Enter %s:") . " ",
+    }
 
     if (!$self->{actions}) {
         $self->{actions} = {
@@ -885,7 +890,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-This document describes version 1.29 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-09-05.
+This document describes version 1.30 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-09-11.
 
 =head1 SYNOPSIS
 
