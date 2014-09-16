@@ -2,8 +2,8 @@ NAME
     Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 VERSION
-    This document describes version 1.30 of Perinci::CmdLine (from Perl
-    distribution Perinci-CmdLine), released on 2014-09-11.
+    This document describes version 1.31 of Perinci::CmdLine (from Perl
+    distribution Perinci-CmdLine), released on 2014-09-16.
 
 SYNOPSIS
     See Perinci::CmdLine::Manual::Examples.
@@ -62,58 +62,6 @@ METHODS
 RESULT METADATA
     All those supported by Perinci::CmdLine::Base, plus:
 
-  property: is_stream => BOOL
-    XXX should perhaps be defined as standard in Rinci::function.
-
-    If set to 1, signify that result is a stream. Result must be a glob, or
-    an object that responds to getline() and eof() (like a Perl IO::Handle
-    object), or an array/tied array. Format must currently be "text"
-    (streaming YAML might be supported in the future). Items of result will
-    be displayed to output as soon as it is retrieved, and unlike
-    non-streams, it can be infinite.
-
-    An example function:
-
-     $SPEC{cat_file} = { ... };
-     sub cat_file {
-         my %args = @_;
-         open my($fh), "<", $args{path} or return [500, "Can't open file: $!"];
-         [200, "OK", $fh, {is_stream=>1}];
-     }
-
-    another example:
-
-     use Tie::Simple;
-     $SPEC{uc_file} = { ... };
-     sub uc_file {
-         my %args = @_;
-         open my($fh), "<", $args{path} or return [500, "Can't open file: $!"];
-         my @ary;
-         tie @ary, "Tie::Simple", undef,
-             SHIFT     => sub { eof($fh) ? undef : uc(~~<$fh> // "") },
-             FETCHSIZE => sub { eof($fh) ? 0 : 1 };
-         [200, "OK", \@ary, {is_stream=>1}];
-     }
-
-    See also Data::Unixish and App::dux which deals with streams.
-
-  attribute: cmdline.page_result => BOOL
-    If you want to filter the result through pager (currently defaults to
-    $ENV{PAGER} or "less -FRSX"), you can set "cmdline.page_result" in
-    result metadata to true.
-
-    For example:
-
-     $SPEC{doc} = { ... };
-     sub doc {
-         ...
-         [200, "OK", $doc, {"cmdline.page_result"=>1}];
-     }
-
-  attribute: cmdline.pager => STR
-    Instruct Perinci::CmdLine to use specified pager instead of $ENV{PAGER}
-    or the default "less" or "more".
-
 ENVIRONMENT
     All the environment variables that Perinci::CmdLine::Base supports,
     plus:
@@ -123,12 +71,6 @@ ENVIRONMENT
 
   PROGRESS => BOOL
     Explicitly turn the progress bar on/off.
-
-  PAGER => STR
-    Like in other programs, can be set to select the pager program (when
-    "cmdline.page_result" result metadata is active). Can also be set to ''
-    or 0 to explicitly disable paging even though "cmd.page_result" result
-    metadata is active.
 
   COLOR => INT
     Please see SHARYANTO::Role::TermAttrs.

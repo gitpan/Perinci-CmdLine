@@ -26,7 +26,6 @@ requires:
   Data::Format::Pretty::Console: '0'
   Data::Unixish: '1.39'
   File::HomeDir: '0'
-  File::Which: '0'
   Getopt::Long::Util: '0'
   JSON: '0'
   Locale::TextDomain::UTF8: '0'
@@ -40,7 +39,7 @@ requires:
   Perinci::Access::Perl: '0.66'
   Perinci::Access::Schemeless: '0.65'
   Perinci::Access::Simple::Client: '0'
-  Perinci::CmdLine::Base: '0.29'
+  Perinci::CmdLine::Base: '0.30'
   Perinci::Object: '0.11'
   Perinci::Result::Format: '0.33'
   Perinci::Sub::ConvertArgs::Argv: '0'
@@ -60,7 +59,7 @@ resources:
   bugtracker: https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-CmdLine
   homepage: https://metacpan.org/release/Perinci-CmdLine
   repository: git://github.com/perlancar/perl-Perinci-CmdLine.git
-version: '1.30'
+version: '1.31'
 x_Dist_Zilla:
   perl:
     version: '5.018002'
@@ -253,7 +252,7 @@ x_Dist_Zilla:
     -
       class: Dist::Zilla::Plugin::Rinci::Validate
       name: '@Author::PERLANCAR/Rinci::Validate'
-      version: '0.14'
+      version: '0.18'
     -
       class: Dist::Zilla::Plugin::SetScriptShebang
       name: '@Author::PERLANCAR/SetScriptShebang'
