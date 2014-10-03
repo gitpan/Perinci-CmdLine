@@ -1,7 +1,7 @@
 package Perinci::CmdLine::Role::Help;
 
-our $DATE = '2014-09-16'; # DATE
-our $VERSION = '1.31'; # VERSION
+our $DATE = '2014-10-03'; # DATE
+our $VERSION = '1.32'; # VERSION
 
 # split here just so it's more organized
 
@@ -640,7 +640,7 @@ Perinci::CmdLine::Role::Help - Help-related routines
 
 =head1 VERSION
 
-This document describes version 1.31 of Perinci::CmdLine::Role::Help (from Perl distribution Perinci-CmdLine), released on 2014-09-16.
+This document describes version 1.32 of Perinci::CmdLine::Role::Help (from Perl distribution Perinci-CmdLine), released on 2014-10-03.
 
 =for Pod::Coverage ^(.+)$
 
@@ -661,7 +661,7 @@ Please visit the project's homepage at L<https://metacpan.org/release/Perinci-Cm
 
 =head1 SOURCE
 
-Source repository is at L<https://github.com/perlancar/perl-Perinci-CmdLine>.
+Source repository is at L<https://github.com/sharyanto/perl-Perinci-CmdLine>.
 
 =head1 BUGS
 
