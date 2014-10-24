@@ -1,7 +1,7 @@
 package Perinci::CmdLine::Role::Help;
 
 our $DATE = '2014-10-24'; # DATE
-our $VERSION = '1.35'; # VERSION
+our $VERSION = '1.36'; # VERSION
 
 # split here just so it's more organized
 
@@ -640,7 +640,7 @@ Perinci::CmdLine::Role::Help - Help-related routines
 
 =head1 VERSION
 
-This document describes version 1.35 of Perinci::CmdLine::Role::Help (from Perl distribution Perinci-CmdLine), released on 2014-10-24.
+This document describes version 1.36 of Perinci::CmdLine::Role::Help (from Perl distribution Perinci-CmdLine), released on 2014-10-24.
 
 =for Pod::Coverage ^(.+)$
 

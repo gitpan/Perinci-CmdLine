@@ -1,7 +1,7 @@
 package Perinci::CmdLine;
 
 our $DATE = '2014-10-24'; # DATE
-our $VERSION = '1.35'; # VERSION
+our $VERSION = '1.36'; # VERSION
 
 use 5.010001;
 #use strict; # enabled by Moo
@@ -608,6 +608,8 @@ sub hook_format_result {
     if ($res->[3]{is_stream}) {
         $log->tracef("Result is a stream");
         return undef;
+    } elsif ($res->[3]{'x.hint.result_binary'} && $format =~ /text/) {
+        $r->{fres} = $res->[2];
     } else {
         $log->tracef("Formatting output with %s", $format);
         $r->{fres} = Perinci::Result::Format::format($res, $format);
@@ -853,7 +855,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-This document describes version 1.35 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-10-24.
+This document describes version 1.36 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-10-24.
 
 =head1 SYNOPSIS
 

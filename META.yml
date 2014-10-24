@@ -39,7 +39,7 @@ requires:
   Perinci::Access::Perl: '0.74'
   Perinci::Access::Schemeless: '0.74'
   Perinci::Access::Simple::Client: '0.18'
-  Perinci::CmdLine::Base: '0.35'
+  Perinci::CmdLine::Base: '0.36'
   Perinci::Object: '0.11'
   Perinci::Result::Format: '0.33'
   Perinci::Sub::ConvertArgs::Argv: '0'
@@ -59,7 +59,7 @@ resources:
   bugtracker: https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-CmdLine
   homepage: https://metacpan.org/release/Perinci-CmdLine
   repository: git://github.com/perlancar/perl-Perinci-CmdLine.git
-version: '1.35'
+version: '1.36'
 x_Dist_Zilla:
   perl:
     version: '5.018002'
