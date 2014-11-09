@@ -1,7 +1,7 @@
 package Perinci::CmdLine;
 
-our $DATE = '2014-10-24'; # DATE
-our $VERSION = '1.36'; # VERSION
+our $DATE = '2014-11-09'; # DATE
+our $VERSION = '1.37'; # VERSION
 
 use 5.010001;
 #use strict; # enabled by Moo
@@ -22,7 +22,7 @@ with 'SHARYANTO::Role::ColorTheme' unless $ENV{COMP_LINE};
 #with 'SHARYANTO::Role::TermAttrs' unless $ENV{COMP_LINE}; already loaded by ColorTheme
 with 'Perinci::CmdLine::Role::Help' unless $ENV{COMP_LINE};
 
-has log_any_app => (is => 'rw', default=>sub{1});
+has log => (is => 'rw', default=>sub{1});
 has undo => (is=>'rw', default=>sub{0});
 has undo_dir => (
     is => 'rw',
@@ -102,6 +102,9 @@ has action_metadata => (
     },
 );
 has default_prompt_template => (is=>'rw');
+
+# OLD name for backward compat, will be removed later
+sub log_any_app { goto \&log }
 
 sub VERSION {
     my ($pkg, $req) = @_;
@@ -284,7 +287,7 @@ sub BUILD {
         }
 
         # convenience for Log::Any::App-using apps
-        if ($self->log_any_app) {
+        if ($self->log) {
             # since the cmdline opts is consumed, Log::Any::App doesn't see
             # this. we currently work around this via setting env.
 
@@ -575,12 +578,13 @@ sub hook_after_parse_argv {
     # We load Log::Any::App rather late here, so user can customize level via
     # --debug, --dry-run, etc.
     unless ($ENV{COMP_LINE}) {
-        my $do_log = $r->{subcommand_data}{log_any_app}
-            if $r->{subcommand_data};
+        my $do_log = $r->{subcommand_data}{log} //
+            $r->{subcommand_data}{log_any_app} # OLD compat, will be removed later
+                if $r->{subcommand_data};
         $do_log //= $ENV{LOG};
         $do_log //= $self->action_metadata->{$r->{action}}{default_log}
             if $self->{action};
-        $do_log //= $self->log_any_app;
+        $do_log //= $self->log;
         $self->_load_log_any_app($r) if $do_log;
     }
 }
@@ -855,7 +859,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-This document describes version 1.36 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-10-24.
+This document describes version 1.37 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-11-09.
 
 =head1 SYNOPSIS
 
@@ -900,7 +904,7 @@ hash/stash.
 
 All the attributes of L<Perinci::CmdLine::Base>, plus:
 
-=head2 log_any_app => BOOL (default: 1)
+=head2 log => BOOL (default: 1)
 
 Whether to load L<Log::Any::App> (enable logging output) by default. See
 L</"LOGGING"> for more details.
@@ -953,6 +957,11 @@ All the methods of L<Perinci::CmdLine::Base>, plus:
 
 All those supported by L<Perinci::CmdLine::Base>, plus:
 
+=head2 x.hint.result_binary => bool
+
+If set to true, then when formatting to C<text> formats, this class won't print
+any newline to keep the data being printed unmodified.
+
 =head1 ENVIRONMENT
 
 All the environment variables that L<Perinci::CmdLine::Base> supports, plus:
@@ -990,7 +999,7 @@ Please visit the project's homepage at L<https://metacpan.org/release/Perinci-Cm
 
 =head1 SOURCE
 
-Source repository is at L<https://github.com/perlancar/perl-Perinci-CmdLine>.
+Source repository is at L<https://github.com/sharyanto/perl-Perinci-CmdLine>.
 
 =head1 BUGS
 

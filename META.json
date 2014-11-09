@@ -4,7 +4,7 @@
       "perlancar <perlancar@cpan.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 5.019, CPAN::Meta::Converter version 2.141170",
+   "generated_by" : "Dist::Zilla version 5.019, CPAN::Meta::Converter version 2.141520",
    "license" : [
       "perl_5"
    ],
@@ -87,11 +87,11 @@
       "homepage" : "https://metacpan.org/release/Perinci-CmdLine",
       "repository" : {
          "type" : "git",
-         "url" : "git://github.com/perlancar/perl-Perinci-CmdLine.git",
-         "web" : "https://github.com/perlancar/perl-Perinci-CmdLine"
+         "url" : "git://github.com/sharyanto/perl-Perinci-CmdLine.git",
+         "web" : "https://github.com/sharyanto/perl-Perinci-CmdLine"
       }
    },
-   "version" : "1.36",
+   "version" : "1.37",
    "x_Dist_Zilla" : {
       "perl" : {
          "version" : "5.018002"
@@ -198,6 +198,11 @@
             "version" : "5.019"
          },
          {
+            "class" : "Dist::Zilla::Plugin::Rinci::InstallCompletion",
+            "name" : "@Author::PERLANCAR/Rinci::InstallCompletion",
+            "version" : "0.01"
+         },
+         {
             "class" : "Dist::Zilla::Plugin::OurDate",
             "name" : "@Author::PERLANCAR/OurDate",
             "version" : "0.01"
@@ -282,6 +287,11 @@
                         "version" : "4.006"
                      },
                      {
+                        "class" : "Pod::Weaver::Section::BashCompletion::PerinciCmdLine",
+                        "name" : "@Author::PERLANCAR/BashCompletion::PerinciCmdLine",
+                        "version" : "0.02"
+                     },
+                     {
                         "class" : "Pod::Weaver::Section::Homepage::DefaultCPAN",
                         "name" : "@Author::PERLANCAR/Homepage::DefaultCPAN",
                         "version" : "0.02"
@@ -335,7 +345,7 @@
          {
             "class" : "Dist::Zilla::Plugin::Rinci::Validate",
             "name" : "@Author::PERLANCAR/Rinci::Validate",
-            "version" : "0.18"
+            "version" : "0.19"
          },
          {
             "class" : "Dist::Zilla::Plugin::SetScriptShebang",
@@ -361,7 +371,7 @@
                }
             },
             "name" : "@Author::PERLANCAR/Test::Compile",
-            "version" : "2.040"
+            "version" : "2.043"
          },
          {
             "class" : "Dist::Zilla::Plugin::Test::Rinci",
