@@ -4,7 +4,7 @@
       "perlancar <perlancar@cpan.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 5.019, CPAN::Meta::Converter version 2.141520",
+   "generated_by" : "Dist::Zilla version 5.019, CPAN::Meta::Converter version 2.141170",
    "license" : [
       "perl_5"
    ],
@@ -36,7 +36,6 @@
             "Data::Format::Pretty::Console" : "0",
             "Data::Unixish" : "1.39",
             "File::HomeDir" : "0",
-            "Getopt::Long::Util" : "0",
             "JSON" : "0",
             "Locale::TextDomain::UTF8" : "0",
             "Log::Any" : "0",
@@ -53,6 +52,7 @@
             "Perinci::Object" : "0.11",
             "Perinci::Result::Format" : "0.33",
             "Perinci::Sub::ConvertArgs::Argv" : "0",
+            "Perinci::Sub::To::CLIOptSpec" : "0.06",
             "Perinci::Sub::Wrapper" : "0.40",
             "Perinci::ToUtil" : "0",
             "Progress::Any" : "0.13",
@@ -87,11 +87,11 @@
       "homepage" : "https://metacpan.org/release/Perinci-CmdLine",
       "repository" : {
          "type" : "git",
-         "url" : "git://github.com/sharyanto/perl-Perinci-CmdLine.git",
-         "web" : "https://github.com/sharyanto/perl-Perinci-CmdLine"
+         "url" : "git://github.com/perlancar/perl-Perinci-CmdLine.git",
+         "web" : "https://github.com/perlancar/perl-Perinci-CmdLine"
       }
    },
-   "version" : "1.37",
+   "version" : "1.38",
    "x_Dist_Zilla" : {
       "perl" : {
          "version" : "5.018002"
@@ -200,7 +200,7 @@
          {
             "class" : "Dist::Zilla::Plugin::Rinci::InstallCompletion",
             "name" : "@Author::PERLANCAR/Rinci::InstallCompletion",
-            "version" : "0.01"
+            "version" : "0.03"
          },
          {
             "class" : "Dist::Zilla::Plugin::OurDate",
@@ -272,9 +272,9 @@
                         "version" : "4.006"
                      },
                      {
-                        "class" : "Pod::Weaver::Plugin::Perinci",
-                        "name" : "@Author::PERLANCAR/Perinci",
-                        "version" : "0.15"
+                        "class" : "Pod::Weaver::Plugin::Rinci",
+                        "name" : "@Author::PERLANCAR/Rinci",
+                        "version" : "0.18"
                      },
                      {
                         "class" : "Pod::Weaver::Section::Leftovers",
@@ -287,9 +287,14 @@
                         "version" : "4.006"
                      },
                      {
+                        "class" : "Pod::Weaver::Section::BashCompletion::GetoptLongComplete",
+                        "name" : "@Author::PERLANCAR/BashCompletion::GetoptLongComplete",
+                        "version" : "0.01"
+                     },
+                     {
                         "class" : "Pod::Weaver::Section::BashCompletion::PerinciCmdLine",
                         "name" : "@Author::PERLANCAR/BashCompletion::PerinciCmdLine",
-                        "version" : "0.02"
+                        "version" : "0.03"
                      },
                      {
                         "class" : "Pod::Weaver::Section::Homepage::DefaultCPAN",
@@ -371,7 +376,7 @@
                }
             },
             "name" : "@Author::PERLANCAR/Test::Compile",
-            "version" : "2.043"
+            "version" : "2.040"
          },
          {
             "class" : "Dist::Zilla::Plugin::Test::Rinci",

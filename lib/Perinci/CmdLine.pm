@@ -1,7 +1,7 @@
 package Perinci::CmdLine;
 
-our $DATE = '2014-11-09'; # DATE
-our $VERSION = '1.37'; # VERSION
+our $DATE = '2014-11-21'; # DATE
+our $VERSION = '1.38'; # VERSION
 
 use 5.010001;
 #use strict; # enabled by Moo
@@ -269,7 +269,7 @@ sub BUILD {
                 },
             };
             $copts->{no_config} = {
-                getopt  => 'noconfig|no-config',
+                getopt  => 'no-config',
                 summary => N__('Do not use any configuration file'),
                 handler => sub {
                     my ($go, $val, $r) = @_;
@@ -859,7 +859,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-This document describes version 1.37 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-11-09.
+This document describes version 1.38 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2014-11-21.
 
 =head1 SYNOPSIS
 
@@ -999,7 +999,7 @@ Please visit the project's homepage at L<https://metacpan.org/release/Perinci-Cm
 
 =head1 SOURCE
 
-Source repository is at L<https://github.com/sharyanto/perl-Perinci-CmdLine>.
+Source repository is at L<https://github.com/perlancar/perl-Perinci-CmdLine>.
 
 =head1 BUGS
 
