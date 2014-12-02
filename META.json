@@ -51,8 +51,7 @@
             "Perinci::CmdLine::Base" : "0.36",
             "Perinci::Object" : "0.11",
             "Perinci::Result::Format" : "0.33",
-            "Perinci::Sub::ConvertArgs::Argv" : "0",
-            "Perinci::Sub::To::CLIOptSpec" : "0.06",
+            "Perinci::Sub::To::CLIDocData" : "0",
             "Perinci::Sub::Wrapper" : "0.40",
             "Perinci::ToUtil" : "0",
             "Progress::Any" : "0.13",
@@ -60,7 +59,6 @@
             "Progress::Any::Output::TermProgressBarColor" : "0.08",
             "Rinci" : "v1.1.41",
             "SHARYANTO::Role::ColorTheme" : "0.62",
-            "String::ShellQuote" : "0",
             "Text::ANSITable" : "0.23",
             "UUID::Random" : "0",
             "experimental" : "0",
@@ -91,7 +89,7 @@
          "web" : "https://github.com/perlancar/perl-Perinci-CmdLine"
       }
    },
-   "version" : "1.38",
+   "version" : "1.39",
    "x_Dist_Zilla" : {
       "perl" : {
          "version" : "5.018002"
@@ -274,7 +272,7 @@
                      {
                         "class" : "Pod::Weaver::Plugin::Rinci",
                         "name" : "@Author::PERLANCAR/Rinci",
-                        "version" : "0.18"
+                        "version" : "0.20"
                      },
                      {
                         "class" : "Pod::Weaver::Section::Leftovers",
@@ -287,14 +285,14 @@
                         "version" : "4.006"
                      },
                      {
-                        "class" : "Pod::Weaver::Section::BashCompletion::GetoptLongComplete",
-                        "name" : "@Author::PERLANCAR/BashCompletion::GetoptLongComplete",
-                        "version" : "0.01"
+                        "class" : "Pod::Weaver::Section::Completion::GetoptLongComplete",
+                        "name" : "@Author::PERLANCAR/Completion::GetoptLongComplete",
+                        "version" : "0.04"
                      },
                      {
-                        "class" : "Pod::Weaver::Section::BashCompletion::PerinciCmdLine",
-                        "name" : "@Author::PERLANCAR/BashCompletion::PerinciCmdLine",
-                        "version" : "0.03"
+                        "class" : "Pod::Weaver::Section::Completion::PerinciCmdLine",
+                        "name" : "@Author::PERLANCAR/Completion::PerinciCmdLine",
+                        "version" : "0.07"
                      },
                      {
                         "class" : "Pod::Weaver::Section::Homepage::DefaultCPAN",

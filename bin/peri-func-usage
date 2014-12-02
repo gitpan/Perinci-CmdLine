@@ -7,7 +7,7 @@ use Log::Any '$log';
 
 use Perinci::CmdLine;
 
-our $VERSION = '1.38'; # VERSION
+our $VERSION = '1.39'; # VERSION
 
 our %SPEC;
 
@@ -61,7 +61,7 @@ peri-func-usage - Display command-line usage of a Riap function
 
 =head1 VERSION
 
-This document describes version 1.38 of peri-func-usage (from Perl distribution Perinci-CmdLine), released on 2014-11-21.
+This document describes version 1.39 of peri-func-usage (from Perl distribution Perinci-CmdLine), released on 2014-12-02.
 
 =head1 SYNOPSIS
 
@@ -72,9 +72,11 @@ From command-line:
 
 =head1 DESCRIPTION
 
-=head1 BASH COMPLETION
+=head1 COMPLETION
 
-This script has bash completion capability.
+This script has shell tab completion capability with support for several shells.
+
+=head2 bash
 
 To activate bash completion for this script, put:
 
@@ -83,6 +85,32 @@ To activate bash completion for this script, put:
 in your bash startup (e.g. C<~/.bashrc>). Your next shell session will then recognize tab completion for the command. Or, you can also directly execute the line above in your shell to activate immediately.
 
 You can also install L<App::BashCompletionProg> which makes it easy to add completion for Perinci::CmdLine-based scripts. After you install the module and put C<. ~/.bash-complete-prog> (or C<. /etc/bash-complete-prog>), you can just run C<bash-completion-prog> and the C<complete> command will be added to your C<~/.bash-completion-prog>. Your next shell session will then recognize tab completion for the command.
+
+=head2 fish
+
+To activate fish completion for this script, execute:
+
+ begin; set -lx COMP_SHELL fish; set -lx COMP_MODE gen_command; peri-func-usage; end > $HOME/.config/fish/completions/peri-func-usage.fish
+
+Or if you want to install globally, you can instead write the generated script to C</etc/fish/completions/peri-func-usage.fish> or C</usr/share/fish/completions/peri-func-usage.fish>. The exact path might be different on your system. Please check your C<fish_complete_path> variable.
+
+=head2 tcsh
+
+To activate tcsh completion for this script, put:
+
+ complete peri-func-usage 'p/*/`peri-func-usage`/'
+
+in your tcsh startup (e.g. C<~/.tcshrc>). Your next shell session will then recognize tab completion for the command. Or, you can also directly execute the line above in your shell to activate immediately.
+
+=head2 zsh
+
+To activate zsh completion for this script, put:
+
+ _peri_func_usage() { read -l; local cl="$REPLY"; read -ln; local cp="$REPLY"; reply=(`COMP_SHELL=zsh COMP_LINE="$cl" COMP_POINT="$cp" peri-func-usage`) }
+
+ compctl -K _peri_func_usage peri-func-usage
+
+in your zsh startup (e.g. C<~/.zshrc>). Your next shell session will then recognize tab completion for the command. Or, you can also directly execute the line above in your shell to activate immediately.
 
 =head1 HOMEPAGE
 
