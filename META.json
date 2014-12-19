@@ -17,7 +17,8 @@
       "configure" : {
          "requires" : {
             "ExtUtils::MakeMaker" : "0",
-            "File::ShareDir::Install" : "0.06"
+            "File::ShareDir::Install" : "0.06",
+            "Perl::osnames" : "0.09"
          }
       },
       "develop" : {
@@ -49,7 +50,7 @@
             "Perinci::Access::Perl" : "0.74",
             "Perinci::Access::Schemeless" : "0.74",
             "Perinci::Access::Simple::Client" : "0.18",
-            "Perinci::CmdLine::Base" : "0.36",
+            "Perinci::CmdLine::Base" : "0.68",
             "Perinci::Object" : "0.11",
             "Perinci::Result::Format" : "0.33",
             "Perinci::Sub::To::CLIDocData" : "0",
@@ -90,7 +91,7 @@
          "web" : "https://github.com/perlancar/perl-Perinci-CmdLine"
       }
    },
-   "version" : "1.40",
+   "version" : "1.41",
    "x_Dist_Zilla" : {
       "perl" : {
          "version" : "5.018002"
@@ -183,6 +184,16 @@
             "version" : "5.025"
          },
          {
+            "class" : "Dist::Zilla::Plugin::Rinci::AbstractFromMeta",
+            "name" : "@Author::PERLANCAR/Rinci::AbstractFromMeta",
+            "version" : "0.06"
+         },
+         {
+            "class" : "Dist::Zilla::Plugin::PodnameFromFilename",
+            "name" : "@Author::PERLANCAR/PodnameFromFilename",
+            "version" : "0.01"
+         },
+         {
             "class" : "Dist::Zilla::Plugin::PERLANCAR::MetaResources",
             "name" : "@Author::PERLANCAR/PERLANCAR::MetaResources",
             "version" : "0.03"
@@ -208,9 +219,9 @@
             "version" : "5.025"
          },
          {
-            "class" : "Dist::Zilla::Plugin::Rinci::InstallCompletion",
-            "name" : "@Author::PERLANCAR/Rinci::InstallCompletion",
-            "version" : "0.03"
+            "class" : "Dist::Zilla::Plugin::GenShellCompletion",
+            "name" : "@Author::PERLANCAR/GenShellCompletion",
+            "version" : "0.07"
          },
          {
             "class" : "Dist::Zilla::Plugin::OurDate",
@@ -284,7 +295,7 @@
                      {
                         "class" : "Pod::Weaver::Plugin::Rinci",
                         "name" : "@Author::PERLANCAR/Rinci",
-                        "version" : "0.23"
+                        "version" : "0.24"
                      },
                      {
                         "class" : "Pod::Weaver::Section::Leftovers",
