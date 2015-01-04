@@ -1,7 +1,7 @@
 package Perinci::CmdLine::Role::Help;
 
-our $DATE = '2014-12-19'; # DATE
-our $VERSION = '1.41'; # VERSION
+our $DATE = '2015-01-04'; # DATE
+our $VERSION = '1.42'; # VERSION
 
 # split here just so it's more organized
 
@@ -10,7 +10,6 @@ use Moo::Role;
 
 use Locale::TextDomain::UTF8 'Perinci-CmdLine';
 use Perinci::Object;
-use Perinci::ToUtil;
 
 sub _help_draw_curtbl {
     my ($self, $r) = @_;
@@ -515,7 +514,7 @@ Perinci::CmdLine::Role::Help - Help-related routines
 
 =head1 VERSION
 
-This document describes version 1.41 of Perinci::CmdLine::Role::Help (from Perl distribution Perinci-CmdLine), released on 2014-12-19.
+This document describes version 1.42 of Perinci::CmdLine::Role::Help (from Perl distribution Perinci-CmdLine), released on 2015-01-04.
 
 =for Pod::Coverage ^(.+)$
 
@@ -536,7 +535,7 @@ Please visit the project's homepage at L<https://metacpan.org/release/Perinci-Cm
 
 =head1 SOURCE
 
-Source repository is at L<https://github.com/perlancar/perl-Perinci-CmdLine>.
+Source repository is at L<https://github.com/sharyanto/perl-Perinci-CmdLine>.
 
 =head1 BUGS
 
@@ -552,7 +551,7 @@ perlancar <perlancar@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2014 by perlancar@cpan.org.
+This software is copyright (c) 2015 by perlancar@cpan.org.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
