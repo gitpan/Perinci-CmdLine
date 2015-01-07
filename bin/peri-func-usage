@@ -1,7 +1,7 @@
 #!perl
 
-our $DATE = '2015-01-04'; # DATE
-our $VERSION = '1.42'; # VERSION
+our $DATE = '2015-01-07'; # DATE
+our $VERSION = '1.43'; # VERSION
 
 use 5.010;
 use strict;
@@ -63,7 +63,7 @@ peri-func-usage - Display command-line usage of a Riap function
 
 =head1 VERSION
 
-This document describes version 1.42 of peri-func-usage (from Perl distribution Perinci-CmdLine), released on 2015-01-04.
+This document describes version 1.43 of peri-func-usage (from Perl distribution Perinci-CmdLine), released on 2015-01-07.
 
 =head1 SYNOPSIS
 
@@ -82,25 +82,25 @@ C<*> marks required options.
 
 =item B<--config-path>=I<s>
 
-Set path to configuration file.
+{en_US Set path to configuration file}.
 
 Can be specified multiple times.
 
 =item B<--config-profile>=I<s>
 
-Set configuration profile to use.
+{en_US Set configuration profile to use}.
 
 =item B<--help>, B<-h>, B<-?>
 
-Display this help message.
+{en_US Display this help message}.
 
 =item B<--no-config>
 
-Do not use any configuration file.
+{en_US Do not use any configuration file}.
 
 =item B<--url>=I<s>*
 
-Riap URL to function, e.g. /Git/Bunch/backup_bunch.
+{en_US Riap URL to function, e.g. /Git/Bunch/backup_bunch}.
 
 =item B<--version>, B<-v>
 
@@ -146,7 +146,7 @@ Please visit the project's homepage at L<https://metacpan.org/release/Perinci-Cm
 
 =head1 SOURCE
 
-Source repository is at L<https://github.com/sharyanto/perl-Perinci-CmdLine>.
+Source repository is at L<https://github.com/perlancar/perl-Perinci-CmdLine>.
 
 =head1 BUGS
 

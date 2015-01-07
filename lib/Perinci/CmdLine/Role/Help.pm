@@ -1,7 +1,7 @@
 package Perinci::CmdLine::Role::Help;
 
-our $DATE = '2015-01-04'; # DATE
-our $VERSION = '1.42'; # VERSION
+our $DATE = '2015-01-07'; # DATE
+our $VERSION = '1.43'; # VERSION
 
 # split here just so it's more organized
 
@@ -373,8 +373,7 @@ sub help_section_result {
     $text = $summary . ($summary ? "\n\n" : "") . $desc;
 
     # collect handler
-    my %handler_args;
-    my %handler_metas;
+    my %handlers;
     for my $k0 (keys %$rmeta) {
         my $v = $rmeta->{$k0};
 
@@ -394,21 +393,19 @@ sub help_section_result {
         unless ($self->can($meth)) {
             die "No help handler for property result/$k0 ($meth)";
         }
-        my $hm = $self->$meth;
-        my $ha = {
-            prio=>$hm->{prio}, value=>$v->{$k0}, property=>$k0,
-            meth=>"help_hook_result__$k",
+        my $hmeta = $self->$meth;
+        $handlers{$k} = {
+            prio => $hmeta->{prio},
+            meth => "help_hook_result__$k",
         };
-        $handler_args{$k} = $ha;
-        $handler_metas{$k} = $hm;
     }
 
     # call all the handlers in order
-    for my $k (sort {$handler_args{$a}{prio} <=> $handler_args{$b}{prio}}
-                   keys %handler_args) {
-        my $ha = $handler_args{$k};
-        my $meth = $ha->{meth};
-        my $t = $self->$meth(meta => $meta, %$ha);
+    for my $k (sort {$handlers{$a}{prio} <=> $handlers{$b}{prio}}
+                   keys %handlers) {
+        my $h = $handlers{$k};
+        my $meth = $h->{meth};
+        my $t = $self->$meth($r);
         $text .= $t if $t;
     }
 
@@ -434,11 +431,11 @@ sub run_help {
     unless ($r->{_help_meta}) {
         my $url = $r->{subcommand_data}{url} // $self->url;
         my $res = $self->riap_client->request(info => $url);
-        $self->_err("Can't info '$url': $res->[0] - $res->[1]")
+        die [500, "Can't info '$url': $res->[0] - $res->[1]"]
             unless $res->[0] == 200;
         $r->{_help_info} = $res->[2];
         $res = $self->riap_client->request(meta => $url);
-        $self->_err("Can't meta '$url': $res->[0] - $res->[1]")
+        die [500, "Can't meta '$url': $res->[0] - $res->[1]"]
             unless $res->[0] == 200;
         $r->{_help_meta} = $res->[2]; # cache here
     }
@@ -452,7 +449,7 @@ sub run_help {
             per_arg_json => $self->per_arg_json,
             per_arg_yaml => $self->per_arg_yaml,
         );
-        $self->_err("Can't gen_cli_doc_data_from_meta: $res->[0] - $res->[1]")
+        die [500, "Can't gen_cli_doc_data_from_meta: $res->[0] - $res->[1]"]
             unless $res->[0] == 200;
         $r->{_help_clidocdata} = $res->[2]; # cache here
     }
@@ -514,7 +511,7 @@ Perinci::CmdLine::Role::Help - Help-related routines
 
 =head1 VERSION
 
-This document describes version 1.42 of Perinci::CmdLine::Role::Help (from Perl distribution Perinci-CmdLine), released on 2015-01-04.
+This document describes version 1.43 of Perinci::CmdLine::Role::Help (from Perl distribution Perinci-CmdLine), released on 2015-01-07.
 
 =for Pod::Coverage ^(.+)$
 
@@ -535,7 +532,7 @@ Please visit the project's homepage at L<https://metacpan.org/release/Perinci-Cm
 
 =head1 SOURCE
 
-Source repository is at L<https://github.com/sharyanto/perl-Perinci-CmdLine>.
+Source repository is at L<https://github.com/perlancar/perl-Perinci-CmdLine>.
 
 =head1 BUGS
 

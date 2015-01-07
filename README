@@ -1,99 +1,90 @@
-SYNOPSIS
+NAME
+    Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
+VERSION
+    This document describes version 1.43 of Perinci::CmdLine (from Perl
+    distribution Perinci-CmdLine), released on 2015-01-07.
+
+SYNOPSIS
     See Perinci::CmdLine::Manual::Examples.
 
 DESCRIPTION
-
     See Perinci::CmdLine::Manual.
 
     Screenshots:
 
 REQUEST KEYS
-
     See also Perinci::CmdLine::Base. Extra stuffs put by this module to the
     $r hash/stash.
 
-      * format_options => hash
+    *   format_options => hash
 
 ATTRIBUTES
-
     All the attributes of Perinci::CmdLine::Base, plus:
 
- log => BOOL (default: 1)
-
+  log => BOOL (default: 1)
     Whether to load Log::Any::App (enable logging output) by default. See
     "LOGGING" for more details.
 
- use_utf8 => BOOL
-
+  use_utf8 => BOOL
     From Term::App::Role::Attrs (please see its docs for more details).
     There are several other attributes added by the role.
 
- undo => BOOL (optional, default 0)
-
+  undo => BOOL (optional, default 0)
     Whether to enable undo/redo functionality. Some things to note if you
     intend to use undo:
 
-      * These common command-line options will be recognized
+    *   These common command-line options will be recognized
 
-      --undo, --redo, --history, --clear-history.
+        "--undo", "--redo", "--history", "--clear-history".
 
-      * Transactions will be used
+    *   Transactions will be used
 
-      use_tx=>1 will be passed to Perinci::Access, which will cause it to
-      initialize the transaction manager. Riap requests begin_tx and
-      commit_tx will enclose the call request to function.
+        "use_tx=>1" will be passed to Perinci::Access, which will cause it
+        to initialize the transaction manager. Riap requests begin_tx and
+        commit_tx will enclose the call request to function.
 
-      * Called function will need to support transaction and undo
+    *   Called function will need to support transaction and undo
 
-      Function which does not meet qualifications will refuse to be called.
+        Function which does not meet qualifications will refuse to be
+        called.
 
-      Exception is when subcommand is specified with undo=>0, where
-      transaction will not be used for that subcommand. For an example of
-      disabling transaction for some subcommands, see bin/u-trash in the
-      distribution.
+        Exception is when subcommand is specified with "undo=>0", where
+        transaction will not be used for that subcommand. For an example of
+        disabling transaction for some subcommands, see "bin/u-trash" in the
+        distribution.
 
- undo_dir => STR (optional, default ~/.<program_name>/.undo)
-
+  undo_dir => STR (optional, default ~/.<program_name>/.undo)
     Where to put undo data. This is actually the transaction manager's data
     dir.
 
 METHODS
-
     All the methods of Perinci::CmdLine::Base, plus:
 
 RESULT METADATA
-
     All those supported by Perinci::CmdLine::Base, plus:
 
- x.hint.result_binary => bool
-
-    If set to true, then when formatting to text formats, this class won't
+  x.hint.result_binary => bool
+    If set to true, then when formatting to "text" formats, this class won't
     print any newline to keep the data being printed unmodified.
 
 ENVIRONMENT
-
     All the environment variables that Perinci::CmdLine::Base supports,
     plus:
 
- PERINCI_CMDLINE_COLOR_THEME => STR
+  PERINCI_CMDLINE_COLOR_THEME => STR
+    Can be used to set "color_theme".
 
-    Can be used to set color_theme.
-
- PROGRESS => BOOL
-
+  PROGRESS => BOOL
     Explicitly turn the progress bar on/off.
 
- COLOR => INT
-
+  COLOR => INT
     Please see Term::App::Role::Attrs.
 
- UTF8 => BOOL
-
+  UTF8 => BOOL
     Please see Term::App::Role::Attrs.
 
 SEE ALSO
-
     Perinci, Rinci, Riap.
 
     Perinci::CmdLine::Base.
@@ -102,4 +93,28 @@ SEE ALSO
 
     Other CPAN modules to write command-line applications: App::Cmd,
     App::Rad, MooseX::Getopt.
+
+HOMEPAGE
+    Please visit the project's homepage at
+    <https://metacpan.org/release/Perinci-CmdLine>.
+
+SOURCE
+    Source repository is at
+    <https://github.com/perlancar/perl-Perinci-CmdLine>.
+
+BUGS
+    Please report any bugs or feature requests on the bugtracker website
+    <https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-CmdLine>
+
+    When submitting a bug or request, please include a test-file or a patch
+    to an existing test-file that illustrates the bug or desired feature.
+
+AUTHOR
+    perlancar <perlancar@cpan.org>
+
+COPYRIGHT AND LICENSE
+    This software is copyright (c) 2015 by perlancar@cpan.org.
+
+    This is free software; you can redistribute it and/or modify it under
+    the same terms as the Perl 5 programming language system itself.
 

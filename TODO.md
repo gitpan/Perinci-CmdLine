@@ -1,3 +1,23 @@
+* BUG [2015-01-07 Wed] pericmd, perisprop-result-table: help about table data is now not displayed
+
+  - try: list-id-holidays -h --verbose
+
+* TODO [2014-12-19 Jum] pericmd, dfpc: like in pericmd-lite (see commit @[2014-12-15 ]), aos doesn't need to be rendered with borders
+* IDEA [2014-12-03 Wed] pericmd, pericmd-lite, glcomp, glsubc: autocorrect subcommand name, like in git etc ('gitbunch chek' -> 'Did you mean gitbunch check?)
+* TODO [2015-01-07 Wed] pericmd: refactor: move to a separate module and reuse it with pericmd-lite
+
+  - note ::
+    + need to abstract formatting
+    + need to still be able to call cmdline_help hooks (declared by some
+      perisprop-* modules)
+
+* TODO [2014-12-03 Wed] pericmd: refactor: move bin/peri-func-usage to another dist
+
+  - since the generating help functionality has been factored out to
+    peris2clidocdata (and the remaining higher-level bits in pericmd &
+    pericmd-lite will also be refactored to another module)
+  - perhaps to peri2doc or something
+
 * IDEA [2014-11-21 Fri] pericmd: --help: mark required option (*) with a red color [#D]
 * IDEA [2014-11-14 Jum] pericmd: option to collect all unknown/unparsed command-line options and pass it to function e.g. in $args{-cmdline_args}
 

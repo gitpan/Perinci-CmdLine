@@ -1,7 +1,7 @@
 package Perinci::CmdLine;
 
-our $DATE = '2015-01-04'; # DATE
-our $VERSION = '1.42'; # VERSION
+our $DATE = '2015-01-07'; # DATE
+our $VERSION = '1.43'; # VERSION
 
 use 5.010001;
 #use strict; # enabled by Moo
@@ -766,7 +766,7 @@ Perinci::CmdLine - Rinci/Riap-based command-line application framework
 
 =head1 VERSION
 
-This document describes version 1.42 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2015-01-04.
+This document describes version 1.43 of Perinci::CmdLine (from Perl distribution Perinci-CmdLine), released on 2015-01-07.
 
 =head1 SYNOPSIS
 
@@ -906,7 +906,7 @@ Please visit the project's homepage at L<https://metacpan.org/release/Perinci-Cm
 
 =head1 SOURCE
 
-Source repository is at L<https://github.com/sharyanto/perl-Perinci-CmdLine>.
+Source repository is at L<https://github.com/perlancar/perl-Perinci-CmdLine>.
 
 =head1 BUGS
 
